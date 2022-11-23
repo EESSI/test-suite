@@ -9,7 +9,8 @@ site_configuration = {
             'descr': 'Example cluster',
             'modules_system': 'lmod',
             'hostnames': ['*'],
-            'stagedir': f'/tmp/{username}/reframe_output/staging',
+            # Note that the stagedir should be a shared directory available on all nodes running ReFrame tests
+            'stagedir': f'/some/shared/dir/{username}/reframe_output/staging',
             'partitions': [
                 {
                     'name': 'cpu',
