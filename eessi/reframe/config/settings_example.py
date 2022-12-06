@@ -25,6 +25,7 @@ site_configuration = {
                         'num_cpus_per_socket': 64,
                         'arch': 'znver2',
                     },
+                    'features': ['cpu'],
                     'descr': 'CPU partition'
                 },
                 {
@@ -46,11 +47,12 @@ site_configuration = {
                             'num_devices': 4,
                         }
                     ],
+                    'features': ['gpu'],
                     'descr': 'GPU partition'
                 },
-             ]
-         },
-     ],
+            ]
+        },
+    ],
     'environments': [
         {
             'name': 'builtin',
@@ -58,8 +60,8 @@ site_configuration = {
             'cxx': '',
             'ftn': '',
         },
-     ],
-     'logging': [
+    ],
+    'logging': [
         {
             'level': 'debug',
             'handlers': [

@@ -2,11 +2,12 @@ import re
 
 import reframe as rfm
 
-
 gpu_dev_name = 'gpu'
+
 
 def _get_gpu_list(test: rfm.RegressionTest):
     return [ dev.num_devices for dev in test.current_partition.devices if dev.device_type == gpu_dev_name ]
+
 
 def get_num_gpus(test: rfm.RegressionTest) -> int:
     '''Returns the number of GPUs for the current partition'''
@@ -22,14 +23,20 @@ def get_num_gpus(test: rfm.RegressionTest) -> int:
 
     return gpu_list[0]
 
+
 def is_gpu_present(test: rfm.RegressionTest) -> bool:
     '''Checks if GPUs are present in the current partition'''
     return ( len(_get_gpu_list(test)) >= 1 )
 
+
+def is_cuda_required_module(module_name):
+    '''Checks if CUDA seems to be required by given module'''
+    requires_cuda = False
+    if re.search("(?i)cuda", module_name):
+        requires_cuda = True
+    return requires_cuda
+
+
 def is_cuda_required(test: rfm.RegressionTest) -> bool:
     '''Checks if CUDA seems to be required by current module'''
-    requires_cuda = False
-    for module in test.modules:
-        if re.search("(?i)cuda", module):
-            requires_cuda = True
-    return requires_cuda
+    return any([is_cuda_required_module(x) for x in test.modules])

@@ -4,11 +4,24 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import reframe as rfm
-from reframe.utility import find_modules
+import reframe.core.runtime as rt
+from reframe.utility import OrderedSet
 
 from hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
 import eessi_utils.hooks as hooks
 import eessi_utils.utils as utils
+
+
+def my_find_modules(substr):
+    """Return all modules in the current system that contain ``substr`` in their name."""
+    if not isinstance(substr, str):
+        raise TypeError("'substr' argument must be a string")
+
+    ms = rt.runtime().modules_system
+    modules = OrderedSet(ms.available_modules(substr))
+    for m in modules:
+        yield m
+
 
 @rfm.simple_test
 class GROMACS_EESSI(gromacs_check):
@@ -18,7 +31,9 @@ class GROMACS_EESSI(gromacs_check):
         ('n_small', 2),
         ('n_medium', 8),
         ('n_large', 16)])
-    module_info = parameter(find_modules('GROMACS', environ_mapping={r'.*': 'builtin'}))
+
+    module_name = parameter(my_find_modules('GROMACS'))
+    valid_prog_environs = ['builtin']
 
     omp_num_threads = 1
     executable_opts += ['-dlb yes', '-ntomp %s' % omp_num_threads, '-npme -1']
@@ -29,11 +44,17 @@ class GROMACS_EESSI(gromacs_check):
     time_limit = '30m'
 
     @run_after('init')
-    def apply_module_info(self):
-        self.s, self.e, self.m = self.module_info
-        self.valid_systems = [self.s]
-        self.modules = [self.m]
-        self.valid_prog_environs = [self.e]
+    def select_valid_systems(self):
+        cuda = utils.is_cuda_required_module(self.module_name)
+        if self.nb_impl == 'gpu' and cuda:
+            valid_systems = '+gpu'
+        elif self.nb_impl == 'cpu' and not cuda:
+            valid_systems = '+cpu'
+        else:
+            valid_systems = 'nonexisting'
+
+        self.valid_systems = [valid_systems]
+        self.modules = [self.module_name]
 
     @run_after('init')
     def set_test_scale(self):
@@ -54,7 +75,8 @@ class GROMACS_EESSI(gromacs_check):
     def skip_nb_impl_gpu_on_cpu_nodes(self):
         self.skip_if(
             (self.nb_impl == 'gpu' and not utils.is_gpu_present(self)),
-            "Skipping test variant with non-bonded interactions on GPUs, as this partition (%s) does not have GPU nodes" % self.current_partition.name
+            "Skipping test variant with non-bonded interactions on GPUs, "
+            "as this partition (%s) does not have GPU nodes" % self.current_partition.name
         )
 
     # Sckip testing when nb_impl=gpu and this is not a GPU build of GROMACS
@@ -70,11 +92,12 @@ class GROMACS_EESSI(gromacs_check):
     def skip_gpu_test_on_cpu_nodes(self):
         hooks.skip_gpu_test_on_cpu_nodes(self)
 
-    # Assign num_tasks, num_tasks_per_node and num_cpus_per_task automatically based on current partition's num_cpus and gpus
+    # Assign num_tasks, num_tasks_per_node and num_cpus_per_task automatically
+    # based on current partition's num_cpus and gpus
     # Only when running nb_impl on GPU do we want one task per GPU
     @run_after('setup')
     def set_num_tasks(self):
-        if(self.nb_impl == 'gpu'):
-            hooks.assign_one_task_per_gpu(test = self, num_nodes = self.num_nodes)
+        if self.nb_impl == 'gpu':
+            hooks.assign_one_task_per_gpu(test=self, num_nodes=self.num_nodes)
         else:
-            hooks.assign_one_task_per_cpu(test = self, num_nodes = self.num_nodes)
+            hooks.assign_one_task_per_cpu(test=self, num_nodes=self.num_nodes)
