@@ -21,10 +21,14 @@ def skip_gpu_test_on_cpu_nodes(test: rfm.RegressionTest):
         test.skip_if(True, "Test requires CUDA, but no GPU is present in this partition (%s). Skipping test..." % test.current_partition.name)
 
 def assign_one_task_per_cpu(test: rfm.RegressionTest, num_nodes: int) -> rfm.RegressionTest:
-    '''Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per core'''
-    if test.current_partition.processor.num_cpus is None:
-        raise AttributeError(processor_info_missing)
-    test.num_tasks_per_node = test.current_partition.processor.num_cpus
+    '''
+    Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per core unless specified
+    (with --setvar num_tasks_per_node=<x>)
+    '''
+    if not test.num_tasks_per_node:
+        if test.current_partition.processor.num_cpus is None:
+            raise AttributeError(processor_info_missing)
+        test.num_tasks_per_node = test.current_partition.processor.num_cpus
     test.num_cpus_per_task = 1
     test.num_tasks = num_nodes * test.num_tasks_per_node
 
