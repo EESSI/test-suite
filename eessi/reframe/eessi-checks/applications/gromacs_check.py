@@ -36,12 +36,6 @@ class GROMACS_EESSI(gromacs_check):
     valid_prog_environs = ['builtin']
     valid_systems = []
 
-    omp_num_threads = 1
-    executable_opts += ['-dlb yes', '-ntomp %s' % omp_num_threads, '-npme -1']
-    variables = {
-        'OMP_NUM_THREADS': '%s' % omp_num_threads,
-    }
-
     time_limit = '30m'
 
     @run_after('init')
@@ -84,7 +78,7 @@ class GROMACS_EESSI(gromacs_check):
         self.skip_if(
             (self.nb_impl == 'gpu' and not utils.is_gpu_present(self)),
             "Skipping test variant with non-bonded interactions on GPUs, "
-            "as this partition (%s) does not have GPU nodes" % self.current_partition.name
+            f"as this partition ({self.current_partition.name}) does not have GPU nodes"
         )
 
     # Sckip testing when nb_impl=gpu and this is not a GPU build of GROMACS
@@ -92,7 +86,8 @@ class GROMACS_EESSI(gromacs_check):
     def skip_nb_impl_gpu_on_non_cuda_builds(self):
         self.skip_if(
             (self.nb_impl == 'gpu' and not utils.is_cuda_required(self)),
-            "Skipping test variant with non-bonded interaction on GPUs, as this GROMACS was not build with GPU support"
+            "Skipping test variant with non-bonded interactions on GPUs, "
+            f"as this module ({self.module_name}) was not build with GPU support"
         )
 
     # Skip testing GPU-based modules on CPU-based nodes
@@ -109,3 +104,11 @@ class GROMACS_EESSI(gromacs_check):
             hooks.assign_one_task_per_gpu(test=self, num_nodes=self.num_nodes)
         else:
             hooks.assign_one_task_per_cpu(test=self, num_nodes=self.num_nodes)
+
+    @run_after('setup')
+    def set_omp_num_threads(self):
+        omp_num_threads = self.num_cpus_per_task
+        self.executable_opts += ['-dlb yes', f'-ntomp {omp_num_threads}', '-npme -1']
+        self.variables = {
+            'OMP_NUM_THREADS': f'{omp_num_threads}',
+        }
