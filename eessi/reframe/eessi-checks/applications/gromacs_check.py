@@ -34,6 +34,7 @@ class GROMACS_EESSI(gromacs_check):
 
     module_name = parameter(my_find_modules('GROMACS'))
     valid_prog_environs = ['builtin']
+    valid_systems = []
 
     omp_num_threads = 1
     executable_opts += ['-dlb yes', '-ntomp %s' % omp_num_threads, '-npme -1']
@@ -46,6 +47,7 @@ class GROMACS_EESSI(gromacs_check):
     @run_after('init')
     def fiter_tests(self):
         cuda = utils.is_cuda_required_module(self.module_name)
+        valid_systems = ''
         if self.nb_impl == 'gpu' and cuda:
             valid_systems = '+gpu'
         elif self.nb_impl == 'cpu' and not cuda:
@@ -53,12 +55,13 @@ class GROMACS_EESSI(gromacs_check):
         else:
             valid_systems = 'nonexisting'
 
-        # filter out this test if the module is not among a list of specified modules
+        # filter out this test if the module is not among a list of manually specified modules
         # modules can be specified with '--setvar modules="<comma-separated-list>"
         if self.modules and self.module_name not in self.modules:
             valid_systems = 'nonexisting'
 
-        self.valid_systems = [valid_systems]
+        if not self.valid_systems:
+            self.valid_systems = [valid_systems]
         self.modules = [self.module_name]
 
     @run_after('init')
