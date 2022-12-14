@@ -39,23 +39,24 @@ class GROMACS_EESSI(gromacs_check):
     time_limit = '30m'
 
     @run_after('init')
-    def fiter_tests(self):
+    def filter_tests(self):
         cuda = utils.is_cuda_required_module(self.module_name)
-        valid_systems = ''
+        valid_systems = []
+
+        # CUDA modules should only run in partitions with 'gpu' feature,
+        # non-CUDA modules should only run in partitions with 'cpu' feature
         if self.nb_impl == 'gpu' and cuda:
-            valid_systems = '+gpu'
+            valid_systems = ['+gpu']
         elif self.nb_impl == 'cpu' and not cuda:
-            valid_systems = '+cpu'
-        else:
-            valid_systems = 'nonexisting'
+            valid_systems = ['+cpu']
 
         # filter out this test if the module is not among a list of manually specified modules
         # modules can be specified with '--setvar modules="<comma-separated-list>"
         if self.modules and self.module_name not in self.modules:
-            valid_systems = 'nonexisting'
+            valid_systems = []
 
         if not self.valid_systems:
-            self.valid_systems = [valid_systems]
+            self.valid_systems = valid_systems
         self.modules = [self.module_name]
 
     @run_after('init')
