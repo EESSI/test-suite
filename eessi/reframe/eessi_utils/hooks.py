@@ -29,26 +29,35 @@ def skip_gpu_test_on_cpu_nodes(test: rfm.RegressionTest):
 
 def assign_one_task_per_cpu(test: rfm.RegressionTest, num_nodes: int) -> rfm.RegressionTest:
     '''
-    Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per core unless specified
-    (with --setvar num_tasks_per_node=<x>)
+    Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per core,
+    unless specified with --setvar num_tasks_per_node=<x> and/or --setvar num_cpus_per_task=<y>
     '''
     if not test.num_tasks_per_node:
         if test.current_partition.processor.num_cpus is None:
             raise AttributeError(processor_info_missing)
         test.num_tasks_per_node = test.current_partition.processor.num_cpus
-    test.num_cpus_per_task = 1
+
+    if not test.num_cpus_per_task:
+        test.num_cpus_per_task = 1
+
     test.num_tasks = num_nodes * test.num_tasks_per_node
 
 
 def assign_one_task_per_gpu(test: rfm.RegressionTest, num_nodes: int) -> rfm.RegressionTest:
     '''
     Sets num_tasks_per_node to the number of gpus,
-    and num_cpus_per_task to the number of CPUs available per GPU in this partition
+    and num_cpus_per_task to the number of CPUs available per GPU in this partition,
+    unless specified with --setvar num_tasks_per_node=<x> and/or --setvar num_cpus_per_task=<y>
     '''
     if test.current_partition.processor.num_cpus is None:
         raise AttributeError(processor_info_missing)
-    test.num_tasks_per_node = utils.get_num_gpus(test)
-    test.num_cpus_per_task = int(test.current_partition.processor.num_cpus / test.num_tasks_per_node)
+
+    if not test.num_tasks_per_node:
+        test.num_tasks_per_node = utils.get_num_gpus(test)
+
+    if not test.num_cpus_per_task:
+        test.num_cpus_per_task = int(test.current_partition.processor.num_cpus / test.num_tasks_per_node)
+
     test.num_tasks = num_nodes * test.num_tasks_per_node
 
 
