@@ -47,7 +47,7 @@ site_configuration = {
                             'num_devices': 4,
                         }
                     ],
-                    'features': ['gpu'],
+                    'features': ['cpu', 'gpu'],
                     'descr': 'GPU partition'
                 },
             ]
