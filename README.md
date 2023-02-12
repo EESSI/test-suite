@@ -1,9 +1,9 @@
 # test-suite
 A portable test suite for software installations, using ReFrame
 
-## Getting started (@casparvl, commited 2022-12-06)
+## Getting started
 
-- install ReFrame >=3.11, <4
+- install ReFrame >=4.0
 
 - clone the test suite
 
@@ -22,7 +22,7 @@ git clone git@github.com:EESSI/test-suite.git
     but skips CUDA modules in non-GPU nodes, and skips non-CUDA modules in GPU nodes
 
 ```
-module load ReFrame/3.12.0
+module load ReFrame/4.0.1
 
 eessiroot=<path_to_test-suite>
 eessihome=$eessiroot/eessi/reframe
@@ -33,17 +33,4 @@ PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
     -t CI -t singlenode \
     -r --performance-report
 ```
-
-## Improvements in PR #11 (2022-12-14)
-
-- features to filter out CUDA modules in non-GPU nodes and non-CUDA modules in GPU nodes
-    - requires adding `features` `cpu` and/or `gpu` to the partitions in the site config file
-- support for specifying modules
-    - via `--setvar modules=<modulename>`
-- support for specifying systems:partitions
-    - via `--setvar valid_systems=<comma-separated-list>`
-- support for overriding tasks, cpus
-    - via `--setvar num_tasks_per_node=<x>` and/or `--setvar num_cpus_per_task=<y>`
-- support for setting additional environment variables
-    - via `--setvar variables=<envar>:<value>`
 
