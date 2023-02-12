@@ -42,17 +42,22 @@ class GROMACS_EESSI(gromacs_check):
     def filter_tests(self):
         # filter valid_systems, unless specified with --setvar valid_systems=<comma-separated-list>
         if not self.valid_systems:
-            cuda = utils.is_cuda_required_module(self.module_name)
-            valid_systems = []
+            cuda_module = utils.is_cuda_required_module(self.module_name)
+            valid_systems = ''
 
-            # CUDA modules should only run in partitions with 'gpu' feature,
-            # non-CUDA modules should only run in partitions with 'cpu' feature
-            if self.nb_impl == 'gpu' and cuda:
-                valid_systems = ['+gpu']
-            elif self.nb_impl == 'cpu' and not cuda:
-                valid_systems = ['+cpu']
+            # CUDA modules and when using a GPU for non-bonded interactions require partitions with 'gpu' feature
+            # non-CUDA modules require partitions with 'cpu' feature
+            if cuda_module:
+                valid_systems = '+gpu'
+                if self.nb_impl == 'cpu':
+                    valid_systems += ' +cpu'
+            else:
+                valid_systems += '+cpu'
+                if self.nb_impl == 'gpu':
+                    valid_systems = ''  # impossible combination
 
-            self.valid_systems = valid_systems
+            if valid_systems:
+                self.valid_systems = [valid_systems]
 
         # filter out this test if the module is not among a list of manually specified modules
         # modules can be specified with --setvar modules=<comma-separated-list>
