@@ -116,5 +116,6 @@ class GROMACS_EESSI(gromacs_check):
     @run_after('setup')
     def set_omp_num_threads(self):
         omp_num_threads = self.num_cpus_per_task
+        # set both OMP_NUM_THREADS and -ntomp explicitly to avoid conflicting values
         self.executable_opts += ['-dlb yes', f'-ntomp {omp_num_threads}', '-npme -1']
-        self.variables['OMP_NUM_THREADS'] = f'{omp_num_threads}'
+        self.env_vars['OMP_NUM_THREADS'] = f'{omp_num_threads}'
