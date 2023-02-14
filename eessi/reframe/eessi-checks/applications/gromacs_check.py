@@ -57,15 +57,6 @@ class GROMACS_EESSI(gromacs_check):
                 # Invalid combination: a module without GPU support cannot compute non-bonded interactions on GPU
                 valid_systems = ''
 
-#             if is_cuda_module:
-#                 valid_systems = '+gpu'
-#                 if self.nb_impl == 'cpu':
-#                     valid_systems += ' +cpu'
-#             else:
-#                 valid_systems += '+cpu'
-#                 if self.nb_impl == 'gpu':
-#                     valid_systems = ''  # impossible combination
-
             if valid_systems:
                 self.valid_systems = [valid_systems]
 
@@ -89,29 +80,6 @@ class GROMACS_EESSI(gromacs_check):
         # Select one test for CI
         if self.benchmark_info[0] == 'HECBioSim/hEGFRDimer':
             self.tags.add('CI')
-
-#    # Skip testing for when nb_impl=gpu and this is not a GPU node
-#    @run_after('setup')
-#    def skip_nb_impl_gpu_on_cpu_nodes(self):
-#        self.skip_if(
-#            (self.nb_impl == 'gpu' and not utils.is_gpu_present(self)),
-#            "Skipping test variant with non-bonded interactions on GPUs, "
-#            f"as this partition ({self.current_partition.name}) does not have GPU nodes"
-#        )
-#
-#    # Sckip testing when nb_impl=gpu and this is not a GPU build of GROMACS
-#    @run_after('setup')
-#    def skip_nb_impl_gpu_on_non_cuda_builds(self):
-#        self.skip_if(
-#            (self.nb_impl == 'gpu' and not utils.is_cuda_required(self)),
-#            "Skipping test variant with non-bonded interactions on GPUs, "
-#            f"as this module ({self.module_name}) was not build with GPU support"
-#        )
-#
-#    # Skip testing GPU-based modules on CPU-based nodes
-#    @run_after('setup')
-#    def skip_gpu_test_on_cpu_nodes(self):
-#        hooks.skip_gpu_test_on_cpu_nodes(self)
 
     # Assign num_tasks, num_tasks_per_node and num_cpus_per_task automatically
     # based on current partition's num_cpus and gpus
