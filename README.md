@@ -5,11 +5,19 @@ A portable test suite for software installations, using ReFrame
 
 - install ReFrame >=3.11, <4
 
-- clone the test suite
+- install the test suite using 
+
+```bash
+pip install git+https://github.com/EESSI/test-suite.git
+```
+
+Alternatively, you can clone the repository
 
 ```bash
 git clone git@github.com:EESSI/test-suite.git
 ```
+
+and set your `PYTHONPATH` so that it includes the `eessi/reframe` directory from the repository.
 
 - create a site configuration file
 
