@@ -7,5 +7,9 @@ name = "eessi_tests"
 version = "0.0.1"
 
 [tool.setuptools]
-packages = ["eessi_checks", "eessi_utils"]
+#packages = ["eessi_checks", "eessi_utils", "eessi_checks.applications"]
 package-dir = {"" = "eessi/reframe"}
+
+[tool.setuptools.packages.find]
+where = ["eessi/reframe"]
+namespaces = false
