@@ -17,9 +17,7 @@ requires-python = ">=3.6"
 "Homepage" = "https://eessi.github.io/docs/software_testing/"
 "Bug Tracker" = "https://github.com/EESSI/test-suite/issues"
 
-[tool.setuptools]
-package-dir = {"" = "eessi/reframe"}
-
 [tool.setuptools.packages.find]
-where = ["eessi/reframe"]
-namespaces = false
+where = ["reframe", "eessi/reframe"]
+include = ["hpctestlib", "eessi*"]
+namespaces = true
