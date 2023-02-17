@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eessi_tests"
+version = "0.0.1"
+
+[tool.setuptools]
+packages = ["eessi_checks", "eessi_utils"]
+package-dir = {"" = "eessi/reframe"}
