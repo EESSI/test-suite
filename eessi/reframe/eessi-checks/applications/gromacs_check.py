@@ -33,7 +33,7 @@ class GROMACS_EESSI(gromacs_check):
         ('n_large', 16)])
 
     module_name = parameter(my_find_modules('GROMACS'))
-    valid_prog_environs = ['builtin']
+    valid_prog_environs = ['default']
     valid_systems = []
 
     time_limit = '30m'

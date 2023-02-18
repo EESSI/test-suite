@@ -17,7 +17,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access':  ['-p cpu'],
-                    'environs': ['builtin'],
+                    'environs': ['default'],
                     'max_jobs': 4,
                     'processor': {
                         'num_cpus': 128,
@@ -33,7 +33,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access':  ['-p gpu'],
-                    'environs': ['builtin'],
+                    'environs': ['default'],
                     'max_jobs': 4,
                     'processor': {
                         'num_cpus': 72,
@@ -55,7 +55,7 @@ site_configuration = {
     ],
     'environments': [
         {
-            'name': 'builtin',
+            'name': 'default',
             'cc': 'cc',
             'cxx': '',
             'ftn': '',
