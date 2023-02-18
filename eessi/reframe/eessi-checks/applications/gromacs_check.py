@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+import re
+
 import reframe as rfm
 import reframe.core.runtime as rt
 from reframe.utility import OrderedSet
@@ -36,6 +38,10 @@ class GROMACS_EESSI(gromacs_check):
     valid_prog_environs = ['default']
     valid_systems = []
 
+    module_regex_select = variable(str, value='')
+    module_regex_skip = variable(str, value='')
+    run_mode = variable(str, value='')
+
     time_limit = '30m'
 
     @run_after('init')
@@ -48,11 +54,12 @@ class GROMACS_EESSI(gromacs_check):
             if is_cuda_module and self.nb_impl == 'gpu':
                 # CUDA modules and when using a GPU for non-bonded interactions require partitions with 'gpu' feature
                 valid_systems = '+gpu'
+
             elif self.nb_impl == 'cpu':
                 # Non-bonded interactions on the CPU require partitions with 'cpu' feature
                 # Note: making 'cpu' an explicit feature allows e.g. skipping CPU-based tests on GPU partitions
-
                 valid_systems = '+cpu'
+
             elif not is_cuda_module and self.nb_impl == 'gpu':
                 # Invalid combination: a module without GPU support cannot compute non-bonded interactions on GPU
                 valid_systems = ''
@@ -60,10 +67,25 @@ class GROMACS_EESSI(gromacs_check):
             if valid_systems:
                 self.valid_systems = [valid_systems]
 
-        # filter out this test if the module is not among a list of manually specified modules
+        # skip this test if nb_impl is not equal to run_mode
+        if self.run_mode:
+            if self.nb_impl != self.run_mode:
+                self.valid_systems = []
+
+        # skip this test if the module is not among a list of manually specified modules
         # modules can be specified with --setvar modules=<comma-separated-list>
         if self.modules and self.module_name not in self.modules:
             self.valid_systems = []
+
+        # skip this test if the module does not match module_regex_select
+        if self.module_regex_select:
+            if not re.search(r'{}'.format(self.module_regex_select), self.module_name):
+                self.valid_systems = []
+
+        # skip this test if the module matches module_regex_skip
+        if self.module_regex_skip:
+            if re.search(r'{}'.format(self.module_regex_skip), self.module_name):
+                self.valid_systems = []
 
         self.modules = [self.module_name]
 
