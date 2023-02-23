@@ -3,9 +3,12 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+import re
+
 import reframe as rfm
 import reframe.core.runtime as rt
 from reframe.utility import OrderedSet
+from reframe.utility.typecheck import Bool
 
 from hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
 import eessi_utils.hooks as hooks
@@ -35,6 +38,7 @@ class GROMACS_EESSI(gromacs_check):
     module_name = parameter(my_find_modules('GROMACS'))
     valid_prog_environs = ['default']
     valid_systems = []
+    cuda_module_on_cpu = variable(Bool, value=True)
 
     time_limit = '30m'
 
@@ -49,9 +53,10 @@ class GROMACS_EESSI(gromacs_check):
                 # CUDA modules and when using a GPU for non-bonded interactions require partitions with 'gpu' feature
                 valid_systems = '+gpu'
 
-            elif self.nb_impl == 'cpu':
+            elif self.nb_impl == 'cpu' and (self.cuda_module_on_cpu or not is_cuda_module):
                 # Non-bonded interactions on the CPU require partitions with 'cpu' feature
                 # Note: making 'cpu' an explicit feature allows e.g. skipping CPU-based tests on GPU partitions
+                # Note: cuda_module_on_cpu=True allows running CUDA modules on partitions with 'cpu' feature
                 valid_systems = '+cpu'
 
             elif not is_cuda_module and self.nb_impl == 'gpu':
@@ -61,7 +66,7 @@ class GROMACS_EESSI(gromacs_check):
             if valid_systems:
                 self.valid_systems = [valid_systems]
 
-        # skip this test if the module is not among a list of manually specified modules
+        # skip this module if it is not among a list of manually specified modules
         # modules can be specified with --setvar modules=<comma-separated-list>
         if self.modules and self.module_name not in self.modules:
             self.valid_systems = []
