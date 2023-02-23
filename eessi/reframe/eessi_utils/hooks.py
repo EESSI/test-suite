@@ -53,7 +53,12 @@ def assign_one_task_per_gpu(test: rfm.RegressionTest, num_nodes: int) -> rfm.Reg
         raise AttributeError(processor_info_missing)
 
     if not test.num_tasks_per_node:
-        test.num_tasks_per_node = utils.get_num_gpus(test)
+        if not test.num_gpus_per_node:
+            test.num_gpus_per_node = utils.get_num_gpus_per_node(test)
+        test.num_tasks_per_node = test.num_gpus_per_node
+
+    elif not test.num_gpus_per_node:
+        test.num_gpus_per_node = test.num_tasks_per_node
 
     if not test.num_cpus_per_task:
         test.num_cpus_per_task = int(test.current_partition.processor.num_cpus / test.num_tasks_per_node)

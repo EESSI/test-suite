@@ -41,6 +41,12 @@ site_configuration = {
                         'num_cpus_per_socket': 36,
                         'arch': 'icelake',
                     },
+                    'resources': [
+                        {
+                            'name': '_rfm_gpu',
+                            'options': ['--gpus-per-node={num_gpus_per_node}'],
+                        }
+                    ],
                     'devices': [
                         {
                             'type': 'gpu',

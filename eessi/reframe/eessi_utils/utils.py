@@ -9,8 +9,11 @@ def _get_gpu_list(test: rfm.RegressionTest):
     return [dev.num_devices for dev in test.current_partition.devices if dev.device_type == GPU_DEV_NAME]
 
 
-def get_num_gpus(test: rfm.RegressionTest) -> int:
-    '''Returns the number of GPUs for the current partition'''
+def get_num_gpus_per_node(test: rfm.RegressionTest) -> int:
+    '''
+    Returns the number of GPUs per node for the current partition,
+    taken from 'num_devices' of device GPU_DEV_NAME in the 'devices' attribute of the current partition
+    '''
     gpu_list = _get_gpu_list(test)
     # If multiple devices are called 'GPU' in the current partition,
     # we don't know for which to return the device count...
