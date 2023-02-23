@@ -47,11 +47,20 @@ PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
     'features': ['cpu', 'gpu'],
     ```
 
-- setting the number of GPUS per node for a partition:
+- setting the number of GPUS per node <x> for a partition:
     ```
-    'access': ['-p <partition_name> --gpus-per-node=<x>'],
+    'access': ['-p <partition_name>'],
     'devices': [
         {'type': 'gpu', 'num_devices': <x>}
+    ],
+    ```
+- requesting GPUs per node for a partition:
+    ```
+    'resources': [
+        {
+            'name': '_rfm_gpu',
+            'options': ['--gpus-per-node={num_gpus_per_node}'],
+        }
     ],
     ```
 
@@ -63,9 +72,10 @@ PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
 - specifying systems:partitions
     - `--setvar valid_systems=<comma-separated-list>`
 
-- overriding tasks, cpus
-    - `--setvar num_tasks_per_node=<x>` and/or
+- overriding tasks, cpus, gpus
+    - `--setvar num_tasks_per_node=<x>`
     - `--setvar num_cpus_per_task=<y>`
+    - `--setvar num_gpus_per_node=<x>`
 
 - setting additional environment variables
     - `--setvar env_vars=<envar>:<value>`
