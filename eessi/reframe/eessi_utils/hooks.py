@@ -46,19 +46,25 @@ def assign_one_task_per_cpu(test: rfm.RegressionTest, num_nodes: int) -> rfm.Reg
 def assign_one_task_per_gpu(test: rfm.RegressionTest, num_nodes: int) -> rfm.RegressionTest:
     '''
     Sets num_tasks_per_node to the number of gpus,
-    and num_cpus_per_task to the number of CPUs available per GPU in this partition,
+    and num_cpus_per_task to the number of CPUs per node available per GPU in this partition,
     unless specified with --setvar num_tasks_per_node=<x> and/or --setvar num_cpus_per_task=<y>
+    Also sets num_gpus_per_node unless specified with --setvar num_gpus_per_node=<z>:
+    - if num_tasks_per_node is not set, set num_gpus_per_node equal to nb of GPUs per node available in this partition
+    - if num_tasks_per_node is set, set num_gpus_per_node equal to either num_tasks_per_node or nb of GPUs per node
+        available in this partition (whatever is smallest).
     '''
     if test.current_partition.processor.num_cpus is None:
         raise AttributeError(processor_info_missing)
 
+    max_gpus_per_node = utils.get_num_gpus_per_node(test)
+
     if not test.num_tasks_per_node:
         if not test.num_gpus_per_node:
-            test.num_gpus_per_node = utils.get_num_gpus_per_node(test)
+            test.num_gpus_per_node = max_gpus_per_node
         test.num_tasks_per_node = test.num_gpus_per_node
 
     elif not test.num_gpus_per_node:
-        test.num_gpus_per_node = test.num_tasks_per_node
+        test.num_gpus_per_node = min(test.num_tasks_per_node, max_gpus_per_node)
 
     if not test.num_cpus_per_task:
         test.num_cpus_per_task = int(test.current_partition.processor.num_cpus / test.num_tasks_per_node)
