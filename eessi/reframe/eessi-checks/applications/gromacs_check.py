@@ -39,6 +39,19 @@ class GROMACS_EESSI(gromacs_check):
     time_limit = '30m'
 
     @run_after('init')
+    def handle_custom_executable_opts(self):
+        """"
+        hpctestlib adds the following options:
+            self.executable_opts += ['-nb', self.nb_impl, '-s benchmark.tpr']
+        if custom executable_opts are set via the cmd line as --setvar executable_opts=<x>,
+            we assume the user knows what they are doing and remove ['-nb', self.nb_impl]
+        """
+        self.has_custom_executable_opts = False
+        if len(self.executable_opts) > 3:
+            self.has_custom_executable_opts = True
+            del self.executable_opts[-3:-1]
+
+    @run_after('init')
     def filter_tests(self):
         # filter valid_systems, unless specified with --setvar valid_systems=<comma-separated-list>
         if not self.valid_systems:
@@ -94,7 +107,8 @@ class GROMACS_EESSI(gromacs_check):
 
     @run_after('setup')
     def set_omp_num_threads(self):
-        omp_num_threads = self.num_cpus_per_task
-        # set both OMP_NUM_THREADS and -ntomp explicitly to avoid conflicting values
-        self.executable_opts += ['-dlb yes', f'-ntomp {omp_num_threads}', '-npme -1']
-        self.env_vars['OMP_NUM_THREADS'] = f'{omp_num_threads}'
+        if not self.has_custom_executable_opts:
+            omp_num_threads = self.num_cpus_per_task
+            # set both OMP_NUM_THREADS and -ntomp explicitly to avoid conflicting values
+            self.executable_opts += ['-dlb yes', f'-ntomp {omp_num_threads}', '-npme -1']
+            self.env_vars['OMP_NUM_THREADS'] = f'{omp_num_threads}'
