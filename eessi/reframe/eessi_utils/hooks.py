@@ -11,7 +11,7 @@ or manually set in the ReFrame configuration file
 
 def skip_cpu_test_on_gpu_nodes(test: rfm.RegressionTest):
     '''Skip test if GPUs are present, but no CUDA is required'''
-    skip = (utils.is_gpu_present(test) and not utils.is_cuda_required(test))
+    skip = (utils.is_gpu_cresent(test) and not utils.is_cuda_required(test))
     if skip:
         test.skip_if(True, f"GPU is present on this partition ({test.current_partition.name}), skipping CPU-based test")
 
@@ -27,24 +27,43 @@ def skip_gpu_test_on_cpu_nodes(test: rfm.RegressionTest):
         )
 
 
-def assign_one_task_per_cpu(test: rfm.RegressionTest, num_nodes: int) -> rfm.RegressionTest:
-    '''
+def assign_one_task_per_feature(test: rfm.RegressionTest, feature) -> rfm.RegressionTest:
+    """assign on task per feature ('gpu' or 'cpu')"""
+    test.max_cpus_per_node = test.current_partition.processor.num_cpus
+    if test.max_cpus_per_node is None:
+        raise AttributeError(processor_info_missing)
+
+    if feature == 'gpu':
+        assign_one_task_per_gpu(test)
+    else:
+        assign_one_task_per_cpu(test)
+
+
+def assign_one_task_per_cpu(test: rfm.RegressionTest) -> rfm.RegressionTest:
+    """
     Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per core,
     unless specified with --setvar num_tasks_per_node=<x> and/or --setvar num_cpus_per_task=<y>
-    '''
-    if not test.num_tasks_per_node:
-        if test.current_partition.processor.num_cpus is None:
-            raise AttributeError(processor_info_missing)
-        test.num_tasks_per_node = test.current_partition.processor.num_cpus
+    """
+    max_cpus_per_node = test.max_cpus_per_node
+    num_tasks_per_node = test.num_tasks_per_node
+    num_cpus_per_task = test.num_cpus_per_task
 
-    if not test.num_cpus_per_task:
-        test.num_cpus_per_task = 1
+    if not num_tasks_per_node:
+        if not num_cpus_per_task:
+            num_tasks_per_node = max_cpus_per_node
+        else:
+            num_tasks_per_node = int(max_cpus_per_node / num_cpus_per_task)
 
-    test.num_tasks = num_nodes * test.num_tasks_per_node
+    if not num_cpus_per_task:
+        num_cpus_per_task = int(max_cpus_per_node / num_tasks_per_node)
+
+    test.num_tasks_per_node = num_tasks_per_node
+    test.num_tasks = test.num_nodes * test.num_tasks_per_node
+    test.num_cpus_per_task = num_cpus_per_task
 
 
-def assign_one_task_per_gpu(test: rfm.RegressionTest, num_nodes: int) -> rfm.RegressionTest:
-    '''
+def assign_one_task_per_gpu(test: rfm.RegressionTest) -> rfm.RegressionTest:
+    """
     Sets num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
         unless specified with
             --setvar num_tasks_per_node=<x> and/or
@@ -55,14 +74,11 @@ def assign_one_task_per_gpu(test: rfm.RegressionTest, num_nodes: int) -> rfm.Reg
     - default num_cpus_per_task = total nb of CPUs per GPU available in this partition, divided by num_tasks_per_node
     - if num_tasks_per_node is set, set num_gpus_per_node equal to either num_tasks_per_node or nb of GPUs per node
         available in this partition (whatever is smallest).
-    '''
-    num_cpus = test.current_partition.processor.num_cpus
-    if num_cpus is None:
-        raise AttributeError(processor_info_missing)
-
+    """
+    max_gpus_per_node = utils.get_num_gpus_per_node(test)
+    max_cpus_per_node = test.max_cpus_per_node
     num_tasks_per_node = test.num_tasks_per_node
     num_gpus_per_node = test.num_gpus_per_node
-    max_gpus_per_node = utils.get_num_gpus_per_node(test)
 
     if not num_tasks_per_node:
         if not num_gpus_per_node:
@@ -73,11 +89,13 @@ def assign_one_task_per_gpu(test: rfm.RegressionTest, num_nodes: int) -> rfm.Reg
         num_gpus_per_node = min(num_tasks_per_node, max_gpus_per_node)
 
     if not test.num_cpus_per_task:
-        test.num_cpus_per_task = int((num_cpus * num_gpus_per_node) / (num_tasks_per_node * max_gpus_per_node))
+        test.num_cpus_per_task = int(
+            (max_cpus_per_node * num_gpus_per_node) / (num_tasks_per_node * max_gpus_per_node)
+        )
 
     test.num_gpus_per_node = num_gpus_per_node
     test.num_tasks_per_node = num_tasks_per_node
-    test.num_tasks = num_nodes * num_tasks_per_node
+    test.num_tasks = test.num_nodes * num_tasks_per_node
 
 
 def auto_assign_num_tasks_MPI(test: rfm.RegressionTest, num_nodes: int) -> rfm.RegressionTest:
