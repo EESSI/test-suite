@@ -39,7 +39,7 @@ class GROMACS_EESSI(gromacs_check):
     time_limit = '30m'
 
     @run_after('init')
-    def handle_custom_executable_opts(self):
+    def set_custom_executable_opts(self):
         """"
         hpctestlib adds the following options:
             self.executable_opts += ['-nb', self.nb_impl, '-s benchmark.tpr']
@@ -95,15 +95,13 @@ class GROMACS_EESSI(gromacs_check):
         if self.benchmark_info[0] == 'HECBioSim/hEGFRDimer':
             self.tags.add('CI')
 
-    # Assign num_tasks, num_tasks_per_node and num_cpus_per_task automatically
-    # based on current partition's num_cpus and gpus
-    # Only when running nb_impl on GPU do we want one task per GPU
+    # Assign default values for num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
+    #     based on current partition's num_cpus and gpus
+    # when running nb_impl on CPU, we request one task per CPU
+    # when running nb_impl on GPU, we request one task per GPU
     @run_after('setup')
     def set_num_tasks(self):
-        if self.nb_impl == 'gpu':
-            hooks.assign_one_task_per_gpu(test=self, num_nodes=self.num_nodes)
-        else:
-            hooks.assign_one_task_per_cpu(test=self, num_nodes=self.num_nodes)
+        hooks.assign_one_task_per_feature(test=self, feature=self.nb_impl)
 
     @run_after('setup')
     def set_omp_num_threads(self):
