@@ -11,7 +11,7 @@ or manually set in the ReFrame configuration file
 
 def skip_cpu_test_on_gpu_nodes(test: rfm.RegressionTest):
     '''Skip test if GPUs are present, but no CUDA is required'''
-    skip = (utils.is_gpu_cresent(test) and not utils.is_cuda_required(test))
+    skip = (utils.is_gpu_present(test) and not utils.is_cuda_required(test))
     if skip:
         test.skip_if(True, f"GPU is present on this partition ({test.current_partition.name}), skipping CPU-based test")
 
