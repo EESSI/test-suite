@@ -28,15 +28,17 @@ def skip_gpu_test_on_cpu_nodes(test: rfm.RegressionTest):
 
 
 def assign_one_task_per_feature(test: rfm.RegressionTest, feature) -> rfm.RegressionTest:
-    """assign on task per feature ('gpu' or 'cpu')"""
+    """assign one task per feature ('gpu' or 'cpu')"""
     test.max_cpus_per_node = test.current_partition.processor.num_cpus
     if test.max_cpus_per_node is None:
         raise AttributeError(processor_info_missing)
 
     if feature == 'gpu':
         assign_one_task_per_gpu(test)
-    else:
+    elif feature == 'cpu':
         assign_one_task_per_cpu(test)
+    else:
+        raise ValueError(f'Feature {feature} is currently not supported')
 
 
 def assign_one_task_per_cpu(test: rfm.RegressionTest) -> rfm.RegressionTest:
