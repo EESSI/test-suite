@@ -1,15 +1,16 @@
-# Copyright 2016-2021 Swiss National Supercomputing Centre (CSCS/ETH Zurich)
-# ReFrame Project Developers. See the top-level LICENSE file for details.
-#
-# SPDX-License-Identifier: BSD-3-Clause
+"""
+This module tests the binary 'gmx_mpi' in available modules containing substring 'GROMACS'.
+Test input files are taken from https://www.hecbiosim.ac.uk/access-hpc/benchmarks,
+    as defined in the hpctestlib.
+"""
 
 import reframe as rfm
 import reframe.core.runtime as rt
 from reframe.utility import OrderedSet
 
 from hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
-import eessi_utils.hooks as hooks
-import eessi_utils.utils as utils
+from eessi_utils import hooks
+from eessi_utils import utils
 
 
 def my_find_modules(substr):

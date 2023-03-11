@@ -1,19 +1,32 @@
-import reframe as rfm
-import eessi_utils.utils as utils
+"""
+Hooks for setting job resources in ReFrame tests
+"""
 
-processor_info_missing = '''This test requires the number of CPUs to be known for the partition it runs on.
+import reframe as rfm
+from eessi_utils import utils
+
+PROCESSOR_INFO_MISSING = '''This test requires the number of CPUs to be known for the partition it runs on.
 Check that processor information is either autodetected
-(see https://reframe-hpc.readthedocs.io/en/stable/configure.html#proc-autodetection),
-or manually set in the ReFrame configuration file
-(see https://reframe-hpc.readthedocs.io/en/stable/config_reference.html?highlight=processor%20info#processor-info).
+    (see https://reframe-hpc.readthedocs.io/en/stable/configure.html#proc-autodetection),
+    or manually set in the ReFrame configuration file
+    (see https://reframe-hpc.readthedocs.io/en/stable/config_reference.html#processor-info).
 '''
 
 
 def assign_one_task_per_feature(test: rfm.RegressionTest, feature) -> rfm.RegressionTest:
-    """assign one task per feature ('gpu' or 'cpu')"""
+    """
+    Assign one task per feature ('gpu' or 'cpu')
+    Automatically sets num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node based on the current
+        partition's num_cpus, num_gpus_per_node and test.num_nodes.
+    For GPU tests, one task per GPU is set, and num_cpus_per_task is based on the ratio of CPU-cores/GPUs.
+    For CPU tests, one task per CPU is set, and num_cpus_per_task is set to 1.
+    Total task count is determined based on the number of nodes to be used in the test.
+    Behaviour of this function is (usually) sensible for MPI tests.
+    """
+
     test.max_cpus_per_node = test.current_partition.processor.num_cpus
     if test.max_cpus_per_node is None:
-        raise AttributeError(processor_info_missing)
+        raise AttributeError(PROCESSOR_INFO_MISSING)
 
     if feature == 'gpu':
         assign_one_task_per_gpu(test)
@@ -26,7 +39,7 @@ def assign_one_task_per_feature(test: rfm.RegressionTest, feature) -> rfm.Regres
 def assign_one_task_per_cpu(test: rfm.RegressionTest) -> rfm.RegressionTest:
     """
     Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per core,
-    unless specified with --setvar num_tasks_per_node=<x> and/or --setvar num_cpus_per_task=<y>
+        unless specified with --setvar num_tasks_per_node=<x> and/or --setvar num_cpus_per_task=<y>
     """
     max_cpus_per_node = test.max_cpus_per_node
     num_tasks_per_node = test.num_tasks_per_node
