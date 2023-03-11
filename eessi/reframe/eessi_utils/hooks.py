@@ -9,24 +9,6 @@ or manually set in the ReFrame configuration file
 '''
 
 
-def skip_cpu_test_on_gpu_nodes(test: rfm.RegressionTest):
-    '''Skip test if GPUs are present, but no CUDA is required'''
-    skip = (utils.is_gpu_present(test) and not utils.is_cuda_required(test))
-    if skip:
-        test.skip_if(True, f"GPU is present on this partition ({test.current_partition.name}), skipping CPU-based test")
-
-
-def skip_gpu_test_on_cpu_nodes(test: rfm.RegressionTest):
-    '''Skip test if CUDA is required, but no GPU is present'''
-    skip = (utils.is_cuda_required(test) and not utils.is_gpu_present(test))
-    if skip:
-        test.skip_if(
-            True,
-            f"Test requires CUDA, but no GPU is present in this partition ({test.current_partition.name}). "
-            "Skipping test..."
-        )
-
-
 def assign_one_task_per_feature(test: rfm.RegressionTest, feature) -> rfm.RegressionTest:
     """assign one task per feature ('gpu' or 'cpu')"""
     test.max_cpus_per_node = test.current_partition.processor.num_cpus
@@ -98,17 +80,3 @@ def assign_one_task_per_gpu(test: rfm.RegressionTest) -> rfm.RegressionTest:
     test.num_gpus_per_node = num_gpus_per_node
     test.num_tasks_per_node = num_tasks_per_node
     test.num_tasks = test.num_nodes * num_tasks_per_node
-
-
-def auto_assign_num_tasks_MPI(test: rfm.RegressionTest, num_nodes: int) -> rfm.RegressionTest:
-    '''
-    Automatically sets num_tasks, tasks_per_node and cpus_per_task based on the current partitions num_cpus, number of
-    GPUs and test.num_nodes. For GPU tests, one task per GPU is set, and num_cpus_per_task is based on the ratio of CPU
-    cores/GPUs. For CPU tests, one task per CPU is set, and num_cpus_per_task is set to 1. Total task count is
-    determined based on the number of nodes to be used in the test. Behaviour of this function is (usually) sensible for
-    pure MPI tests.
-    '''
-    if utils.is_cuda_required(test):
-        assign_one_task_per_gpu(test, num_nodes)
-    else:
-        assign_one_task_per_cpu(test, num_nodes)

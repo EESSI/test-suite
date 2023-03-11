@@ -38,8 +38,3 @@ def is_cuda_required_module(module_name):
     if re.search("(?i)cuda", module_name):
         requires_cuda = True
     return requires_cuda
-
-
-def is_cuda_required(test: rfm.RegressionTest) -> bool:
-    '''Checks if CUDA seems to be required by current module'''
-    return any([is_cuda_required_module(x) for x in test.modules])
