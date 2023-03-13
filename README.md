@@ -55,3 +55,17 @@ PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
 - support for setting additional environment variables
     - via `--setvar variables=<envar>:<value>`
 
+## Developers
+If you want to install the EESSI test suite from a branch, you can use
+
+```bash
+pip install git+https://github.com/EESSI/test-suite.git@branchname
+```
+
+This also works on forked repositories, e.g.
+
+```bash
+pip install git+https://github.com/<someuser>/test-suite.git@branchname
+```
+
+making it an easy way of testing PRs.
