@@ -13,7 +13,7 @@ Check that processor information is either autodetected
 '''
 
 
-def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit) -> rfm.RegressionTest:
+def assign_one_task_per_compute_unit(test: rfm.RegressionTest, str: compute_unit) -> rfm.RegressionTest:
     """
     Assign one task per compute unit ('gpu' or 'cpu')
     Automatically sets num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node based on the current
