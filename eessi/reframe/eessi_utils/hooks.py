@@ -13,9 +13,9 @@ Check that processor information is either autodetected
 '''
 
 
-def assign_one_task_per_feature(test: rfm.RegressionTest, feature) -> rfm.RegressionTest:
+def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit) -> rfm.RegressionTest:
     """
-    Assign one task per feature ('gpu' or 'cpu')
+    Assign one task per compute unit ('gpu' or 'cpu')
     Automatically sets num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node based on the current
         partition's num_cpus, num_gpus_per_node and test.num_nodes.
     For GPU tests, one task per GPU is set, and num_cpus_per_task is based on the ratio of CPU-cores/GPUs.
@@ -28,12 +28,12 @@ def assign_one_task_per_feature(test: rfm.RegressionTest, feature) -> rfm.Regres
     if test.max_cpus_per_node is None:
         raise AttributeError(PROCESSOR_INFO_MISSING)
 
-    if feature == 'gpu':
+    if compute_unit == 'gpu':
         assign_one_task_per_gpu(test)
-    elif feature == 'cpu':
+    elif compute_unit == 'cpu':
         assign_one_task_per_cpu(test)
     else:
-        raise ValueError(f'Feature {feature} is currently not supported')
+        raise ValueError(f'compute unit {compute_unit} is currently not supported')
 
 
 def assign_one_task_per_cpu(test: rfm.RegressionTest) -> rfm.RegressionTest:

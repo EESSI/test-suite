@@ -92,7 +92,7 @@ class GROMACS_EESSI(gromacs_check):
         when running nb_impl on CPU, we request one task per CPU
         when running nb_impl on GPU, we request one task per GPU
         """
-        hooks.assign_one_task_per_feature(test=self, feature=self.nb_impl)
+        hooks.assign_one_task_per_compute_unit(test=self, compute_unit=self.nb_impl)
 
     @run_after('setup')
     def set_omp_num_threads(self):
