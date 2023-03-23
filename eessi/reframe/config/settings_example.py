@@ -1,7 +1,10 @@
+"""
+Example configuration file
+"""
+
 from os import environ
 username = environ.get('USER')
 
-# This is an example configuration file
 site_configuration = {
     'systems': [
         {
@@ -13,7 +16,7 @@ site_configuration = {
             'stagedir': f'/some/shared/dir/{username}/reframe_output/staging',
             'partitions': [
                 {
-                    'name': 'cpu',
+                    'name': 'cpu_partition',
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access':  ['-p cpu'],
@@ -29,7 +32,7 @@ site_configuration = {
                     'descr': 'CPU partition'
                 },
                 {
-                    'name': 'gpu',
+                    'name': 'gpu_partition',
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access':  ['-p gpu'],
