@@ -43,13 +43,12 @@ class GROMACS_EESSI(gromacs_check):
         """"
         hpctestlib adds the following options:
             self.executable_opts += ['-nb', self.nb_impl, '-s benchmark.tpr']
-        if custom executable_opts are set via the cmd line as --setvar executable_opts=<x>,
-            we assume the user knows what they are doing and remove ['-nb', self.nb_impl]
+        if custom (additional) executable_opts are set via the cmd line as --setvar executable_opts=<x>,
+            we assume the user knows what they are doing and not add any extra executable_opts
         """
         self.has_custom_executable_opts = False
         if len(self.executable_opts) > 3:
             self.has_custom_executable_opts = True
-            del self.executable_opts[-3:-1]
 
     @run_after('init')
     def filter_tests(self):
