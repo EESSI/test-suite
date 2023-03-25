@@ -4,6 +4,8 @@ Test input files are taken from https://www.hecbiosim.ac.uk/access-hpc/benchmark
     as defined in the hpctestlib.
 """
 
+import shlex
+
 import reframe as rfm
 import reframe.core.runtime as rt
 from reframe.utility import OrderedSet
@@ -38,18 +40,6 @@ class GROMACS_EESSI(gromacs_check):
     valid_systems = []
 
     time_limit = '30m'
-
-    @run_after('init')
-    def set_custom_executable_opts(self):
-        """"
-        hpctestlib adds the following options:
-            self.executable_opts += ['-nb', self.nb_impl, '-s benchmark.tpr']
-        if custom (additional) executable_opts are set via the cmd line as --setvar executable_opts=<x>,
-            we assume the user knows what they are doing and not add any extra executable_opts
-        """
-        self.has_custom_executable_opts = False
-        if len(self.executable_opts) > 3:
-            self.has_custom_executable_opts = True
 
     @run_after('init')
     def filter_tests(self):
@@ -96,6 +86,20 @@ class GROMACS_EESSI(gromacs_check):
         if self.benchmark_info[0] == 'HECBioSim/hEGFRDimer':
             self.tags.add('CI')
 
+    @run_after('init')
+    def check_custom_executable_opts(self):
+        """"
+        hpctestlib adds the following:
+            self.executable_opts += ['-nb', self.nb_impl, '-s benchmark.tpr']
+        if executable_opts are set via the cmd line with --setvar executable_opts=<x>,
+            we will not add any extra executable_opts
+        """
+        # normalize options
+        self.executable_opts = shlex.split(' '.join(self.executable_opts))
+        self.has_custom_executable_opts = False
+        if len(self.executable_opts) > 4:
+            self.has_custom_executable_opts = True
+
     @run_after('setup')
     def set_num_tasks(self):
         """
@@ -108,9 +112,15 @@ class GROMACS_EESSI(gromacs_check):
 
     @run_after('setup')
     def set_omp_num_threads(self):
-        """Set number of OpenMP threads"""
-        if not self.has_custom_executable_opts:
+        """
+        Set number of OpenMP threads
+        Set both OMP_NUM_THREADS and -ntomp explicitly to avoid conflicting values
+        """
+        if self.has_custom_executable_opts:
+            if '-ntomp' in self.executable_opts:
+                omp_num_threads = self.executable_opts[self.executable_opts.index('-ntomp') + 1]
+        else:
             omp_num_threads = self.num_cpus_per_task
-            # set both OMP_NUM_THREADS and -ntomp explicitly to avoid conflicting values
             self.executable_opts += ['-dlb yes', f'-ntomp {omp_num_threads}', '-npme -1']
-            self.env_vars['OMP_NUM_THREADS'] = f'{omp_num_threads}'
+
+        self.env_vars['OMP_NUM_THREADS'] = omp_num_threads
