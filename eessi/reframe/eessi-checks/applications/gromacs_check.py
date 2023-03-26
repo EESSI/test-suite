@@ -105,8 +105,8 @@ class GROMACS_EESSI(gromacs_check):
         """
         Assign default values for num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
             based on current partition's num_cpus and gpus
-        when running nb_impl on CPU, we request one task per CPU
-        when running nb_impl on GPU, we request one task per GPU
+        if nb_impl == 'cpu', request one task per CPU
+        if nb_impl == 'gpu', request one task per GPU
         """
         hooks.assign_one_task_per_compute_unit(test=self, compute_unit=self.nb_impl)
 
@@ -116,11 +116,13 @@ class GROMACS_EESSI(gromacs_check):
         Set number of OpenMP threads
         Set both OMP_NUM_THREADS and -ntomp explicitly to avoid conflicting values
         """
-        if self.has_custom_executable_opts:
-            if '-ntomp' in self.executable_opts:
-                omp_num_threads = self.executable_opts[self.executable_opts.index('-ntomp') + 1]
+        if '-ntomp' in self.executable_opts:
+            omp_num_threads = self.executable_opts[self.executable_opts.index('-ntomp') + 1]
         else:
             omp_num_threads = self.num_cpus_per_task
-            self.executable_opts += ['-dlb yes', f'-ntomp {omp_num_threads}', '-npme -1']
+            self.executable_opts += ['-ntomp', str(omp_num_threads)]
+
+        if not self.has_custom_executable_opts:
+            self.executable_opts += ['-dlb', 'yes', '-npme', '-1']
 
         self.env_vars['OMP_NUM_THREADS'] = omp_num_threads
