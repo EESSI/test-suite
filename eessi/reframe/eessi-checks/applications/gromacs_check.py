@@ -1,15 +1,16 @@
-# Copyright 2016-2021 Swiss National Supercomputing Centre (CSCS/ETH Zurich)
-# ReFrame Project Developers. See the top-level LICENSE file for details.
-#
-# SPDX-License-Identifier: BSD-3-Clause
+"""
+This module tests the binary 'gmx_mpi' in available modules containing substring 'GROMACS'.
+Test input files are taken from https://www.hecbiosim.ac.uk/access-hpc/benchmarks,
+    as defined in the hpctestlib.
+"""
 
 import reframe as rfm
 import reframe.core.runtime as rt
 from reframe.utility import OrderedSet
 
 from hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
-import eessi_utils.hooks as hooks
-import eessi_utils.utils as utils
+from eessi_utils import hooks
+from eessi_utils import utils
 
 
 def my_find_modules(substr):
@@ -40,7 +41,7 @@ class GROMACS_EESSI(gromacs_check):
 
     @run_after('init')
     def filter_tests(self):
-        # filter valid_systems, unless specified with --setvar valid_systems=<comma-separated-list>
+        """filter valid_systems, unless specified with --setvar valid_systems=<comma-separated-list>"""
         if not self.valid_systems:
             is_cuda_module = utils.is_cuda_required_module(self.module_name)
             valid_systems = ''
@@ -70,28 +71,32 @@ class GROMACS_EESSI(gromacs_check):
 
     @run_after('init')
     def set_test_scale(self):
+        """Add tag based on scale used"""
         scale_variant, self.num_nodes = self.scale
         self.tags.add(scale_variant)
 
-    # Set correct tags for monitoring & CI
     @run_after('init')
     def set_test_purpose(self):
+        """Set correct tags for monitoring & CI"""
         # Run all tests from the testlib for monitoring
         self.tags.add('monitoring')
         # Select one test for CI
         if self.benchmark_info[0] == 'HECBioSim/hEGFRDimer':
             self.tags.add('CI')
 
-    # Assign default values for num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
-    #     based on current partition's num_cpus and gpus
-    # when running nb_impl on CPU, we request one task per CPU
-    # when running nb_impl on GPU, we request one task per GPU
     @run_after('setup')
     def set_num_tasks(self):
-        hooks.assign_one_task_per_feature(test=self, feature=self.nb_impl)
+        """
+        Assign default values for num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
+            based on current partition's num_cpus and gpus
+        when running nb_impl on CPU, we request one task per CPU
+        when running nb_impl on GPU, we request one task per GPU
+        """
+        hooks.assign_one_task_per_compute_unit(test=self, compute_unit=self.nb_impl)
 
     @run_after('setup')
     def set_omp_num_threads(self):
+        """Set number of OpenMP threads"""
         omp_num_threads = self.num_cpus_per_task
         # set both OMP_NUM_THREADS and -ntomp explicitly to avoid conflicting values
         self.executable_opts += ['-dlb yes', f'-ntomp {omp_num_threads}', '-npme -1']

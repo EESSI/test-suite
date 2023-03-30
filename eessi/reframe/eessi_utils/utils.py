@@ -1,3 +1,7 @@
+"""
+Utility functions for ReFrame tests
+"""
+
 import re
 
 import reframe as rfm
@@ -32,14 +36,9 @@ def is_gpu_present(test: rfm.RegressionTest) -> bool:
     return len(_get_gpu_list(test)) >= 1
 
 
-def is_cuda_required_module(module_name):
+def is_cuda_required_module(module_name) -> bool:
     '''Checks if CUDA seems to be required by given module'''
     requires_cuda = False
     if re.search("(?i)cuda", module_name):
         requires_cuda = True
     return requires_cuda
-
-
-def is_cuda_required(test: rfm.RegressionTest) -> bool:
-    '''Checks if CUDA seems to be required by current module'''
-    return any([is_cuda_required_module(x) for x in test.modules])
