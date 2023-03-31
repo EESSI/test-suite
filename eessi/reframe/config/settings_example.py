@@ -1,7 +1,10 @@
+"""
+Example configuration file
+"""
+
 from os import environ
 username = environ.get('USER')
 
-# This is an example configuration file
 site_configuration = {
     'systems': [
         {
@@ -13,11 +16,11 @@ site_configuration = {
             'stagedir': f'/some/shared/dir/{username}/reframe_output/staging',
             'partitions': [
                 {
-                    'name': 'cpu',
+                    'name': 'cpu_partition',
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access':  ['-p cpu'],
-                    'environs': ['builtin'],
+                    'environs': ['default'],
                     'max_jobs': 4,
                     'processor': {
                         'num_cpus': 128,
@@ -25,14 +28,15 @@ site_configuration = {
                         'num_cpus_per_socket': 64,
                         'arch': 'znver2',
                     },
+                    'features': ['cpu'],
                     'descr': 'CPU partition'
                 },
                 {
-                    'name': 'gpu',
+                    'name': 'gpu_partition',
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access':  ['-p gpu'],
-                    'environs': ['builtin'],
+                    'environs': ['default'],
                     'max_jobs': 4,
                     'processor': {
                         'num_cpus': 72,
@@ -40,26 +44,33 @@ site_configuration = {
                         'num_cpus_per_socket': 36,
                         'arch': 'icelake',
                     },
+                    'resources': [
+                        {
+                            'name': '_rfm_gpu',
+                            'options': ['--gpus-per-node={num_gpus_per_node}'],
+                        }
+                    ],
                     'devices': [
                         {
                             'type': 'gpu',
                             'num_devices': 4,
                         }
                     ],
+                    'features': ['cpu', 'gpu'],
                     'descr': 'GPU partition'
                 },
-             ]
-         },
-     ],
+            ]
+        },
+    ],
     'environments': [
         {
-            'name': 'builtin',
+            'name': 'default',
             'cc': 'cc',
             'cxx': '',
             'ftn': '',
         },
-     ],
-     'logging': [
+    ],
+    'logging': [
         {
             'level': 'debug',
             'handlers': [

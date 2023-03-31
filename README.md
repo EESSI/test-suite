@@ -1,9 +1,9 @@
 # test-suite
 A portable test suite for software installations, using ReFrame
 
-## Getting started (@casparvl, commited 2022-12-06)
+## Getting started
 
-- install ReFrame >=3.11, <4
+- install ReFrame >=4.0
 
 - install the test suite using 
 
@@ -26,11 +26,10 @@ and set your `PYTHONPATH` so that it includes the `eessi/reframe` directory from
 - run the tests
 
     the example below runs a gromacs simulation using GROMACS modules available in the system,
-    in combination with all available system:partitions as defined in the site config file,
-    but skips CUDA modules in non-GPU nodes, and skips non-CUDA modules in GPU nodes
+    in combination with all available system:partitions as defined in the site config file
 
 ```
-module load ReFrame/3.12.0
+module load ReFrame/4.0.1
 
 eessiroot=<path_to_test-suite>
 eessihome=$eessiroot/eessi/reframe
@@ -42,18 +41,52 @@ PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
     -r --performance-report
 ```
 
-## Improvements in PR #11 (2022-12-14)
+## Configuring GPU/non-GPU partitions in your site config file:
 
-- features to filter out CUDA modules in non-GPU nodes and non-CUDA modules in GPU nodes
-    - requires adding `features` `cpu` and/or `gpu` to the partitions in the site config file
-- support for specifying modules
-    - via `--setvar modules=<modulename>`
-- support for specifying systems:partitions
-    - via `--setvar valid_systems=<comma-separated-list>`
-- support for overriding tasks, cpus
-    - via `--setvar num_tasks_per_node=<x>` and/or `--setvar num_cpus_per_task=<y>`
-- support for setting additional environment variables
-    - via `--setvar variables=<envar>:<value>`
+- running GPU jobs in GPU nodes
+    - add feature `gpu` to the GPU partitions
+
+- running non-GPU jobs in non-GPU nodes
+    - add feature `cpu` to the non-GPU partitions
+
+- running GPU jobs and non-GPU jobs on gpu nodes
+    - add both features `cpu` and `gpu` to the GPU partitions
+    ```
+    'features': ['cpu', 'gpu'],
+    ```
+
+- setting the number of GPUS per node <x> for a partition:
+    ```
+    'access': ['-p <partition_name>'],
+    'devices': [
+        {'type': 'gpu', 'num_devices': <x>}
+    ],
+    ```
+- requesting GPUs per node for a partition:
+    ```
+    'resources': [
+        {
+            'name': '_rfm_gpu',
+            'options': ['--gpus-per-node={num_gpus_per_node}'],
+        }
+    ],
+    ```
+
+## Changing the default test behavior on the cmd line
+
+- specifying modules
+    - `--setvar modules=<modulename>`
+
+- specifying systems:partitions
+    - `--setvar valid_systems=<comma-separated-list>`
+
+- overriding tasks, cpus, gpus
+    - `--setvar num_tasks_per_node=<x>`
+    - `--setvar num_cpus_per_task=<y>`
+    - `--setvar num_gpus_per_node=<x>`
+
+- setting additional environment variables
+    - `--setvar env_vars=<envar>:<value>`
 
 ## Developers
 If you want to install the EESSI test suite from a branch, you can use
