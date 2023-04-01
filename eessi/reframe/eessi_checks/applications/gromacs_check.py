@@ -4,8 +4,6 @@ Test input files are taken from https://www.hecbiosim.ac.uk/access-hpc/benchmark
     as defined in the hpctestlib.
 """
 
-import shlex
-
 import reframe as rfm
 import reframe.core.runtime as rt
 from reframe.utility import OrderedSet
@@ -88,17 +86,8 @@ class GROMACS_EESSI(gromacs_check):
 
     @run_after('init')
     def check_custom_executable_opts(self):
-        """"
-        hpctestlib adds the following:
-            self.executable_opts += ['-nb', self.nb_impl, '-s benchmark.tpr']
-        if executable_opts are set via the cmd line with --setvar executable_opts=<x>,
-            we will not add any extra executable_opts
-        """
-        # normalize options
-        self.executable_opts = shlex.split(' '.join(self.executable_opts))
-        self.has_custom_executable_opts = False
-        if len(self.executable_opts) > 4:
-            self.has_custom_executable_opts = True
+        num_default = 4  # normalized number of executable opts added by parent class (gromacs_check)
+        hooks.check_custom_executable_opts(self, num_default=num_default)
 
     @run_after('setup')
     def set_num_tasks(self):
@@ -115,6 +104,7 @@ class GROMACS_EESSI(gromacs_check):
         """
         Set number of OpenMP threads
         Set both OMP_NUM_THREADS and -ntomp explicitly to avoid conflicting values
+        Add extra executable_opts, unless specified via --setvar executable_opts=<x>
         """
         if '-ntomp' in self.executable_opts:
             omp_num_threads = self.executable_opts[self.executable_opts.index('-ntomp') + 1]
