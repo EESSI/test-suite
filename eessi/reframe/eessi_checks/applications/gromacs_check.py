@@ -85,7 +85,7 @@ class GROMACS_EESSI(gromacs_check):
             self.tags.add('CI')
 
     @run_after('init')
-    def check_custom_executable_opts(self):
+    def set_executable_opts(self):
         """
         Add extra executable_opts, unless specified via --setvar executable_opts=<x>
         """
