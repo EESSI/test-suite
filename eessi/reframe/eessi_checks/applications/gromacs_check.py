@@ -8,11 +8,12 @@ import reframe as rfm
 
 from hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
 from eessi_utils import hooks, utils
+from eessi_utils.utils import SCALES
 
 
 @rfm.simple_test
 class GROMACS_EESSI(gromacs_check):
-    scale = parameter(utils.SCALES)
+    scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
     valid_systems = []
     time_limit = '30m'
@@ -23,7 +24,7 @@ class GROMACS_EESSI(gromacs_check):
         """hooks to run after the init phase"""
         hooks.filter_tests_by_device_type(self, device_type=self.nb_impl)
         hooks.set_modules(self)
-        hooks.set_tag_scale(self)
+        hooks.set_scale(self)
 
     @run_after('init')
     def set_tag_ci(self):

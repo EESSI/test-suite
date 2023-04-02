@@ -10,14 +10,19 @@ from reframe.utility import OrderedSet
 
 GPU_DEV_NAME = 'gpu'
 
-SCALES = [
-    # (scale_name, nodes)
-    ('1_node', 1),
-    ('2_nodes', 2),
-    ('4_nodes', 4),
-    ('8_nodes', 8),
-    ('16_nodes', 16),
-]
+SCALES = {
+        '1_core': {'num_nodes': 1, 'max_cpus_per_node': 1, 'max_gpus_per_node': 1},
+        '2_cores': {'num_nodes': 1, 'max_cpus_per_node': 2, 'max_gpus_per_node': 1},
+        '4_cores': {'num_nodes': 1, 'max_cpus_per_node': 4, 'max_gpus_per_node': 1},
+        '1_8_node': {'num_nodes': 1, 'node_part': 8},  # 1/8 node
+        '1_4_node': {'num_nodes': 1, 'node_part': 4},  # 1/4 node
+        '1_2_node': {'num_nodes': 1, 'node_part': 2},  # 1/2 node
+        '1_node': {'num_nodes': 1, 'node_part': 1},
+        '2_nodes': {'num_nodes': 2, 'node_part': 1},
+        '4_nodes': {'num_nodes': 4, 'node_part': 1},
+        '8_nodes': {'num_nodes': 8, 'node_part': 1},
+        '16_nodes': {'num_nodes': 16, 'node_part': 1},
+}
 
 
 def _get_gpu_list(test: rfm.RegressionTest):
