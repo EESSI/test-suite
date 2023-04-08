@@ -15,7 +15,7 @@ Check that processor information is either autodetected
 '''
 
 
-def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str) -> rfm.RegressionTest:
+def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str):
     """
     Assign one task per compute unit ('gpu' or 'cpu')
     Automatically sets num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node based on the current
@@ -40,7 +40,7 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
         raise ValueError(f'compute unit {compute_unit} is currently not supported')
 
 
-def assign_one_task_per_cpu(test: rfm.RegressionTest) -> rfm.RegressionTest:
+def assign_one_task_per_cpu(test: rfm.RegressionTest):
     """
     Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per core,
         unless specified with --setvar num_tasks_per_node=<x> and/or --setvar num_cpus_per_task=<y>
@@ -63,7 +63,7 @@ def assign_one_task_per_cpu(test: rfm.RegressionTest) -> rfm.RegressionTest:
     test.num_cpus_per_task = num_cpus_per_task
 
 
-def assign_one_task_per_gpu(test: rfm.RegressionTest) -> rfm.RegressionTest:
+def assign_one_task_per_gpu(test: rfm.RegressionTest):
     """
     Sets num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
         unless specified with

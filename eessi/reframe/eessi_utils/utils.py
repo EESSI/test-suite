@@ -3,6 +3,7 @@ Variables and utility functions for ReFrame tests
 """
 
 import re
+from typing import Iterator
 
 import reframe as rfm
 import reframe.core.runtime as rt
@@ -28,7 +29,7 @@ SCALES = {
 }
 
 
-def _get_gpu_list(test: rfm.RegressionTest):
+def _get_gpu_list(test: rfm.RegressionTest) -> list:
     return [dev.num_devices for dev in test.current_partition.devices if dev.device_type == GPU_DEV_NAME]
 
 
@@ -63,7 +64,7 @@ def is_cuda_required_module(module_name: str) -> bool:
     return requires_cuda
 
 
-def my_find_modules(substr: str) -> str:
+def my_find_modules(substr: str) -> Iterator[str]:
     """Return all modules in the current system that contain ``substr`` in their name."""
     if not isinstance(substr, str):
         raise TypeError("'substr' argument must be a string")
