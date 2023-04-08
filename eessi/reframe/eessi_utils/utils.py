@@ -11,6 +11,9 @@ from reframe.utility import OrderedSet
 GPU_DEV_NAME = 'gpu'
 
 SCALES = {
+        # required keys:
+        #   - num_nodes
+        #   - either node_part or (max_cpus_per_node and max_gpus_per_node)
         '1_core': {'num_nodes': 1, 'max_cpus_per_node': 1, 'max_gpus_per_node': 1},
         '2_cores': {'num_nodes': 1, 'max_cpus_per_node': 2, 'max_gpus_per_node': 1},
         '4_cores': {'num_nodes': 1, 'max_cpus_per_node': 4, 'max_gpus_per_node': 1},
