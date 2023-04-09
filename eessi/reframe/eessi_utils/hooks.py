@@ -25,11 +25,17 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
     Total task count is determined based on the number of nodes to be used in the test.
     Behaviour of this function is (usually) sensible for MPI tests.
     """
-    if not test.max_cpus_per_node:
-        max_cpus_per_node = test.current_partition.processor.num_cpus
-        if max_cpus_per_node is None:
-            raise AttributeError(PROCESSOR_INFO_MISSING)
+    max_cpus_per_node = test.current_partition.processor.num_cpus
+    if max_cpus_per_node is None:
+        raise AttributeError(PROCESSOR_INFO_MISSING)
 
+    cpus_per_node = test.cpus_per_node
+    if cpus_per_node:
+        if cpus_per_node > max_cpus_per_node:
+            test.skip(
+                f'CPUs per node ({cpus_per_node}) is higher than available ({max_cpus_per_node}) in this partition')
+        test.max_cpus_per_node = cpus_per_node
+    else:
         test.max_cpus_per_node = int(max_cpus_per_node / test.node_part)
 
     if compute_unit == 'gpu':
@@ -76,9 +82,16 @@ def assign_one_task_per_gpu(test: rfm.RegressionTest):
     - if num_tasks_per_node is set, set num_gpus_per_node equal to either num_tasks_per_node or nb of GPUs per node
         available in this partition (whatever is smallest).
     """
-    max_gpus_per_node = test.max_gpus_per_node
-    if not max_gpus_per_node:
-        max_gpus_per_node = math.ceil(utils.get_num_gpus_per_node(test) / test.node_part)
+    max_gpus_per_node = utils.get_num_gpus_per_node(test)
+
+    gpus_per_node = test.gpus_per_node
+    if gpus_per_node:
+        if gpus_per_node > max_gpus_per_node:
+            test.skip(
+                f'GPUs per node ({gpus_per_node}) is higher than available ({max_gpus_per_node}) in this partition')
+        max_gpus_per_node = gpus_per_node
+    else:
+        max_gpus_per_node = math.ceil(max_gpus_per_node / test.node_part)
 
     max_cpus_per_node = test.max_cpus_per_node
     num_tasks_per_node = test.num_tasks_per_node
@@ -143,7 +156,7 @@ def set_scale(test: rfm.RegressionTest):
     """Set resources and tag based on current scale"""
     scale = test.scale
     test.num_nodes = SCALES[scale]['num_nodes']
-    test.max_cpus_per_node = SCALES[scale].get('max_cpus_per_node')
-    test.max_gpus_per_node = SCALES[scale].get('max_gpus_per_node')
+    test.cpus_per_node = SCALES[scale].get('cpus_per_node')
+    test.gpus_per_node = SCALES[scale].get('gpus_per_node')
     test.node_part = SCALES[scale].get('node_part')
     test.tags.add(scale)

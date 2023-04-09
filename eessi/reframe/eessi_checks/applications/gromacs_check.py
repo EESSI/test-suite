@@ -28,6 +28,7 @@ class GROMACS_EESSI(gromacs_check):
 
     @run_after('init')
     def set_tag_ci(self):
+        """Set tag CI on first benchmark"""
         if self.benchmark_info[0] == 'HECBioSim/hEGFRDimer':
             self.tags.add('CI')
 
