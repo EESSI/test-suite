@@ -16,12 +16,12 @@ class GROMACS_EESSI(gromacs_check):
     valid_prog_environs = ['default']
     valid_systems = []
     time_limit = '30m'
-    module_name = parameter(utils.my_find_modules('GROMACS'))
+    module_name = parameter(utils.find_modules('GROMACS'))
 
     @run_after('init')
     def run_after_init(self):
         """hooks to run after the init phase"""
-        hooks.filter_tests_by_device_type(self, device_type=self.nb_impl)
+        hooks.filter_tests_by_device_type(self, required_device_type=self.nb_impl)
         hooks.set_modules(self)
         hooks.set_tag_scale(self)
 

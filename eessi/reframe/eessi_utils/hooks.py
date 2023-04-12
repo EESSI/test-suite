@@ -95,26 +95,26 @@ def assign_one_task_per_gpu(test: rfm.RegressionTest) -> rfm.RegressionTest:
     test.num_tasks = test.num_nodes * num_tasks_per_node
 
 
-def filter_tests_by_device_type(test: rfm.RegressionTest, device_type: str):
+def filter_tests_by_device_type(test: rfm.RegressionTest, required_device_type: str):
     """
-    filter valid_systems by device type,
-        unless specified with --setvar valid_systems=<comma-separated-list>
+    filter tests by required device type and whether the module supports CUDA,
+        unless valid_systems is specified with --setvar valid_systems=<comma-separated-list>
     """
     if not test.valid_systems:
         is_cuda_module = utils.is_cuda_required_module(test.module_name)
         valid_systems = ''
 
-        if is_cuda_module and device_type == 'gpu':
-            # CUDA modules and when using a GPU for non-bonded interactions require partitions with 'gpu' feature
+        if is_cuda_module and required_device_type == 'gpu':
+            # CUDA modules and when using a GPU require partitions with 'gpu' feature
             valid_systems = '+gpu'
 
-        elif device_type == 'cpu':
-            # Non-bonded interactions on the CPU require partitions with 'cpu' feature
+        elif required_device_type == 'cpu':
+            # Using the CPU requires partitions with 'cpu' feature
             # Note: making 'cpu' an explicit feature allows e.g. skipping CPU-based tests on GPU partitions
             valid_systems = '+cpu'
 
-        elif not is_cuda_module and device_type == 'gpu':
-            # Invalid combination: a module without GPU support cannot compute non-bonded interactions on GPU
+        elif not is_cuda_module and required_device_type == 'gpu':
+            # Invalid combination: a module without GPU support cannot use a GPU
             valid_systems = ''
 
         if valid_systems:
@@ -134,5 +134,5 @@ def set_modules(test: rfm.RegressionTest):
 
 def set_tag_scale(test: rfm.RegressionTest):
     """Add tag based on scale used"""
-    scale_variant, test.num_nodes = test.scale
-    test.tags.add(scale_variant)
+    scale_tag, test.num_nodes = test.scale
+    test.tags.add(scale_tag)

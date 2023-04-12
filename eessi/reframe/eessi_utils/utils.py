@@ -11,7 +11,7 @@ from reframe.utility import OrderedSet
 GPU_DEV_NAME = 'gpu'
 
 SCALES = [
-    # (scale_name, nodes)
+    # (scale_tag, nodes)
     ('1_node', 1),
     ('2_nodes', 2),
     ('4_nodes', 4),
@@ -55,7 +55,7 @@ def is_cuda_required_module(module_name: str) -> bool:
     return requires_cuda
 
 
-def my_find_modules(substr: str) -> str:
+def find_modules(substr: str) -> str:
     """Return all modules in the current system that contain ``substr`` in their name."""
     if not isinstance(substr, str):
         raise TypeError("'substr' argument must be a string")
