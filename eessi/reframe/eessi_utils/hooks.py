@@ -1,6 +1,7 @@
 """
 Hooks for setting job resources in ReFrame tests
 """
+import shlex
 
 import reframe as rfm
 from eessi_utils import utils
@@ -93,3 +94,15 @@ def assign_one_task_per_gpu(test: rfm.RegressionTest) -> rfm.RegressionTest:
     test.num_gpus_per_node = num_gpus_per_node
     test.num_tasks_per_node = num_tasks_per_node
     test.num_tasks = test.num_nodes * num_tasks_per_node
+
+
+def check_custom_executable_opts(test: rfm.RegressionTest, num_default: int = 0):
+    """"
+    check if custom executable options were added with
+        --setvar executable_opts=<x>
+    """
+    # normalize options
+    test.executable_opts = shlex.split(' '.join(test.executable_opts))
+    test.has_custom_executable_opts = False
+    if len(test.executable_opts) > num_default:
+        test.has_custom_executable_opts = True
