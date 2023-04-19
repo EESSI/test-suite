@@ -1,6 +1,7 @@
 """
 Hooks for adding tags, filtering and setting job resources in ReFrame tests
 """
+import shlex
 
 import reframe as rfm
 from eessi_utils import utils
@@ -139,3 +140,14 @@ def set_tag_scale(test: rfm.RegressionTest):
     """Add tag based on scale used"""
     scale_tag, test.num_nodes = test.scale
     test.tags.add(scale_tag)
+
+
+def check_custom_executable_opts(test: rfm.RegressionTest, num_default: int = 0):
+    """"
+    Check if custom executable options were added with --setvar executable_opts=<x>.
+    """
+    # normalize options
+    test.executable_opts = shlex.split(' '.join(test.executable_opts))
+    test.has_custom_executable_opts = False
+    if len(test.executable_opts) > num_default:
+        test.has_custom_executable_opts = True
