@@ -1,12 +1,23 @@
 """
-Utility functions for ReFrame tests
+Variables and utility functions for ReFrame tests
 """
 
 import re
 
 import reframe as rfm
+import reframe.core.runtime as rt
+from reframe.utility import OrderedSet
 
 GPU_DEV_NAME = 'gpu'
+
+SCALES = [
+    # (scale_tag, nodes)
+    ('1_node', 1),
+    ('2_nodes', 2),
+    ('4_nodes', 4),
+    ('8_nodes', 8),
+    ('16_nodes', 16),
+]
 
 
 def _get_gpu_list(test: rfm.RegressionTest):
@@ -36,9 +47,20 @@ def is_gpu_present(test: rfm.RegressionTest) -> bool:
     return len(_get_gpu_list(test)) >= 1
 
 
-def is_cuda_required_module(module_name) -> bool:
+def is_cuda_required_module(module_name: str) -> bool:
     '''Checks if CUDA seems to be required by given module'''
     requires_cuda = False
     if re.search("(?i)cuda", module_name):
         requires_cuda = True
     return requires_cuda
+
+
+def find_modules(substr: str) -> str:
+    """Return all modules in the current system that contain ``substr`` in their name."""
+    if not isinstance(substr, str):
+        raise TypeError("'substr' argument must be a string")
+
+    ms = rt.runtime().modules_system
+    modules = OrderedSet(ms.available_modules(substr))
+    for m in modules:
+        yield m
