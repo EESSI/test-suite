@@ -13,8 +13,8 @@ GPU_DEV_NAME = 'gpu'
 
 SCALES = {
         # required keys:
-        #   - num_nodes
-        #   - either node_part or (cpus_per_node and gpus_per_node)
+        # - num_nodes
+        # - either node_part or (cpus_per_node and gpus_per_node)
         '1_core': {'num_nodes': 1, 'cpus_per_node': 1, 'gpus_per_node': 1},
         '2_cores': {'num_nodes': 1, 'cpus_per_node': 2, 'gpus_per_node': 1},
         '4_cores': {'num_nodes': 1, 'cpus_per_node': 4, 'gpus_per_node': 1},
@@ -64,7 +64,7 @@ def is_cuda_required_module(module_name: str) -> bool:
     return requires_cuda
 
 
-def my_find_modules(substr: str) -> Iterator[str]:
+def find_modules(substr: str) -> Iterator[str]:
     """Return all modules in the current system that contain ``substr`` in their name."""
     if not isinstance(substr, str):
         raise TypeError("'substr' argument must be a string")
