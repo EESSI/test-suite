@@ -33,9 +33,9 @@ def _get_gpu_list(test: rfm.RegressionTest) -> list:
     return [dev.num_devices for dev in test.current_partition.devices if dev.device_type == GPU_DEV_NAME]
 
 
-def get_num_gpus_per_node(test: rfm.RegressionTest) -> int:
+def get_max_avail_gpus_per_node(test: rfm.RegressionTest) -> int:
     '''
-    Returns the number of GPUs per node for the current partition,
+    Returns the maximum available number of GPUs per node for the current partition,
     taken from 'num_devices' of device GPU_DEV_NAME in the 'devices' attribute of the current partition
     '''
     gpu_list = _get_gpu_list(test)
@@ -44,7 +44,7 @@ def get_num_gpus_per_node(test: rfm.RegressionTest) -> int:
     if len(gpu_list) != 1:
         raise ValueError(f"Multiple different devices exist with the name "
                          f"'{GPU_DEV_NAME}' for partition '{test.current_partition.name}'. "
-                         f"Cannot determine number of GPUs available for the test. "
+                         f"Cannot determine maximum number of GPUs available for the test. "
                          f"Please check the definition of partition '{test.current_partition.name}' "
                          f"in your ReFrame config file.")
 

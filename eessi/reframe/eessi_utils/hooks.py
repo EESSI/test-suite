@@ -21,24 +21,29 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
     """
     Assign one task per compute unit ('gpu' or 'cpu').
     Automatically sets num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
-    based on the current partition's num_cpus, num_gpus_per_node and test.num_nodes.
+    based on the current scale and the current partition’s num_cpus, max_avail_gpus_per_node and num_nodes.
     For GPU tests, one task per GPU is set, and num_cpus_per_task is based on the ratio of CPU-cores/GPUs.
     For CPU tests, one task per CPU is set, and num_cpus_per_task is set to 1.
     Total task count is determined based on the number of nodes to be used in the test.
     Behaviour of this function is (usually) sensible for MPI tests.
     """
-    max_cpus_per_node = test.current_partition.processor.num_cpus
-    if max_cpus_per_node is None:
+    max_avail_cpus_per_node = test.current_partition.processor.num_cpus
+    if max_avail_cpus_per_node is None:
         raise AttributeError(PROCESSOR_INFO_MISSING)
 
+    # determine cpus_per_node from current scale
     cpus_per_node = test.cpus_per_node
     if cpus_per_node:
-        if cpus_per_node > max_cpus_per_node:
+        # cpus_per_node is defined by current scale
+        if cpus_per_node > max_avail_cpus_per_node:
             test.skip(
-                f'CPUs per node ({cpus_per_node}) is higher than available ({max_cpus_per_node}) in this partition')
-        test.max_cpus_per_node = cpus_per_node
+                f'CPUs per node ({cpus_per_node}) is higher than maximum available ({max_avail_cpus_per_node}).')
+    elif test.node_part:
+        # node_part is defined by current scale
+        test.cpus_per_node = int(max_avail_cpus_per_node / test.node_part)
     else:
-        test.max_cpus_per_node = int(max_cpus_per_node / test.node_part)
+        raise ValueError(
+            'Neither cpus_per_node or node_part are integers. Make sure to call hook `set_tag_scale` first.')
 
     if compute_unit == 'gpu':
         assign_one_task_per_gpu(test)
@@ -51,20 +56,29 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
 def assign_one_task_per_cpu(test: rfm.RegressionTest):
     """
     Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per core,
-    unless specified with --setvar num_tasks_per_node=<x> and/or --setvar num_cpus_per_task=<y>.
+    unless specified with:
+    --setvar num_tasks_per_node=<x> and/or
+    --setvar num_cpus_per_task=<y>.
+
+    Variables:
+    - cpus_per_node: number of CPUs per node as determined by the current scale
+
+    Default resources requested:
+    - num_tasks_per_node = cpus_per_node
+    - num_cpus_per_task = cpus_per_node / num_tasks_per_node
     """
-    max_cpus_per_node = test.max_cpus_per_node
+    cpus_per_node = test.cpus_per_node
     num_tasks_per_node = test.num_tasks_per_node
     num_cpus_per_task = test.num_cpus_per_task
 
     if not num_tasks_per_node:
         if not num_cpus_per_task:
-            num_tasks_per_node = max_cpus_per_node
+            num_tasks_per_node = cpus_per_node
         else:
-            num_tasks_per_node = int(max_cpus_per_node / num_cpus_per_task)
+            num_tasks_per_node = int(cpus_per_node / num_cpus_per_task)
 
     if not num_cpus_per_task:
-        num_cpus_per_task = int(max_cpus_per_node / num_tasks_per_node)
+        num_cpus_per_task = int(cpus_per_node / num_tasks_per_node)
 
     test.num_tasks_per_node = num_tasks_per_node
     test.num_tasks = test.num_nodes * test.num_tasks_per_node
@@ -78,40 +92,49 @@ def assign_one_task_per_gpu(test: rfm.RegressionTest):
     --setvar num_cpus_per_task=<y> and/or
     --setvar num_gpus_per_node=<z>.
 
-    Default values:
-    num_gpus_per_node = total nb of GPUs per node available in this partition
-    num_tasks_per_node = num_gpus_per_node
-    num_cpus_per_task = total nb of CPUs per GPU available in this partition, divided by num_tasks_per_node
+    Variables:
+    - max_avail_gpus_per_node: maximum available number of GPUs per node
+    - gpus_per_node: number of GPUs per node as determined by the current scale
 
-    If num_tasks_per_node is set, set num_gpus_per_node equal to either num_tasks_per_node,
-    or nb of GPUs per node available in this partition (whatever is smallest).
+    Default resources requested:
+    - num_gpus_per_node = gpus_per_node
+    - num_tasks_per_node = num_gpus_per_node
+    - num_cpus_per_task = cpus_per_node / num_tasks_per_node
+
+    If num_tasks_per_node is set, set num_gpus_per_node equal to either num_tasks_per_node or gpus_per_node
+    (whichever is smallest), unless num_gpus_per_node is also set.
     """
-    max_gpus_per_node = utils.get_num_gpus_per_node(test)
+    max_avail_gpus_per_node = utils.get_max_avail_gpus_per_node(test)
 
+    # determine gpus_per_node from current scale
     gpus_per_node = test.gpus_per_node
     if gpus_per_node:
-        if gpus_per_node > max_gpus_per_node:
+        # gpus_per_node is defined by current scale
+        if gpus_per_node > max_avail_gpus_per_node:
             test.skip(
-                f'GPUs per node ({gpus_per_node}) is higher than available ({max_gpus_per_node}) in this partition')
-        max_gpus_per_node = gpus_per_node
+                f'GPUs per node ({gpus_per_node}) is higher than max available ({max_avail_gpus_per_node})'
+                ' in this partition'
+            )
+        gpus_per_node = gpus_per_node
     else:
-        max_gpus_per_node = math.ceil(max_gpus_per_node / test.node_part)
+        # node_part is defined by current scale
+        gpus_per_node = math.ceil(max_avail_gpus_per_node / test.node_part)
 
-    max_cpus_per_node = test.max_cpus_per_node
+    cpus_per_node = test.cpus_per_node
     num_tasks_per_node = test.num_tasks_per_node
     num_gpus_per_node = test.num_gpus_per_node
 
     if not num_tasks_per_node:
         if not num_gpus_per_node:
-            num_gpus_per_node = max_gpus_per_node
+            num_gpus_per_node = gpus_per_node
         num_tasks_per_node = num_gpus_per_node
 
     elif not num_gpus_per_node:
-        num_gpus_per_node = min(num_tasks_per_node, max_gpus_per_node)
+        num_gpus_per_node = min(num_tasks_per_node, gpus_per_node)
 
     if not test.num_cpus_per_task:
         test.num_cpus_per_task = int(
-            (max_cpus_per_node * num_gpus_per_node) / (num_tasks_per_node * max_gpus_per_node)
+            (cpus_per_node * num_gpus_per_node) / (num_tasks_per_node * gpus_per_node)
         )
 
     test.num_gpus_per_node = num_gpus_per_node
@@ -163,7 +186,14 @@ def set_tag_scale(test: rfm.RegressionTest):
     test.cpus_per_node = SCALES[scale].get('cpus_per_node')
     test.gpus_per_node = SCALES[scale].get('gpus_per_node')
     test.node_part = SCALES[scale].get('node_part')
-    test.tags.add(scale)
+    if type(test.node_part) == int or (type(test.cpus_per_node) == int and type(test.gpus_per_node) == int):
+        test.tags.add(scale)
+    else:
+        raise ValueError(
+            f'Scale {scale} is not correctly defined. Make sure either node_part ({test.node_part}),'
+            f' or cpus_per_node ({test.cpus_per_node}) and gpus_per_node ({test.gpus_per_node})'
+            ' are defined and have integer values.'
+        )
 
 
 def check_custom_executable_opts(test: rfm.RegressionTest, num_default: int = 0):
