@@ -8,7 +8,7 @@ import reframe as rfm
 
 from hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
 from eessi_utils import hooks, utils
-from eessi_utils.utils import SCALES
+from eessi_utils.constants import SCALES, TAGS
 
 
 @rfm.simple_test
@@ -22,7 +22,7 @@ class GROMACS_EESSI(gromacs_check):
     @run_after('init')
     def run_after_init(self):
         """hooks to run after the init phase"""
-        hooks.filter_tests_by_device_type(self, required_device_type=self.nb_impl)
+        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.nb_impl)
         hooks.set_modules(self)
         hooks.set_tag_scale(self)
 
@@ -30,7 +30,7 @@ class GROMACS_EESSI(gromacs_check):
     def set_tag_ci(self):
         """Set tag CI on first benchmark"""
         if self.benchmark_info[0] == 'HECBioSim/hEGFRDimer':
-            self.tags.add('CI')
+            self.tags.add(TAGS['CI'])
 
     @run_after('init')
     def set_executable_opts(self):

@@ -5,8 +5,8 @@ import math
 import shlex
 
 import reframe as rfm
+from eessi_utils.constants import DEVICES, FEATURES, SCALES
 from eessi_utils import utils
-from eessi_utils.utils import SCALES
 
 PROCESSOR_INFO_MISSING = '''
 This test requires the number of CPUs to be known for the partition it runs on.
@@ -19,7 +19,7 @@ or manually set in the ReFrame configuration file
 
 def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str):
     """
-    Assign one task per compute unit ('gpu' or 'cpu').
+    Assign one task per compute unit (DEVICES['CPU'] or DEVICES['GPU']).
     Automatically sets num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
     based on the current scale and the current partition’s num_cpus, max_avail_gpus_per_node and num_nodes.
     For GPU tests, one task per GPU is set, and num_cpus_per_task is based on the ratio of CPU-cores/GPUs.
@@ -45,9 +45,9 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
         raise ValueError(
             'Neither cpus_per_node or node_part are integers. Make sure to call hook `set_tag_scale` first.')
 
-    if compute_unit == 'gpu':
+    if compute_unit == DEVICES['GPU']:
         assign_one_task_per_gpu(test)
-    elif compute_unit == 'cpu':
+    elif compute_unit == DEVICES['CPU']:
         assign_one_task_per_cpu(test)
     else:
         raise ValueError(f'compute unit {compute_unit} is currently not supported')
@@ -142,25 +142,25 @@ def assign_one_task_per_gpu(test: rfm.RegressionTest):
     test.num_tasks = test.num_nodes * num_tasks_per_node
 
 
-def filter_tests_by_device_type(test: rfm.RegressionTest, required_device_type: str):
+def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_device_type: str):
     """
-    Filter tests by required device type and whether the module supports CUDA,
+    Filter valid_systems by required device type and by whether the module supports CUDA,
     unless valid_systems is specified with --setvar valid_systems=<comma-separated-list>.
     """
     if not test.valid_systems:
         is_cuda_module = utils.is_cuda_required_module(test.module_name)
         valid_systems = ''
 
-        if is_cuda_module and required_device_type == 'gpu':
+        if is_cuda_module and required_device_type == DEVICES['GPU']:
             # CUDA modules and when using a GPU require partitions with 'gpu' feature
-            valid_systems = '+gpu'
+            valid_systems = f'+{FEATURES["GPU"]}'
 
-        elif required_device_type == 'cpu':
+        elif required_device_type == DEVICES['CPU']:
             # Using the CPU requires partitions with 'cpu' feature
             # Note: making 'cpu' an explicit feature allows e.g. skipping CPU-based tests on GPU partitions
-            valid_systems = '+cpu'
+            valid_systems = f'+{FEATURES["CPU"]}'
 
-        elif not is_cuda_module and required_device_type == 'gpu':
+        elif not is_cuda_module and required_device_type == DEVICES['GPU']:
             # Invalid combination: a module without GPU support cannot use a GPU
             valid_systems = ''
 
@@ -170,7 +170,7 @@ def filter_tests_by_device_type(test: rfm.RegressionTest, required_device_type: 
 
 def set_modules(test: rfm.RegressionTest):
     """
-    Skip this test if module_name is not among a list of modules,
+    Skip current test if module_name is not among a list of modules,
     specified with --setvar modules=<comma-separated-list>.
     """
     if test.modules and test.module_name not in test.modules:
