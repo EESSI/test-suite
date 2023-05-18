@@ -148,10 +148,10 @@ def assign_one_task_per_gpu(test: rfm.RegressionTest):
 
     # num_cpus_per_task is not set
     if not test.num_cpus_per_task:
-        max_avail_cpus_per_gpu = int(test.max_avail_cpus_per_node / max_avail_gpus_per_node)
+        # limit num_cpus_per_task to the maximum available cpus per gpu
         test.num_cpus_per_task = min(
             int(test.default_num_cpus_per_node / test.num_tasks_per_node),
-            max_avail_cpus_per_gpu
+            int(test.max_avail_cpus_per_node / max_avail_gpus_per_node)
         )
 
     test.num_tasks = test.num_nodes * test.num_tasks_per_node
