@@ -72,11 +72,13 @@ def assign_one_task_per_cpu(test: rfm.RegressionTest):
     --setvar num_cpus_per_task=<y>.
 
     Variables:
-    - cpus_per_node: number of CPUs per node as determined by the current scale
+    - default_num_cpus_per_node: default number of CPUs per node as defined in the test
+    (e.g. by earlier hooks like set_tag_scale)
+
 
     Default resources requested:
-    - num_tasks_per_node = cpus_per_node
-    - num_cpus_per_task = cpus_per_node / num_tasks_per_node
+    - num_tasks_per_node = default_num_cpus_per_node
+    - num_cpus_per_task = default_num_cpus_per_node / num_tasks_per_node
     """
     # neither num_tasks_per_node nor num_cpus_per_node are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
@@ -108,7 +110,7 @@ def assign_one_task_per_gpu(test: rfm.RegressionTest):
     Default resources requested:
     - num_gpus_per_node = gpus_per_node
     - num_tasks_per_node = num_gpus_per_node
-    - num_cpus_per_task = cpus_per_node / num_tasks_per_node
+    - num_cpus_per_task = default_num_cpus_per_node / num_tasks_per_node
 
     If num_tasks_per_node is set, set num_gpus_per_node equal to either num_tasks_per_node or gpus_per_node
     (whichever is smallest), unless num_gpus_per_node is also set.
