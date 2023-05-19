@@ -32,7 +32,7 @@ class GROMACS_EESSI(gromacs_check):
         if self.benchmark_info[0] == 'HECBioSim/hEGFRDimer':
             self.tags.add(TAGS['CI'])
 
-    @run_after('init')
+    @run_after('setup')
     def set_executable_opts(self):
         """
         Add extra executable_opts, unless specified via --setvar executable_opts=<x>
