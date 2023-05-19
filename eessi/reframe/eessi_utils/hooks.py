@@ -96,6 +96,7 @@ def _assign_one_task_per_cpu(test: rfm.RegressionTest):
     else:
         pass  # both num_tasks_per_node and num_cpus_per_node are already set
 
+    test.num_tasks = test.num_nodes * test.num_tasks_per_node
 
 def _assign_one_task_per_gpu(test: rfm.RegressionTest):
     """
