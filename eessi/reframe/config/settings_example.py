@@ -1,8 +1,10 @@
 """
 Example configuration file
 """
-
 from os import environ
+
+from eessi_utils.constants import DEVICES, FEATURES
+
 username = environ.get('USER')
 
 site_configuration = {
@@ -28,7 +30,7 @@ site_configuration = {
                         'num_cpus_per_socket': 64,
                         'arch': 'znver2',
                     },
-                    'features': ['cpu'],
+                    'features': [FEATURES['CPU']],
                     'descr': 'CPU partition'
                 },
                 {
@@ -52,11 +54,11 @@ site_configuration = {
                     ],
                     'devices': [
                         {
-                            'type': 'gpu',
+                            'type': DEVICES['GPU'],
                             'num_devices': 4,
                         }
                     ],
-                    'features': ['cpu', 'gpu'],
+                    'features': [FEATURES['CPU'], FEATURES['GPU']],
                     'descr': 'GPU partition'
                 },
             ]
