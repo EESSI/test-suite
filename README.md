@@ -89,16 +89,67 @@ PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
     - `--setvar env_vars=<envar>:<value>`
 
 ## Developers
-If you want to install the EESSI test suite from a branch, you can use
+If you want to install the EESSI test suite from a branch, you can either pip-install the feature branch, or clone the github repo and check out the feature branch.
+
+### Install from branch with pip
+
+To install from one of the branches of the main repository, use:
 
 ```bash
 pip install git+https://github.com/EESSI/test-suite.git@branchname
 ```
 
-This also works on forked repositories, e.g.
+Generally, you'll want to do this from a forked repository though, where someone worked on a feature. E.g.
 
 ```bash
 pip install git+https://github.com/<someuser>/test-suite.git@branchname
 ```
 
-making it an easy way of testing PRs.
+### Check out a feature branch from a fork
+We'll assume you already a local clone of the official test-suite repository, called 'origin'. In that case, executing `git remote -v`, you should see:
+
+```bash
+$ git remote -v
+origin  git@github.com:EESSI/test-suite.git (fetch)
+origin  git@github.com:EESSI/test-suite.git (push)
+```
+
+You can add a fork to your local clone by adding a new remote. Pick a name for the remote that you find easy to recognize. E.g. to add the fork https://github.com/casparvl/test-suite
+
+```bash
+git remote add casparvl git@github.com:casparvl/test-suite.git
+```
+
+With `git remote -v` you should now see:
+
+```bash
+$ git remote -v
+origin  git@github.com:EESSI/test-suite.git (fetch)
+origin  git@github.com:EESSI/test-suite.git (push)
+casparvl        git@github.com:casparvl/test-suite.git (fetch)
+casparvl        git@github.com:casparvl/test-suite.git (push)
+```
+
+Next, we'll fetch the branches that `casparvl` has in his fork:
+
+```bash
+$ git fetch casparvl
+```
+
+We can check the remote branches using
+```bash
+$ git branch --list --remotes
+  casparvl/gromacs_cscs
+  casparvl/main
+  casparvl/setuppy
+  casparvl/updated_defaults_pr11
+  origin/HEAD -> origin/main
+  origin/main
+```
+
+Finally, we can create a new local branch (-c) and checkout one of these feature branches (e.g. `setuppy` from the remote `casparvl`):
+```bash
+$ git switch -c local_setuppy_branch casparvl/setuppy
+```
+
+While the initial setup is a bit more involved, the advantage of this approach is that it is easy to pull in updates from a feature branch using `git pull`. You can also push back changes to the feature branch directly, but note that you are pushing to the Github fork of another Github user, so _make sure they are ok with that_!
