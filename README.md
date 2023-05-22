@@ -89,7 +89,7 @@ PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
     - `--setvar env_vars=<envar>:<value>`
 
 ## Developers
-If you want to install the EESSI test suite from a branch, you can either pip-install the feature branch, or clone the github repo and check out the feature branch.
+If you want to install the EESSI test suite from a branch, you can either install the feature branch with pip, or clone the github repo and check out the feature branch.
 
 ### Install from branch with pip
 
@@ -146,6 +146,8 @@ $ git branch --list --remotes
   origin/HEAD -> origin/main
   origin/main
 ```
+
+(remember to re-run `git fetch <remote>` if new branches don't show up with this command).
 
 Finally, we can create a new local branch (-c) and checkout one of these feature branches (e.g. `setuppy` from the remote `casparvl`):
 ```bash
