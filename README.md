@@ -88,6 +88,9 @@ PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
 - setting additional environment variables
     - `--setvar env_vars=<envar>:<value>`
 
+Note that these override the variables for _all_ tests in the test suite that respect those variables. To override a variable only for specific tests, one can use the `TEST.VAR` syntax. E.g. to run the GROMACS_EESSI test, with the module `GROMACS/2021.6-foss-2022a`:
+    - `--setvar GROMACS_EESSI.modules=GROMACS/2021.6-foss-2022a'
+
 ## Developers
 If you want to install the EESSI test suite from a branch, you can either install the feature branch with `pip`, or clone the Github repository and check out the feature branch.
 
