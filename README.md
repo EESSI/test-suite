@@ -89,7 +89,7 @@ PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
     - `--setvar env_vars=<envar>:<value>`
 
 ## Developers
-If you want to install the EESSI test suite from a branch, you can either install the feature branch with pip, or clone the github repo and check out the feature branch.
+If you want to install the EESSI test suite from a branch, you can either install the feature branch with `pip`, or clone the Github repository and check out the feature branch.
 
 ### Install from branch with pip
 
@@ -114,13 +114,13 @@ origin  git@github.com:EESSI/test-suite.git (fetch)
 origin  git@github.com:EESSI/test-suite.git (push)
 ```
 
-You can add a fork to your local clone by adding a new remote. Pick a name for the remote that you find easy to recognize. E.g. to add the fork https://github.com/casparvl/test-suite
+You can add a fork to your local clone by adding a new remote. Pick a name for the remote that you find easy to recognize. E.g. to add the fork https://github.com/casparvl/test-suite and give it the (local) name `casparvl`, run:
 
 ```bash
 git remote add casparvl git@github.com:casparvl/test-suite.git
 ```
 
-With `git remote -v` you should now see:
+With `git remote -v` you should now see the new remote:
 
 ```bash
 $ git remote -v
@@ -149,9 +149,9 @@ $ git branch --list --remotes
 
 (remember to re-run `git fetch <remote>` if new branches don't show up with this command).
 
-Finally, we can create a new local branch (-c) and checkout one of these feature branches (e.g. `setuppy` from the remote `casparvl`):
+Finally, we can create a new local branch (`-c`) and checkout one of these feature branches (e.g. `setuppy` from the remote `casparvl`). Here, we've picked `local_setuppy_branch` as the local branch name:
 ```bash
 $ git switch -c local_setuppy_branch casparvl/setuppy
 ```
 
-While the initial setup is a bit more involved, the advantage of this approach is that it is easy to pull in updates from a feature branch using `git pull`. You can also push back changes to the feature branch directly, but note that you are pushing to the Github fork of another Github user, so _make sure they are ok with that_!
+While the initial setup is a bit more involved, the advantage of this approach is that it is easy to pull in updates from a feature branch using `git pull`. You can also push back changes to the feature branch directly, but note that you are pushing to the Github fork of another Github user, so _make sure they are ok with that_ before doing so!
