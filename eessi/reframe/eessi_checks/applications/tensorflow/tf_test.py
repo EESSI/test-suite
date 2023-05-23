@@ -81,6 +81,7 @@ per_worker_batch_size = 64
 per_worker_test_batch_size = 512
 num_workers = len(tf_config['cluster']['worker'])
 
+print(f"Selecting device: {args.device}")
 if args.device == 'gpu':
     # Limit each local rank to its own GPU.
     # Note that we need to create the MultiWorkerMirroredStrategy before calling tf.config.list_logical_devices
@@ -89,7 +90,7 @@ if args.device == 'gpu':
     try:
         # Todo: we could do local_rank % len(physical_devices)
         tf.config.set_visible_devices(physical_devices[local_rank], 'GPU')
-        visible_devices = tf.config.get_visible_devices('GPU')
+        visible_devices = tf.config.get_visible_devices()
         print("Local rank: %s, visible_devices: %s" % (local_rank, visible_devices))
         assert len(visible_devices) == 1
     except:
@@ -100,10 +101,10 @@ if args.device == 'gpu':
     communication_options = tf.distribute.experimental.CommunicationOptions(
         implementation=tf.distribute.experimental.CommunicationImplementation.NCCL)
     strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options)
-else:
+elif args.device == 'cpu':
     physical_devices = tf.config.list_physical_devices('CPU')
-    tf.config.set_visible_devices(physical_devices, 'CPU')
-    visible_devices = tf.config.get_visible_devices('CPU')
+    tf.config.set_visible_devices([], 'GPU')
+    visible_devices = tf.config.get_visible_devices()
     print("Local rank: %s, visible_devices: %s" % (local_rank, visible_devices))    
     strategy = tf.distribute.MultiWorkerMirroredStrategy()
 
