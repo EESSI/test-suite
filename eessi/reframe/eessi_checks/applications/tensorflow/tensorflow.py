@@ -8,7 +8,7 @@ import reframe as rfm
 import reframe.utility.sanity as sn
 
 from eessi_utils import hooks, utils
-from eessi_utils.constants import SCALES, TAGS
+from eessi_utils.constants import DEVICES, SCALES, TAGS
 
 @rfm.simple_test
 class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
@@ -67,7 +67,7 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
 
     @performance_function('img/s')
     def perf(self):
-        return sn.extractsingle(r'^Performance:\s+(?P<perf>\S+)', self.stdout, 'performance', float)
+        return sn.extractsingle(r'^Performance:\s+(?P<perf>\S+)', self.stdout, 'perf', float)
 
     @run_after('init')
     def run_after_init(self):
@@ -96,12 +96,30 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
         # It should bind to socket, but different MPIs may have different arguments to do that...
         # We should at very least prevent that it binds to single core per process, as that results in many threads being scheduled to one core
         # binding may also differ per launcher used. It'll be hard to support a wide range and still get proper binding
-        # hooks.assign_one_task_per_compute_unit(DEVICES['CPU_SOCKET'])
+        if self.device_type == 'cpu':
+            hooks.assign_one_task_per_compute_unit(test=self, compute_unit=DEVICES['CPU_SOCKET'])
+        elif self.device_type == 'gpu':
+            hooks.assign_one_task_per_compute_unit(test=self, compute_unit=DEVICES['GPU'])
+        else:
+            raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')
 
         # For now, we hardcode so we can at least have a minimal test run
-        self.num_tasks = 2
-        self.num_tasks_per_node = 2
-        self.num_cpus_per_task = 64
+        #self.num_tasks = 2
+        #self.num_tasks_per_node = 2
+        #self.num_cpus_per_task = 64
+
+    @run_after('setup')
+    def set_binding_policy(self):
+        """Set a binding policy"""
+        if self.current_partition.processor.num_sockets:
+            num_cpus_per_socket = self.max_avail_cpus_per_node / self.current_partition.processor.num_sockets
+            # Does a single task fit in a socket? If so, bind to socket
+            if self.num_cpus_per_task <= num_cpus_per_socket and self.num_cpus_per_task > 1:
+                # Should do binding for intel and OpenMPI's mpirun, and srun
+                # Other launchers may or may not do the correct binding
+                self.env_vars['I_MPI_PIN_DOMAIN'] = 'socket'
+                self.env_vars['OMPI_MCA_hwloc_base_binding_policy'] = 'socket'
+                self.env_vars['SLURM_CPU_BIND'] = 'socket'  # Only effective if the task/affinity plugin is enabled
 
     @run_after('setup')
     def set_omp_num_threads(self):

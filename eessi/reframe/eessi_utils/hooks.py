@@ -19,7 +19,7 @@ or manually set in the ReFrame configuration file
 
 def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str):
     """
-    Assign one task per compute unit (DEVICES['CPU'] or DEVICES['GPU']).
+    Assign one task per compute unit (DEVICES['CPU'], DEVICES['CPU_SOCKET'] or DEVICES['GPU']).
     Automatically sets num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
     based on the current scale and the current partition’s num_cpus, max_avail_gpus_per_node and num_nodes.
     For GPU tests, one task per GPU is set, and num_cpus_per_task is based on the ratio of CPU-cores/GPUs.
@@ -60,9 +60,45 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
         _assign_one_task_per_gpu(test)
     elif compute_unit == DEVICES['CPU']:
         _assign_one_task_per_cpu(test)
+    elif compute_unit == DEVICES['CPU_SOCKET']:
+        _assign_one_task_per_cpu_socket(test)
     else:
         raise ValueError(f'compute unit {compute_unit} is currently not supported')
 
+def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
+    """
+    Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per cpu socket,
+    unless specified with:
+    --setvar num_tasks_per_node=<x> and/or
+    --setvar num_cpus_per_task=<y>.
+
+    Variables:
+    - default_num_cpus_per_node: default number of CPUs per node as defined in the test
+    (e.g. by earlier hooks like set_tag_scale)
+
+
+    Default resources requested:
+    - num_tasks_per_node = default_num_cpus_per_node
+    - num_cpus_per_task = default_num_cpus_per_node / num_tasks_per_node
+    """
+    # neither num_tasks_per_node nor num_cpus_per_task are set
+    if not test.num_tasks_per_node and not test.num_cpus_per_task:
+        if test.current_partition.processor.num_sockets:
+            test.num_tasks_per_node = test.current_partition.processor.num_sockets
+            test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
+
+    # num_tasks_per_node is not set, but num_cpus_per_task is
+    elif not test.num_tasks_per_node:
+        test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.num_cpus_per_task)
+
+    # num_cpus_per_task is not set, but num_tasks_per_node is
+    elif not test.num_cpus_per_task:
+        test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
+
+    else:
+        pass  # both num_tasks_per_node and num_cpus_per_node are already set
+
+    test.num_tasks = test.num_nodes * test.num_tasks_per_node
 
 def _assign_one_task_per_cpu(test: rfm.RegressionTest):
     """

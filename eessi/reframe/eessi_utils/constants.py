@@ -4,6 +4,7 @@ Constants for ReFrame tests
 DEVICES = {
     'GPU': 'gpu',
     'CPU': 'cpu',
+    'CPU_SOCKET': 'cpu_socket',
 }
 
 TAGS = {
