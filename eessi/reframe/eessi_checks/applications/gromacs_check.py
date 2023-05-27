@@ -8,7 +8,7 @@ ReFrame terminology:
 "pipeline stages":
 https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#pipeline-hooks
 
-"test parameter": a list of values, each of which will generate different test variants.
+"test parameter": a list of values, which will generate different test variants.
 https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.builtins.parameter
 
 "test variant": a versions of a test with a specific value for each of its test parameters
