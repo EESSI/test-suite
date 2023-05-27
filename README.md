@@ -36,7 +36,7 @@ eessihome=$eessiroot/eessi/reframe
 
 PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
     -C <path_to_site_config_file> \
-    -c $eessihome/eessi-checks/applications/ \
+    -c $eessihome/eessi_checks/applications/ \
     -t CI -t 1_node \
     -r --performance-report
 ```
