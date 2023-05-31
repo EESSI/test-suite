@@ -7,10 +7,12 @@ import reframe as rfm
 
 from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
 from eessi_utils import hooks, utils
+from eessi_utils.constants import SCALES, TAGS
+
 
 @rfm.simple_test
 class OSU_EESSI(osu_benchmark):
-    scale = parameter(utils.SCALES)
+    scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
     valid_systems = []
     time_limit = '30m'
