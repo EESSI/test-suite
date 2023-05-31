@@ -1,7 +1,8 @@
 """
 This module tests the binary 'gmx_mpi' in available modules containing substring 'GROMACS'.
 Test input files are taken from https://www.hecbiosim.ac.uk/access-hpc/benchmarks,
-as defined in the hpctestlib.
+as defined in the ReFrame test library,
+see https://github.com/reframe-hpc/reframe/blob/develop/hpctestlib/sciapps/gromacs/benchmarks.py
 
 ReFrame terminology:
 
@@ -11,7 +12,7 @@ https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#pipeline-h
 "test parameter": a list of values, which will generate different test variants.
 https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.builtins.parameter
 
-"test variant": a versions of a test with a specific value for each of its test parameters
+"test variant": a version of a test with a specific value for each test parameter
 https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#test-variants
 
 "concrete test cases": all test combinations that will actually run:
@@ -19,10 +20,13 @@ https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#test-varia
 - valid system:partition+programming environment combinations
 https://reframe-hpc.readthedocs.io/en/stable/tutorial_deps.html#listing-dependencies
 
-Tests can be filtered by name, tag, programming environment, system, partition, or maintainer.
+Tests can be filtered by name, tag, programming environment, system, partition, or maintainer,
+see https://reframe-hpc.readthedocs.io/en/stable/manpage.html#test-filtering
 
 Hooks acting on all possible test combinations (before filtering) are called after the 'init' stage.
 Hooks acting on concrete test cases (after filtering) are called after the 'setup' stage.
+
+See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 """
 
 import reframe as rfm
