@@ -1,0 +1,27 @@
+# documentation: https://help.github.com/en/articles/workflow-syntax-for-github-actions
+name: Test installation of EESSI test suite with 'pip install'
+on: [push, pull_request, workflow_dispatch]
+permissions: read-all
+jobs:
+  test_pip_install:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11']
+    steps:
+        - name: Check out software-layer repository
+          uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
+          with:
+            persist-credentials: false
+
+        - name: Install with 'pip install'
+          run: |
+            # install from source distribution tarball, to test release as published on PyPI
+            rm -rf dist
+            python setup.py sdist
+            ls dist
+
+            prefix="/tmp/$USER/$GITHUB_SHA"
+            pip install --prefix $prefix dist/eessi*.tar.gz
+            find $prefix
