@@ -9,7 +9,7 @@ import reframe as rfm
 import reframe.core.runtime as rt
 from reframe.utility import OrderedSet
 
-from eessi_utils.constants import DEVICES
+from eessi.testsuite.constants import DEVICES
 
 
 def _get_gpu_list(test: rfm.RegressionTest) -> list:

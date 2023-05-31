@@ -5,8 +5,8 @@ import math
 import shlex
 
 import reframe as rfm
-from eessi_utils.constants import DEVICES, FEATURES, SCALES
-from eessi_utils import utils
+from eessi.testsuite.constants import DEVICES, FEATURES, SCALES
+from eessi.testsuite import utils
 
 PROCESSOR_INFO_MISSING = '''
 This test requires the number of CPUs to be known for the partition it runs on.

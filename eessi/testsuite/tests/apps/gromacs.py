@@ -33,8 +33,8 @@ import reframe as rfm
 
 from hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
 
-from eessi_utils import hooks, utils
-from eessi_utils.constants import SCALES, TAGS
+from eessi.testsuite import hooks, utils
+from eessi.testsuite.constants import SCALES, TAGS
 
 
 @rfm.simple_test
