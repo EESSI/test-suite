@@ -62,9 +62,9 @@ class GROMACS_EESSI(gromacs_check):
 
     @run_after('init')
     def set_tag_ci(self):
-        """Set tag CI on first benchmark, so it can be selected on the cmd line via --tag CI"""
-
-        if self.benchmark_info[0] == 'HECBioSim/hEGFRDimer':
+        """Set tag CI on smallest benchmark, so it can be selected on the cmd line via --tag CI"""
+        # Crambin input is smallest input (20K atoms), cfr. https://www.hecbiosim.ac.uk/access-hpc/benchmarks
+        if self.benchmark_info[0] == 'HECBioSim/Crambin':
             self.tags.add(TAGS['CI'])
 
     @run_after('setup')
