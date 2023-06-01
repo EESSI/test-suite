@@ -43,10 +43,9 @@ jobs:
             export RFM_SYSTEM=github_actions_eessi
             export RFM_CHECK_SEARCH_PATH=$PWD/eessi/reframe/eessi_checks/applications
 
-            # deliberately passing path to configuration file via --config-file because that yields better errors
-            # if configuration file can not be parsed;
-            # only setting $RFM_CONFIG_FILES results in silently ignoring the configuration file...
-            reframe --config-file ${RFM_CONFIG_FILES} -vvv --show-config
+            # show active ReFrame configuration,
+            # enable verbose output to help expose problems with configuration file (if any)
+            reframe -vvv --show-config
 
             # update $PYTHONPATH so 'import eessi_utils' works
             export PYTHONPATH=$PWD/eessi/reframe:$PYTHONPATH
