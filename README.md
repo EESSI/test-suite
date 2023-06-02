@@ -17,9 +17,11 @@ Alternatively, you can clone the repository
 git clone git@github.com:EESSI/test-suite.git
 ```
 
+- update your ``$PYTHONPATH`` so that it includes the path of the ``test-suite`` directory
+
 - create a site configuration file
 
-    - should look similar to `test-suite/eessi/reframe/config/settings_example.py`
+    - should look similar to `test-suite/config/settings_example.py`
 
 - run the tests
 
