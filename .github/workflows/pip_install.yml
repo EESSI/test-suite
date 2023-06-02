@@ -15,7 +15,11 @@ jobs:
           with:
             persist-credentials: false
 
-        - name: Install with 'pip install'
+        - name: Install ReFrame
+          run: |
+            pip install --user ReFrame-HPC
+
+        - name: Install EESSI test suite with 'pip install'
           run: |
             # install from source distribution tarball, to test release as published on PyPI
             rm -rf dist
