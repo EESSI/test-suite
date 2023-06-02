@@ -23,5 +23,11 @@ jobs:
             ls dist
 
             prefix="/tmp/$USER/$GITHUB_SHA"
-            pip install --prefix $prefix dist/eessi*.tar.gz
-            find $prefix
+            pip install --prefix ${prefix} dist/eessi*.tar.gz
+            find ${prefix}
+
+            pyshortver=$(python -c "import sys; print('.'.join(str(x) for x in sys.version_info[:2]))")
+            export PYTHONPATH=${prefix}/lib/python${pyshortver}/site-packages
+
+            python -c 'import eessi_utils.hooks'
+            python -c 'import eessi_checks.applications'
