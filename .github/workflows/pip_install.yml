@@ -26,8 +26,8 @@ jobs:
             pip install --prefix ${prefix} dist/eessi*.tar.gz
             find ${prefix}
 
-            pyshortver=$(python -c "import sys; print('.'.join(str(x) for x in sys.version_info[:2]))")
-            export PYTHONPATH=${prefix}/lib/python${pyshortver}/site-packages
+            export PYTHONPATH=$(python -c "import distutils.sysconfig; print(distutils.sysconfig.get_python_lib(plat_specific=False, prefix='${prefix}'))")
+            echo "PYTHONPATH=${PYTHONPATH}"
 
             python -c 'import eessi_utils.hooks'
             python -c 'import eessi_checks.applications'
