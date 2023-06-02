@@ -17,8 +17,6 @@ Alternatively, you can clone the repository
 git clone git@github.com:EESSI/test-suite.git
 ```
 
-and set your `PYTHONPATH` so that it includes the `eessi/reframe` directory from the repository.
-
 - create a site configuration file
 
     - should look similar to `test-suite/eessi/reframe/config/settings_example.py`
@@ -31,14 +29,13 @@ and set your `PYTHONPATH` so that it includes the `eessi/reframe` directory from
 ```
 module load ReFrame/4.0.1
 
-eessiroot=<path_to_test-suite>
-eessihome=$eessiroot/eessi/reframe
+export PYTHONPATH=/path/to/EESSI/test-suite:$PYTHONPATH
 
-PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
-    -C <path_to_site_config_file> \
-    -c $eessihome/eessi_checks/applications/ \
-    -t CI -t 1_node \
-    -r --performance-report
+reframe \
+    --config-file <path_to_site_config_file> \
+    --checkpath eessi/testsuite/tests/apps \
+    --tag CI --tag 1_node \
+    --run --performance-report
 ```
 
 ## Configuring GPU/non-GPU partitions in your site config file:
