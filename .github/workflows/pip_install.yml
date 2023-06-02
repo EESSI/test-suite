@@ -15,13 +15,19 @@ jobs:
           with:
             persist-credentials: false
 
-        - name: Install with 'pip install'
+        - name: Install ReFrame
+          run: |
+            pip install --user ReFrame-HPC
+
+        - name: Install EESSI test suite with 'pip install'
           run: |
             # install from source distribution tarball, to test release as published on PyPI
             rm -rf dist
             python setup.py sdist
             ls dist
 
-            prefix="/tmp/$USER/$GITHUB_SHA"
-            pip install --prefix $prefix dist/eessi*.tar.gz
-            find $prefix
+            pip install --user dist/eessi*.tar.gz
+            find $HOME/.local
+
+            python -c 'import eessi_utils.hooks'
+            python -c 'import eessi_checks.applications'
