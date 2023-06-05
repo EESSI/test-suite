@@ -29,7 +29,7 @@ git clone git@github.com:EESSI/test-suite.git
     in combination with all available system:partitions as defined in the site config file
 
 ```
-module load ReFrame/4.0.1
+module load ReFrame/4.2.0
 
 export PYTHONPATH=/path/to/EESSI/test-suite:$PYTHONPATH
 
