@@ -254,3 +254,33 @@ def check_custom_executable_opts(test: rfm.RegressionTest, num_default: int = 0)
     test.has_custom_executable_opts = False
     if len(test.executable_opts) > num_default:
         test.has_custom_executable_opts = True
+
+def set_binding_policy(test: rfm.RegressionTest):
+    """
+    This hook sets a binding policy for process and thread binding.
+    It sets a number of environment variables to try and set a sensible binding for
+    both pure MPI and hybrid MPI+OPENMP tasks.
+
+    This hook will set binding for tasks where the multiplication of the number of CPUs per task
+    and number of tasks per node equals the number of cores per node.
+
+    It is hard to do this in a portable way. Currently supported for process binding are:
+    - Intel MPI (through I_MPI_PIN_DOMAIN)
+    - OpenMPI (through OMPI_MCA_rmaps_base_mapping_policy)
+    - srun (LIMITED SUPPORT: through SLURM_CPU_BIND, but only effective if task/affinity plugin is enabled)
+    Thread binding is supported for:
+    - OpenMP (trough OMP_NUM_THREADS, OMP_PLACES and OMP_PROC_BIND)
+    Note that both GNU and Intel OpenMP _should_ respect the OMP_* flags.
+    """
+    #  do binding for intel and OpenMPI's mpirun, and srun
+    # Other launchers may or may not do the correct binding
+    test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % test.num_cpus_per_task
+    test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'node:PE=%s' % test.num_cpus_per_task
+    # Default binding for SLURM. Only effective if the task/affinity plugin is enabled
+    # and when number of tasks times cpus per task equals either socket, core or thread count
+    test.env_vars['SLURM_CPU_BIND'] = 'q'
+
+    # Set thread binding
+    test.env_vars['OMP_NUM_THREADS'] = test.num_cpus_per_task
+    test.env_vars['OMP_PLACES'] = 'cores'
+    test.env_vars['OMP_PROC_BIND'] = 'close'
