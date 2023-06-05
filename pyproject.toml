@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "eessi_tests"
+name = "eessi-testsuite"
 version = "0.0.2"
 description = "Test suite for the EESSI software stack"
 readme = "README.md"
