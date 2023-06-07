@@ -25,13 +25,16 @@ git clone git@github.com:EESSI/test-suite.git
 
 - run the tests
 
-    the example below runs a gromacs simulation using GROMACS modules available in the system,
-    in combination with all available system:partitions as defined in the site config file
+    The example below runs a gromacs simulation using GROMACS modules available in the system,
+    in combination with all available system:partitions as defined in the site config file.
+    This example assumes that you have cloned the repository at `/path/to/EESSI/test-suite`.
 
 ```
+cd /path/to/EESSI/test-suite
+
 module load ReFrame/4.2.0
 
-export PYTHONPATH=/path/to/EESSI/test-suite:$PYTHONPATH
+export PYTHONPATH=$PWD:$PYTHONPATH
 
 reframe \
     --config-file <path_to_site_config_file> \
