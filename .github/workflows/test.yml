@@ -39,16 +39,16 @@ jobs:
             reframe --version
 
             # configure ReFrame (cfr. https://reframe-hpc.readthedocs.io/en/stable/manpage.html#environment)
-            export RFM_CONFIG_FILES=$PWD/eessi/reframe/config/github_actions.py
+            export RFM_CONFIG_FILES=$PWD/config/github_actions.py
             export RFM_SYSTEM=github_actions_eessi
-            export RFM_CHECK_SEARCH_PATH=$PWD/eessi/reframe/eessi_checks/applications
+            export RFM_CHECK_SEARCH_PATH=$PWD/eessi/testsuite/tests/apps
 
             # show active ReFrame configuration,
             # enable verbose output to help expose problems with configuration file (if any)
             reframe -vvv --show-config
 
-            # update $PYTHONPATH so 'import eessi_utils' works
-            export PYTHONPATH=$PWD/eessi/reframe:$PYTHONPATH
+            # update $PYTHONPATH so 'import eessi.testsuite.utils' works
+            export PYTHONPATH=$PWD:$PYTHONPATH
 
             # perform a dry run of *all* tests, without any filtering
             time reframe --dry-run 2>&1 | tee dry_run.out

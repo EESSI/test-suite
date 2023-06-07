@@ -3,7 +3,7 @@ Example configuration file
 """
 from os import environ
 
-from eessi_utils.constants import DEVICES, FEATURES
+from eessi.testsuite.constants import DEVICES, FEATURES
 
 username = environ.get('USER')
 
