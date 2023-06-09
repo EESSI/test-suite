@@ -5,8 +5,12 @@ import math
 import shlex
 
 import reframe as rfm
+from reframe.frontend.printer import PrettyPrinter
+
 from eessi.testsuite.constants import DEVICES, FEATURES, SCALES
 from eessi.testsuite import utils
+
+printer = PrettyPrinter()
 
 PROCESSOR_INFO_MISSING = '''
 This test requires the number of CPUs to be known for the partition it runs on.
@@ -56,6 +60,8 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
         # no default set yet, so setting one
         test.default_num_cpus_per_node = int(test.max_avail_cpus_per_node / test.node_part)
 
+    printer.debug(f'assign_one_task_per_compute_unit: default_num_cpus_per_node set to {test.default_num_cpus_per_node}')
+
     if compute_unit == DEVICES['GPU']:
         _assign_one_task_per_gpu(test)
     elif compute_unit == DEVICES['CPU']:
@@ -97,6 +103,11 @@ def _assign_one_task_per_cpu(test: rfm.RegressionTest):
         pass  # both num_tasks_per_node and num_cpus_per_node are already set
 
     test.num_tasks = test.num_nodes * test.num_tasks_per_node
+
+    printer.debug(f'_assign_one_task_per_cpu: num_tasks_per_node set to {test.num_tasks_per_node}')
+    printer.debug(f'_assign_one_task_per_cpu: num_cpus_per_task set to {test.num_cpus_per_task}')
+    printer.debug(f'_assign_one_task_per_cpu: num_tasks set to {test.num_tasks}')
+
 
 def _assign_one_task_per_gpu(test: rfm.RegressionTest):
     """
@@ -161,6 +172,11 @@ def _assign_one_task_per_gpu(test: rfm.RegressionTest):
 
     test.num_tasks = test.num_nodes * test.num_tasks_per_node
 
+    printer.debug(f'_assign_one_task_per_gpu: num_gpus_per_node set to {test.num_gpus_per_node}')
+    printer.debug(f'_assign_one_task_per_gpu: num_tasks_per_node set to {test.num_tasks_per_node}')
+    printer.debug(f'_assign_one_task_per_gpu: num_cpus_per_task set to {test.num_cpus_per_task}')
+    printer.debug(f'_assign_one_task_per_gpu: num_tasks set to {test.num_tasks}')
+
 
 def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_device_type: str):
     """
@@ -187,6 +203,8 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
         if valid_systems:
             test.valid_systems = [valid_systems]
 
+    printer.debug(f'filter_valid_systems_by_device_type: valid_systems set to {test.valid_systems}')
+
 
 def set_modules(test: rfm.RegressionTest):
     """
@@ -195,8 +213,10 @@ def set_modules(test: rfm.RegressionTest):
     """
     if test.modules and test.module_name not in test.modules:
         test.valid_systems = []
+        printer.debug(f'set_modules: valid_systems set to {test.valid_systems}')
 
     test.modules = [test.module_name]
+    printer.debug(f'set_modules: modules set to {test.modules}')
 
 
 def set_tag_scale(test: rfm.RegressionTest):
@@ -207,6 +227,7 @@ def set_tag_scale(test: rfm.RegressionTest):
     test.default_num_gpus_per_node = SCALES[scale].get('num_gpus_per_node')
     test.node_part = SCALES[scale].get('node_part')
     test.tags.add(scale)
+    printer.debug(f'set_tag_scale: tags set to {test.tags}')
 
 
 def check_custom_executable_opts(test: rfm.RegressionTest, num_default: int = 0):
@@ -218,3 +239,5 @@ def check_custom_executable_opts(test: rfm.RegressionTest, num_default: int = 0)
     test.has_custom_executable_opts = False
     if len(test.executable_opts) > num_default:
         test.has_custom_executable_opts = True
+
+    printer.debug(f'check_custom_executable_opts: has_custom_executable_opts set to {test.has_custom_executable_opts}')
