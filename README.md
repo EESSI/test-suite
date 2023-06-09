@@ -5,32 +5,42 @@ A portable test suite for software installations, using ReFrame
 
 - install ReFrame >=4.0
 
-- clone the test suite
+- install the test suite using 
+
+```bash
+pip install git+https://github.com/EESSI/test-suite.git
+```
+
+Alternatively, you can clone the repository
 
 ```bash
 git clone git@github.com:EESSI/test-suite.git
 ```
 
+- update your ``$PYTHONPATH`` so that it includes the path of the ``test-suite`` directory
+
 - create a site configuration file
 
-    - should look similar to `test-suite/eessi/reframe/config/settings_example.py`
+    - should look similar to `test-suite/config/settings_example.py`
 
 - run the tests
 
-    the example below runs a gromacs simulation using GROMACS modules available in the system,
-    in combination with all available system:partitions as defined in the site config file
+    The example below runs a gromacs simulation using GROMACS modules available in the system,
+    in combination with all available system:partitions as defined in the site config file.
+    This example assumes that you have cloned the repository at `/path/to/EESSI/test-suite`.
 
 ```
-module load ReFrame/4.0.1
+cd /path/to/EESSI/test-suite
 
-eessiroot=<path_to_test-suite>
-eessihome=$eessiroot/eessi/reframe
+module load ReFrame/4.2.0
 
-PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
-    -C <path_to_site_config_file> \
-    -c $eessihome/eessi-checks/applications/ \
-    -t CI -t singlenode \
-    -r --performance-report
+export PYTHONPATH=$PWD:$PYTHONPATH
+
+reframe \
+    --config-file <path_to_site_config_file> \
+    --checkpath eessi/testsuite/tests/apps \
+    --tag CI --tag 1_node \
+    --run --performance-report
 ```
 
 ## Configuring GPU/non-GPU partitions in your site config file:
@@ -80,3 +90,17 @@ PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
 - setting additional environment variables
     - `--setvar env_vars=<envar>:<value>`
 
+## Developers
+If you want to install the EESSI test suite from a branch, you can use
+
+```bash
+pip install git+https://github.com/EESSI/test-suite.git@branchname
+```
+
+This also works on forked repositories, e.g.
+
+```bash
+pip install git+https://github.com/<someuser>/test-suite.git@branchname
+```
+
+making it an easy way of testing PRs.
