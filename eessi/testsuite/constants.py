@@ -2,8 +2,8 @@
 Constants for ReFrame tests
 """
 DEVICES = {
-    'GPU': 'gpu',
     'CPU': 'cpu',
+    'GPU': 'gpu',
 }
 
 TAGS = {
@@ -11,8 +11,14 @@ TAGS = {
 }
 
 FEATURES = {
-    'GPU': 'gpu',
     'CPU': 'cpu',
+    'GPU': 'gpu',
+}
+
+GPU_VENDORS = {
+    'AMD': 'amd',
+    'INTEL': 'intel',
+    'NVIDIA': 'nvidia',
 }
 
 SCALES = {

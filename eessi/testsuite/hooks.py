@@ -6,7 +6,7 @@ import shlex
 
 import reframe as rfm
 
-from eessi.testsuite.constants import DEVICES, FEATURES, SCALES
+from eessi.testsuite.constants import DEVICES, FEATURES, GPU_VENDORS, SCALES
 from eessi.testsuite.utils import get_max_avail_gpus_per_node, is_cuda_required_module, log
 
 PROCESSOR_INFO_MISSING = '''
@@ -180,25 +180,27 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     Filter valid_systems by required device type and by whether the module supports CUDA,
     unless valid_systems is specified with --setvar valid_systems=<comma-separated-list>.
     """
-    if not test.valid_systems:
-        is_cuda_module = is_cuda_required_module(test.module_name)
+    if test.valid_systems:
+        # valid_systems is specified, don't filter
+        return
+
+    is_cuda_module = is_cuda_required_module(test.module_name)
+
+    if is_cuda_module and required_device_type == DEVICES['GPU']:
+        # CUDA modules and when using a GPU require partitions with 'gpu' feature
+        valid_systems = f'+{FEATURES["GPU"]} %gpu_vendor={GPU_VENDORS["NVIDIA"]}'
+
+    elif required_device_type == DEVICES['CPU']:
+        # Using the CPU requires partitions with 'cpu' feature
+        # Note: making 'cpu' an explicit feature allows e.g. skipping CPU-based tests on GPU partitions
+        valid_systems = f'+{FEATURES["CPU"]}'
+
+    elif not is_cuda_module and required_device_type == DEVICES['GPU']:
+        # Invalid combination: a module without GPU support cannot use a GPU
         valid_systems = ''
 
-        if is_cuda_module and required_device_type == DEVICES['GPU']:
-            # CUDA modules and when using a GPU require partitions with 'gpu' feature
-            valid_systems = f'+{FEATURES["GPU"]}'
-
-        elif required_device_type == DEVICES['CPU']:
-            # Using the CPU requires partitions with 'cpu' feature
-            # Note: making 'cpu' an explicit feature allows e.g. skipping CPU-based tests on GPU partitions
-            valid_systems = f'+{FEATURES["CPU"]}'
-
-        elif not is_cuda_module and required_device_type == DEVICES['GPU']:
-            # Invalid combination: a module without GPU support cannot use a GPU
-            valid_systems = ''
-
-        if valid_systems:
-            test.valid_systems = [valid_systems]
+    if valid_systems:
+        test.valid_systems = [valid_systems]
 
     log(f'valid_systems set to {test.valid_systems}')
 
