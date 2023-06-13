@@ -39,17 +39,17 @@ site_configuration = {
                     'descr': 'Zen3, 16 cores, 32 GiB',
                 },
                 {
-                    'name': 'c5.2xlarge (Skylake/Cascade)',
+                    'name': 'c5.2xlarge (Skylake or Cascade lake)',
                     'access': ['--constraint shape=c5.2xlarge'],
                     'descr': 'Skylake/Cascade lake, 8 cores, 16 GiB',
                 },
                 {
-                    'name': 'c5.4xlarge (Skylake/Cascade)',
+                    'name': 'c5.4xlarge (Skylake or Cascade lake)',
                     'access': ['--constraint shape=c5.4xlarge'],
                     'descr': 'Skylake/Cascade lake, 16 cores, 32 GiB',
                 },
                 {
-                    'name': 'c5d.2xlarge (Skylake/Cascade)',
+                    'name': 'c5d.2xlarge (Skylake or Cascade lake)',
                     'access': ['--constraint shape=c5d.2xlarge'],
                     'descr': 'Skylake/Cascade lake, 8 cores, 16 GiB, 200GB NVMe',
                 },
