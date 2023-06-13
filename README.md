@@ -109,7 +109,7 @@ pip install git+https://github.com/<someuser>/test-suite.git@branchname
 ```
 
 ### Check out a feature branch from a fork
-We'll assume you already a local clone of the official test-suite repository, called 'origin'. In that case, executing `git remote -v`, you should see:
+We'll assume you already have a local clone of the official test-suite repository, called 'origin'. In that case, executing `git remote -v`, you should see:
 
 ```bash
 $ git remote -v
