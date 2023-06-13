@@ -14,7 +14,7 @@ site_configuration = {
                 {
                     'name': 'thin',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source $EESSI_INIT'],
+                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
                     'launcher': 'mpirun',
                     'access':  ['-p thin --exclusive'],
                     'environs': ['default'],
