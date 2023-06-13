@@ -5,7 +5,7 @@ site_configuration = {
             'name': 'citc',
             'descr': 'Cluster in the Cloud build and test environment on AWS',
             'modules_system': 'lmod',
-    	    'hostnames': ['login', 'fair-mastodon*'],
+    	    'hostnames': ['mgmt', 'login', 'fair-mastodon*'],
             'prefix': f'~/reframe_logs/',
             'partitions': [
                 {
@@ -102,7 +102,7 @@ site_configuration = {
      ],
     'environments': [
         {
-            'name': 'builtin',
+            'name': 'default',
             'cc': 'cc',
             'cxx': '',
             'ftn': '',
