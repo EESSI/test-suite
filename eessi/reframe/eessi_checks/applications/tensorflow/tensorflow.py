@@ -125,3 +125,8 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
     def set_omp_num_threads(self):
         """Set number of OpenMP threads"""
         self.env_vars['OMP_NUM_THREADS'] = self.num_cpus_per_task
+
+    @run_after('setup')
+    def set_binding_policy(self):
+        """Sets a binding policy for tasks and threads"""
+        hooks.set_binding_policy(self)

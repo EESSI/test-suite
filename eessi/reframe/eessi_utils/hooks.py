@@ -281,6 +281,6 @@ def set_binding_policy(test: rfm.RegressionTest):
     test.env_vars['SLURM_CPU_BIND'] = 'q'
 
     # Set thread binding
-    test.env_vars['OMP_NUM_THREADS'] = test.num_cpus_per_task
-    test.env_vars['OMP_PLACES'] = 'cores'
-    test.env_vars['OMP_PROC_BIND'] = 'close'
+    # test.env_vars['OMP_NUM_THREADS'] = test.num_cpus_per_task
+    # test.env_vars['OMP_PLACES'] = 'cores'
+    # test.env_vars['OMP_PROC_BIND'] = 'close'

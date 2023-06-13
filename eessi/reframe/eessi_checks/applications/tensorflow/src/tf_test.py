@@ -101,12 +101,19 @@ if args.device == 'gpu':
         # We could do local_rank % len(physical_devices) if we wanted to support running more than one rank per device
         # The current code doesn't support that
         tf.config.set_visible_devices(physical_devices[local_rank], 'GPU')
-        visible_devices = tf.config.get_visible_devices()
+        visible_devices = tf.config.get_visible_devices('GPU')
         print("Local rank: %s, visible_devices: %s" % (local_rank, visible_devices))
         assert len(visible_devices) == 1
     except:
         print("ERROR: selection of GPU device based on local rank failed. Local rank: %s. Selected devices: %s" 
               % (local_rank, visible_devices))
+
+    # Should now have 1 GPU per process. Set memory growth for that device to avoid issues similar to
+    # https://github.com/tensorflow/tensorflow/issues/45044
+    # TODO: I have the feeling this is only needed because rank 0 somehow erroneously starts on CPU?
+    # The fact that rank 0 started on CPU was triggered by setting OMP_PROC_BIND. I need to test if the following
+    # line is still needed if we don't set OMP* binding variables
+    tf.config.experimental.set_memory_growth(physical_devices[local_rank], True)
 
     # Set communication to NCCL explicitely
     communication_options = tf.distribute.experimental.CommunicationOptions(
