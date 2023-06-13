@@ -17,28 +17,30 @@ Alternatively, you can clone the repository
 git clone git@github.com:EESSI/test-suite.git
 ```
 
-and set your `PYTHONPATH` so that it includes the `eessi/reframe` directory from the repository.
+- update your ``$PYTHONPATH`` so that it includes the path of the ``test-suite`` directory
 
 - create a site configuration file
 
-    - should look similar to `test-suite/eessi/reframe/config/settings_example.py`
+    - should look similar to `test-suite/config/settings_example.py`
 
 - run the tests
 
-    the example below runs a gromacs simulation using GROMACS modules available in the system,
-    in combination with all available system:partitions as defined in the site config file
+    The example below runs a gromacs simulation using GROMACS modules available in the system,
+    in combination with all available system:partitions as defined in the site config file.
+    This example assumes that you have cloned the repository at `/path/to/EESSI/test-suite`.
 
 ```
-module load ReFrame/4.0.1
+cd /path/to/EESSI/test-suite
 
-eessiroot=<path_to_test-suite>
-eessihome=$eessiroot/eessi/reframe
+module load ReFrame/4.2.0
 
-PYTHONPATH=$PYTHONPATH:$EBROOTREFRAME:$eessihome reframe \
-    -C <path_to_site_config_file> \
-    -c $eessihome/eessi_checks/applications/ \
-    -t CI -t 1_node \
-    -r --performance-report
+export PYTHONPATH=$PWD:$PYTHONPATH
+
+reframe \
+    --config-file <path_to_site_config_file> \
+    --checkpath eessi/testsuite/tests/apps \
+    --tag CI --tag 1_node \
+    --run --performance-report
 ```
 
 ## Configuring GPU/non-GPU partitions in your site config file:
