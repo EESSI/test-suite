@@ -32,6 +32,8 @@ format_perfvars = '|'.join([
     'unit=%(check_perf_unit)s',
 ]) + '|'
 
+hortense_access = [f'-A {account}', '--export=NONE', '--get-user-env=60L']
+
 
 @register_launcher('mympirun')
 class MyMpirunLauncher(JobLauncher):
@@ -50,7 +52,7 @@ site_configuration = {
                 {
                     'name': 'cpu_rome_256gb',
                     'scheduler': 'slurm',
-                    'access': [f'-A {account} --export=NONE --get-user-env=60L --partition=cpu_rome'],
+                    'access': hortense_access + ['--partition=cpu_rome'],
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
                     'max_jobs': 20,
@@ -66,7 +68,7 @@ site_configuration = {
                 {
                     'name': 'cpu_rome_512gb',
                     'scheduler': 'slurm',
-                    'access': [f'-A {account} --export=NONE --get-user-env=60L --partition=cpu_rome_512'],
+                    'access': hortense_access + ['--partition=cpu_rome_512'],
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
                     'max_jobs': 20,
@@ -82,7 +84,7 @@ site_configuration = {
                 {
                     'name': 'cpu_milan',
                     'scheduler': 'slurm',
-                    'access': [f'-A {account} --export=NONE --get-user-env=60L --partition=cpu_milan'],
+                    'access': hortense_access + ['--partition=cpu_milan'],
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
                     'max_jobs': 20,
@@ -98,7 +100,7 @@ site_configuration = {
                 {
                     'name': 'gpu_rome_a100_40gb',
                     'scheduler': 'slurm',
-                    'access': [f'-A {account} --export=NONE --get-user-env=60L --partition=gpu_rome_a100_40'],
+                    'access': hortense_access + ['--partition=cpu_rome_a100_40'],
                     'environs': ['default'],
                     'descr': 'GPU nodes (A100 40GB)',
                     'max_jobs': 20,
@@ -128,7 +130,7 @@ site_configuration = {
                 {
                     'name': 'gpu_rome_a100_80gb',
                     'scheduler': 'slurm',
-                    'access': [f'-A {account} --export=NONE --get-user-env=60L --partition=gpu_rome_a100_80'],
+                    'access': hortense_access + ['--partition=cpu_rome_a100_80'],
                     'environs': ['default'],
                     'descr': 'GPU nodes (A100 80GB)',
                     'max_jobs': 20,
