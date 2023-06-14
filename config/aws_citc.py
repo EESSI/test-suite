@@ -6,97 +6,83 @@ site_configuration = {
             'descr': 'Cluster in the Cloud build and test environment on AWS',
             'modules_system': 'lmod',
     	    'hostnames': ['mgmt', 'login', 'fair-mastodon*'],
-            'prefix': f'~/reframe_logs/',
+            'prefix': f'reframe_logs/',
             'partitions': [
                 {
-                    'name': 'c4.2xlarge (haswell)',
+                    'name': 'c4.2xlarge-haswell',
                     'access': ['--constraint shape=c4.2xlarge'],
                     'descr': 'Haswell, 8 cores, 15 GiB',
                 },
                 {
-                    'name': 'c4.4xlarge (haswell)',
+                    'name': 'c4.4xlarge-haswell',
                     'access': ['--constraint shape=c4.4xlarge'],
                     'descr': 'Haswell, 16 cores, 30 GiB',
                 },
                 {
-                    'name': 'c5a.2xlarge (ZEN2)',
+                    'name': 'c5a.2xlarge-zen2',
                     'access': ['--constraint shape=c5a.2xlarge'],
                     'descr': 'Zen2, 8 cores, 16 GiB',
                 },
                 {
-                    'name': 'c5a.4xlarge (ZEN2)',
+                    'name': 'c5a.4xlarge-zen2',
                     'access': ['--constraint shape=c5a.4xlarge'],
                     'descr': 'Zen2, 16 cores, 32 GiB',
                 },
                 {
-                    'name': 'c6a.2xlarge (ZEN3)',
+                    'name': 'c6a.2xlarge-zen3',
                     'access': ['--constraint shape=c6a.2xlarge'],
                     'descr': 'Zen3, 8 cores, 16 GiB',
                 },
                 {
-                    'name': 'c6a.4xlarge (ZEN3)',
+                    'name': 'c6a.4xlarge-zen3',
                     'access': ['--constraint shape=c6a.4xlarge'],
                     'descr': 'Zen3, 16 cores, 32 GiB',
                 },
                 {
-                    'name': 'c5.2xlarge (Skylake or Cascade lake)',
+                    'name': 'c5.2xlarge-skylake-cascadelake',
                     'access': ['--constraint shape=c5.2xlarge'],
                     'descr': 'Skylake/Cascade lake, 8 cores, 16 GiB',
                 },
                 {
-                    'name': 'c5.4xlarge (Skylake or Cascade lake)',
+                    'name': 'c5.4xlarge-skylake-cascadelake',
                     'access': ['--constraint shape=c5.4xlarge'],
                     'descr': 'Skylake/Cascade lake, 16 cores, 32 GiB',
                 },
                 {
-                    'name': 'c5d.2xlarge (Skylake or Cascade lake)',
+                    'name': 'c5d.2xlarge-skylake-cascadelake',
                     'access': ['--constraint shape=c5d.2xlarge'],
                     'descr': 'Skylake/Cascade lake, 8 cores, 16 GiB, 200GB NVMe',
                 },
                 {
-                    'name': 'c6i.2xlarge (Icelake)',
+                    'name': 'c6i.2xlarge-icelake',
                     'access': ['--constraint shape=c6i.2xlarge'],
                     'descr': 'Icelake, 8 cores, 16 GiB',
                 },
                 {
-                    'name': 'c6g.2xlarge (Graviton2)',
+                    'name': 'c6g.2xlarge-graviton2',
                     'access': ['--constraint shape=c6g.2xlarge'],
                     'descr': 'Graviton2, 8 cores, 16 GiB',
                 },
                 {
-                    'name': 'c6g.4xlarge (Graviton2)',
+                    'name': 'c6g.4xlarge-graviton2)',
                     'access': ['--constraint shape=c6g.4xlarge'],
                     'descr': 'Graviton2, 16 cores, 32 GiB',
                 },
                 {
-                    'name': 'c6g.8xlarge (Graviton2)',
+                    'name': 'c6g.8xlarge-graviton2)',
                     'access': ['--constraint shape=c6g.8xlarge'],
                     'descr': 'Graviton2, 32 cores, 64 GiB',
                 },
                 {
-                    'name': 'c7g.2xlarge (Graviton3)',
+                    'name': 'c7g.2xlarge-graviton3)',
                     'access': ['--constraint shape=c7g.2xlarge'],
                     'descr': 'Graviton3, 8 cores, 16 GiB',
                 },
                 {
-                    'name': 'c7g.4xlarge (Graviton3)',
+                    'name': 'c7g.4xlarge-graviton3)',
                     'access': ['--constraint shape=c7g.4xlarge'],
                     'descr': 'Graviton3, 16 cores, 32 GiB',
                 },
-#                 {
-#                     'name': 'cpu',
-#                     'scheduler': 'squeue',
-#                     'launcher': 'mpirun',
-#                     # By default, the Magic Castle cluster only allocates a small amount of memory
-#                     # Thus we request the full memory explicitely
-#                     'access':  ['-C shape=c5a.16xlarge'],
-#                     'environs': ['builtin'],
-#                     'max_jobs': 4,
-#                     'processor': {
-#                         'num_cpus': 64,
-#                     },
-#                     'descr': 'normal CPU partition'
-#                 },
              ]
          },
      ],
@@ -155,7 +141,9 @@ site_configuration = {
 # Add default things to each partition:
 partition_defaults = {
     'scheduler': 'squeue',
-    'launcher': 'mpirun',
+    # Can't use mpirun, because there is no system mpirun on citc
+    # See https://github.com/EESSI/test-suite/pull/53#issuecomment-1590849226
+    'launcher': 'srun',
     'environs': ['default'],
     'features': ['cpu'],
     'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
