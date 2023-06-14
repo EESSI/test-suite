@@ -60,6 +60,9 @@ site_configuration = {
                     'modules': ['vsc-mympirun'],
                     'processor': {
                         'num_cpus': 128,
+                        'num_sockets': 2,
+                        'num_cpus_per_socket': 64,
+                        'arch': 'znver2',
                     },
                     'features': [
                         'cpu',
@@ -76,6 +79,9 @@ site_configuration = {
                     'modules': ['vsc-mympirun'],
                     'processor': {
                         'num_cpus': 128,
+                        'num_sockets': 2,
+                        'num_cpus_per_socket': 64,
+                        'arch': 'znver2',
                     },
                     'features': [
                         'cpu',
@@ -92,6 +98,9 @@ site_configuration = {
                     'modules': ['vsc-mympirun'],
                     'processor': {
                         'num_cpus': 128,
+                        'num_sockets': 2,
+                        'num_cpus_per_socket': 64,
+                        'arch': 'znver3',
                     },
                     'features': [
                         'cpu',
@@ -108,6 +117,9 @@ site_configuration = {
                     'modules': ['vsc-mympirun'],
                     'processor': {
                         'num_cpus': 48,
+                        'num_sockets': 2,
+                        'num_cpus_per_socket': 24,
+                        'arch': 'znver2',
                     },
                     'features': [
                         'cpu',
@@ -120,7 +132,7 @@ site_configuration = {
                         }
                     ],
                     'devices': [
-                        {
+                       {
                             'type': 'gpu',
                             'num_devices': 4,
                         }
@@ -138,6 +150,9 @@ site_configuration = {
                     'modules': ['vsc-mympirun'],
                     'processor': {
                         'num_cpus': 48,
+                        'num_sockets': 2,
+                        'num_cpus_per_socket': 24,
+                        'arch': 'znver2',
                     },
                     'features': [
                         'cpu',
