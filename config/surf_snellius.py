@@ -16,7 +16,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
                     'launcher': 'mpirun',
-                    'access':  ['-p thin --exclusive'],
+                    'access':  ['-p thin', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
                     'processor': {
@@ -33,9 +33,9 @@ site_configuration = {
                 {
                     'name': 'gpu',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source $EESSI_INIT'],
+                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
                     'launcher': 'srun',
-                    'access':  ['-p gpu'],
+                    'access':  ['-p gpu', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 60,
                     'processor': {
