@@ -8,7 +8,7 @@ site_configuration = {
             'name': 'snellius',
             'descr': 'Dutch National Supercomputer',
             'modules_system': 'lmod',
-            'hostnames': ['int*','tcn*','hcn*','fcn*','gcn*','srv*'],
+            'hostnames': ['int*', 'tcn*', 'hcn*', 'fcn*', 'gcn*', 'srv*'],
             'stagedir': f'/scratch-shared/{username}/reframe_output/staging',
             'partitions': [
                 {
@@ -59,11 +59,14 @@ site_configuration = {
                     'features': [
                         'gpu',
                     ],
+                    'extras': {
+                        'gpu_vendor': 'nvidia',
+                    },
                     'descr': 'Test GPU partition with native EESSI stack'
                 },
-             ]
-         },
-     ],
+            ]
+        },
+    ],
     'environments': [
         {
             'name': 'default',
@@ -71,8 +74,8 @@ site_configuration = {
             'cxx': '',
             'ftn': '',
         },
-     ],
-     'logging': [
+    ],
+    'logging': [
         {
             'level': 'debug',
             'handlers': [

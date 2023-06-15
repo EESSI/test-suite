@@ -181,13 +181,14 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     unless valid_systems is specified with --setvar valid_systems=<comma-separated-list>.
     """
     if test.valid_systems:
-        # valid_systems is specified, don't filter
+        # valid_systems is specified, so don't filter
         return
 
     is_cuda_module = is_cuda_required_module(test.module_name)
 
     if is_cuda_module and required_device_type == DEVICES['GPU']:
-        # CUDA modules and when using a GPU require partitions with 'gpu' feature
+        # CUDA modules and when using a GPU require partitions with 'gpu' feature and
+        # 'gpu_vendor=nvidia' extras
         valid_systems = f'+{FEATURES["GPU"]} %gpu_vendor={GPU_VENDORS["NVIDIA"]}'
 
     elif required_device_type == DEVICES['CPU']:

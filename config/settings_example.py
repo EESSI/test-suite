@@ -10,7 +10,7 @@ username = environ.get('USER')
 site_configuration = {
     'systems': [
         {
-            'name': 'examle',
+            'name': 'example',
             'descr': 'Example cluster',
             'modules_system': 'lmod',
             'hostnames': ['*'],
@@ -58,8 +58,13 @@ site_configuration = {
                             'num_devices': 4,
                         }
                     ],
-                    'features': [FEATURES['CPU'], FEATURES['GPU']],
-                    'extras': {'gpu_vendor': GPU_VENDORS['NVIDIA']},
+                    'features': [
+                        FEATURES['CPU'],
+                        FEATURES['GPU'],
+                    ],
+                    'extras': {
+                        'gpu_vendor': GPU_VENDORS['NVIDIA'],
+                    },
                     'descr': 'GPU partition'
                 },
             ]

@@ -124,6 +124,9 @@ site_configuration = {
                     'features': [
                         'gpu',
                     ],
+                    'extras': {
+                        'gpu_vendor': 'nvidia',
+                    },
                     'resources': [
                         {
                             'name': '_rfm_gpu',
@@ -156,6 +159,9 @@ site_configuration = {
                     'features': [
                         'gpu',
                     ],
+                    'extras': {
+                        'gpu_vendor': 'nvidia',
+                    },
                     'resources': [
                         {
                             'name': '_rfm_gpu',
