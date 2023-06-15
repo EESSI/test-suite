@@ -36,7 +36,7 @@ def get_max_avail_gpus_per_node(test: rfm.RegressionTest) -> int:
     if len(gpu_list) != 1:
         partname = test.current_partition.name
         raise ValueError(
-            f"Multiple different devices exist with the name {DEVICES['GPU']} for partition {partname}. "
+            f"{len(gpu_list)} devices defined in config file with name {DEVICES['GPU']} for partition {partname}. "
             "Cannot determine maximum number of GPUs available for the test. "
             f"Please check the definition of partition {partname} in your ReFrame config file."
         )
