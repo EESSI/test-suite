@@ -62,7 +62,7 @@ site_configuration = {
                         'num_cpus': 128,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 64,
-                        'arch': 'znver2',
+                        'arch': 'zen2',
                     },
                     'features': [
                         'cpu',
@@ -81,7 +81,7 @@ site_configuration = {
                         'num_cpus': 128,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 64,
-                        'arch': 'znver2',
+                        'arch': 'zen2',
                     },
                     'features': [
                         'cpu',
@@ -100,7 +100,7 @@ site_configuration = {
                         'num_cpus': 128,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 64,
-                        'arch': 'znver3',
+                        'arch': 'zen3',
                     },
                     'features': [
                         'cpu',
@@ -119,7 +119,7 @@ site_configuration = {
                         'num_cpus': 48,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 24,
-                        'arch': 'znver2',
+                        'arch': 'zen2',
                     },
                     'features': [
                         'gpu',
@@ -151,7 +151,7 @@ site_configuration = {
                         'num_cpus': 48,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 24,
-                        'arch': 'znver2',
+                        'arch': 'zen2',
                     },
                     'features': [
                         'gpu',

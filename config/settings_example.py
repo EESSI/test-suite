@@ -28,7 +28,7 @@ site_configuration = {
                         'num_cpus': 128,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 64,
-                        'arch': 'znver2',
+                        'arch': 'zen2',
                     },
                     'features': [FEATURES['CPU']],
                     'descr': 'CPU partition'
