@@ -122,7 +122,6 @@ site_configuration = {
                         'arch': 'znver2',
                     },
                     'features': [
-                        'cpu',
                         'gpu',
                     ],
                     'resources': [
@@ -155,7 +154,6 @@ site_configuration = {
                         'arch': 'znver2',
                     },
                     'features': [
-                        'cpu',
                         'gpu',
                     ],
                     'resources': [
