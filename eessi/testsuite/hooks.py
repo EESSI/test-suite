@@ -255,24 +255,24 @@ def check_custom_executable_opts(test: rfm.RegressionTest, num_default: int = 0)
     if len(test.executable_opts) > num_default:
         test.has_custom_executable_opts = True
 
-def set_binding_policy(test: rfm.RegressionTest):
+def set_compact_process_binding(test: rfm.RegressionTest):
     """
-    This hook sets a binding policy for process and thread binding.
-    It sets a number of environment variables to try and set a sensible binding for
-    both pure MPI and hybrid MPI+OPENMP tasks.
+    This hook sets a binding policy for process binding.
+    More specifically, it will bind each process to subsequent domains of test.num_cpus_per_task cores.
 
-    This hook will set binding for tasks where the multiplication of the number of CPUs per task
-    and number of tasks per node equals the number of cores per node.
+    A few examples:
+    - Pure MPI (test.num_cpus_per_task = 1) will result in binding 1 process to each core.
+      this will happen in a compact way, i.e. rank 0 to core 0, rank 1 to core 1, etc
+    - Hybrid MPI-OpenMP, e.g. test.num_cpus_per_task = 4 will result in binding 1 process to subsequent sets of 4 cores.
+      I.e. rank 0 to core 0-3, rank 1 to core 4-7, rank 2 to core 8-11, etc
 
     It is hard to do this in a portable way. Currently supported for process binding are:
     - Intel MPI (through I_MPI_PIN_DOMAIN)
     - OpenMPI (through OMPI_MCA_rmaps_base_mapping_policy)
     - srun (LIMITED SUPPORT: through SLURM_CPU_BIND, but only effective if task/affinity plugin is enabled)
-    Thread binding is supported for:
-    - OpenMP (trough OMP_NUM_THREADS, OMP_PLACES and OMP_PROC_BIND)
-    Note that both GNU and Intel OpenMP _should_ respect the OMP_* flags.
     """
-    #  do binding for intel and OpenMPI's mpirun, and srun
+
+    # Do binding for intel and OpenMPI's mpirun, and srun
     # Other launchers may or may not do the correct binding
     test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % test.num_cpus_per_task
     test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'node:PE=%s' % test.num_cpus_per_task
@@ -280,7 +280,20 @@ def set_binding_policy(test: rfm.RegressionTest):
     # and when number of tasks times cpus per task equals either socket, core or thread count
     test.env_vars['SLURM_CPU_BIND'] = 'q'
 
+
+def set_compact_thread_binding(test: rfm.RegressionTest):
+    """
+    This hook sets a binding policy for thread binding.
+    It sets a number of environment variables to try and set a sensible binding for OPENMP tasks.
+
+    Thread binding is supported for:
+    - GNU OpenMP (through OMP_NUM_THREADS, OMP_PLACES and OMP_PROC_BIND)
+    - Intel OpenMP (through KMP_AFFINITY)
+    """
+
     # Set thread binding
-    # test.env_vars['OMP_NUM_THREADS'] = test.num_cpus_per_task
-    # test.env_vars['OMP_PLACES'] = 'cores'
-    # test.env_vars['OMP_PROC_BIND'] = 'close'
+    test.env_vars['OMP_NUM_THREADS'] = test.num_cpus_per_task
+    test.env_vars['OMP_PLACES'] = 'cores'
+    test.env_vars['OMP_PROC_BIND'] = 'close'
+    # See https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-8/thread-affinity-interface.html
+    test.env_vars['KMP_AFFINITY'] = 'granularity=fine,compact,1,0'

@@ -7,8 +7,8 @@ https://www.tensorflow.org/tutorials/distribute/multi_worker_with_keras
 import reframe as rfm
 import reframe.utility.sanity as sn
 
-from eessi_utils import hooks, utils
-from eessi_utils.constants import DEVICES, SCALES, TAGS
+from eessi.testsuite import hooks, utils
+from eessi.testsuite.constants import SCALES, DEVICES, TAGS
 
 @rfm.simple_test
 class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
@@ -128,5 +128,5 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
 
     @run_after('setup')
     def set_binding_policy(self):
-        """Sets a binding policy for tasks and threads"""
-        hooks.set_binding_policy(self)
+        """Sets a binding policy for tasks. We don't bind threads because of https://github.com/tensorflow/tensorflow/issues/60843"""
+        hooks.set_compact_process_binding(self)
