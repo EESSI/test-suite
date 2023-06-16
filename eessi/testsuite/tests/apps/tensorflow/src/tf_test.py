@@ -64,7 +64,9 @@ parser = argparse.ArgumentParser(
                     description='This program runs a distributed TensorFlow test using the tf.distribute.MultiWorkerMirroredStrategy and the Keras fit API'
 )
 parser.add_argument('-d', '--device', type=str, default='cpu', choices=['cpu', 'gpu'], help='Device to use for training')
-parser.add_argument('--per-worker-batch-size', type=int, default=64, help='Batch size processed by each worker')
+parser.add_argument('--inter-op-parallelism', type=int, default=1, help='Sets tf.config.threading.set_inter_op_parallelism_threads')
+parser.add_argument('--intra-op-parallelism', type=int, default=0, help='Sets tf.config.threading.set_intra_op_parallelism_threads')
+parser.add_argument('--per-worker-batch-size', type=int, default=512, help='Batch size processed by each worker')
 parser.add_argument('--per-worker-test-batch-size', type=int, default=512, help='Batch size for computing accuracy on the validation set')
 parser.add_argument('--epochs-to-train', type=int, default=10, help='Number of epochs to train')
 parser.add_argument('--steps-per-epoch', type=int, default=100, help='Number of steps to train per epoch')
@@ -78,6 +80,9 @@ import mnist_setup
 
 os.environ.pop('TF_CONFIG', None)
 
+# Set number of threads to use. Needs to be set early, before initialization
+tf.config.threading.set_inter_op_parallelism_threads(args.inter_op_parallelism)
+tf.config.threading.set_intra_op_parallelism_threads(args.intra_op_parallelism)
 
 # Multi-worker config
 # We'll use mpi4py to figure out our rank, have each process select a socket and hostname,

@@ -88,7 +88,6 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
     def set_test_descr(self):
         self.descr = f'TensorFlow benchmark on {self.device_type}'
 
-
     @run_after('setup')
     def run_after_setup(self):
         """hooks to run after the setup phase"""
@@ -102,11 +101,6 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
             hooks.assign_one_task_per_compute_unit(test=self, compute_unit=DEVICES['GPU'])
         else:
             raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')
-
-        # For now, we hardcode so we can at least have a minimal test run
-        #self.num_tasks = 2
-        #self.num_tasks_per_node = 2
-        #self.num_cpus_per_task = 64
 
     @run_after('setup')
     def set_binding_policy(self):
@@ -122,9 +116,11 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
                 self.env_vars['SLURM_CPU_BIND'] = 'socket'  # Only effective if the task/affinity plugin is enabled
 
     @run_after('setup')
-    def set_omp_num_threads(self):
-        """Set number of OpenMP threads"""
-        self.env_vars['OMP_NUM_THREADS'] = self.num_cpus_per_task
+    def set_thread_count_args(self):
+        """Set exectuable opts defining the thread count"""
+        if not self.has_custom_executable_opts:
+            self.executable_opts += ['--intra-op-parallelism', '%s' % self.num_cpus_per_task]
+            self.executable_opts += ['--inter-op-parallelism', '1']
 
     @run_after('setup')
     def set_binding_policy(self):
