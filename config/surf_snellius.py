@@ -90,7 +90,8 @@ site_configuration = {
                     'name': 'reframe.log',
                     'level': 'debug',
                     'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
-                    'append': False
+                    'append': True,
+                    'timestamp': "%Y%m%d_%H%M%S",
                 }
             ],
             'handlers_perflog': [
