@@ -299,6 +299,9 @@ def set_compact_process_binding(test: rfm.RegressionTest):
     # Default binding for SLURM. Only effective if the task/affinity plugin is enabled
     # and when number of tasks times cpus per task equals either socket, core or thread count
     test.env_vars['SLURM_CPU_BIND'] = 'q'
+    log(f'Set environment variable I_MPI_PIN_DOMAIN to {test.env_vars["I_MPI_PIN_DOMAIN"]}')
+    log(f'Set environment variable OMPI_MCA_rmaps_base_mapping_policy to {test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
+    log(f'Set environment variable SLURM_CPU_BIND to {test.env_vars["SLURM_CPU_BIND"]}')
 
 
 def set_compact_thread_binding(test: rfm.RegressionTest):
@@ -312,8 +315,10 @@ def set_compact_thread_binding(test: rfm.RegressionTest):
     """
 
     # Set thread binding
-    test.env_vars['OMP_NUM_THREADS'] = test.num_cpus_per_task
     test.env_vars['OMP_PLACES'] = 'cores'
     test.env_vars['OMP_PROC_BIND'] = 'close'
     # See https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-8/thread-affinity-interface.html
     test.env_vars['KMP_AFFINITY'] = 'granularity=fine,compact,1,0'
+    log(f'Set environment variable OMP_PLACES to {test.env_vars["OMP_PLACES"]}')
+    log(f'Set environment variable OMP_PROC_BIND to {test.env_vars["OMP_PROC_BIND"]}')
+    log(f'Set environment variable KMP_AFFINITY to {test.env_vars["KMP_AFFINITY"]}')
