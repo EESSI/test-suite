@@ -70,10 +70,21 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
 
 def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
     """
-    Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per cpu socket,
-    unless specified with:
+    Determines the number of tasks per node by dividing the default_num_cpus_per_node by
+    the number of cpus available per socket, and rounding up. The result is that for full-node jobs the default 
+    will spawn one task per socket, with a number of cpus per task equal to the number of cpus per socket.
+    Other examples:
+    - half a node (i.e. node_part=2) on a 4-socket system would result in 2 tasks per node,
+    with number of cpus per task equal to the number of cpus per socket.
+    - 2 cores (i.e. default_num_cpus_per_node=2) on a 16 core system with 2 sockets would result in 
+    1 task per node, with 2 cpus per task
+
+    This default is set unless the test is run with:
     --setvar num_tasks_per_node=<x> and/or
     --setvar num_cpus_per_task=<y>.
+    In those cases, those take precedence, and the remaining variable (num_cpus_per task or 
+    num_tasks_per_node respectively) is calculated based on the equality
+    test.num_tasks_per_node * test.num_cpus_per_task == test.default_num_cpus_per_node.
 
     Variables:
     - default_num_cpus_per_node: default number of CPUs per node as defined in the test
@@ -87,11 +98,13 @@ def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
     # neither num_tasks_per_node nor num_cpus_per_task are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
         if test.current_partition.processor.num_sockets:
-            test.num_tasks_per_node = test.current_partition.processor.num_sockets
+            num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets
+            test.num_tasks_per_node = math.ceil(test.default_num_cpus_per_node / num_cpus_per_socket)
             test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
 
     # num_tasks_per_node is not set, but num_cpus_per_task is
     elif not test.num_tasks_per_node:
+        num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets
         test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.num_cpus_per_task)
 
     # num_cpus_per_task is not set, but num_tasks_per_node is
