@@ -9,77 +9,77 @@ site_configuration = {
             'prefix': f'reframe_logs/',
             'partitions': [
                 {
-                    'name': 'c4.2xlarge-haswell',
+                    'name': 'x86_64-haswell-8c-15gb',
                     'access': ['--constraint shape=c4.2xlarge', '--export=NONE'],
                     'descr': 'Haswell, 8 cores, 15 GiB',
                 },
                 {
-                    'name': 'c4.4xlarge-haswell',
+                    'name': 'x86_64-haswell-16c-30gb',
                     'access': ['--constraint shape=c4.4xlarge', '--export=NONE'],
                     'descr': 'Haswell, 16 cores, 30 GiB',
                 },
                 {
-                    'name': 'c5a.2xlarge-zen2',
+                    'name': 'x86_64-zen2-8c-16gb',
                     'access': ['--constraint shape=c5a.2xlarge', '--export=NONE'],
                     'descr': 'Zen2, 8 cores, 16 GiB',
                 },
                 {
-                    'name': 'c5a.4xlarge-zen2',
+                    'name': 'x86_64-zen2-16c-32gb',
                     'access': ['--constraint shape=c5a.4xlarge', '--export=NONE'],
                     'descr': 'Zen2, 16 cores, 32 GiB',
                 },
                 {
-                    'name': 'c6a.2xlarge-zen3',
+                    'name': 'x86_64-zen3-8c-16gb',
                     'access': ['--constraint shape=c6a.2xlarge', '--export=NONE'],
                     'descr': 'Zen3, 8 cores, 16 GiB',
                 },
                 {
-                    'name': 'c6a.4xlarge-zen3',
+                    'name': 'X86_64-zen3-16c-32gb',
                     'access': ['--constraint shape=c6a.4xlarge', '--export=NONE'],
                     'descr': 'Zen3, 16 cores, 32 GiB',
                 },
                 {
-                    'name': 'c5.2xlarge-skylake-cascadelake',
+                    'name': 'x86_64-skylake-cascadelake-8c-16gb',
                     'access': ['--constraint shape=c5.2xlarge', '--export=NONE'],
                     'descr': 'Skylake/Cascade lake, 8 cores, 16 GiB',
                 },
                 {
-                    'name': 'c5.4xlarge-skylake-cascadelake',
+                    'name': 'x86_64-skylake-cascadelake-16c-32gb',
                     'access': ['--constraint shape=c5.4xlarge', '--export=NONE'],
                     'descr': 'Skylake/Cascade lake, 16 cores, 32 GiB',
                 },
                 {
-                    'name': 'c5d.2xlarge-skylake-cascadelake',
+                    'name': 'x86_64-skylake-cascadelake-8c-16gb-nvme',
                     'access': ['--constraint shape=c5d.2xlarge', '--export=NONE'],
                     'descr': 'Skylake/Cascade lake, 8 cores, 16 GiB, 200GB NVMe',
                 },
                 {
-                    'name': 'c6i.2xlarge-icelake',
+                    'name': 'x86_64-icelake-8c-16gb',
                     'access': ['--constraint shape=c6i.2xlarge', '--export=NONE'],
                     'descr': 'Icelake, 8 cores, 16 GiB',
                 },
                 {
-                    'name': 'c6g.2xlarge-graviton2',
+                    'name': 'aarch64-graviton2-8c-16gb',
                     'access': ['--constraint shape=c6g.2xlarge', '--export=NONE'],
                     'descr': 'Graviton2, 8 cores, 16 GiB',
                 },
                 {
-                    'name': 'c6g.4xlarge-graviton2',
+                    'name': 'aarch64-graviton2-16c-32gb',
                     'access': ['--constraint shape=c6g.4xlarge', '--export=NONE'],
                     'descr': 'Graviton2, 16 cores, 32 GiB',
                 },
                 {
-                    'name': 'c6g.8xlarge-graviton2',
+                    'name': 'aarch64-graviton2-32c-64gb',
                     'access': ['--constraint shape=c6g.8xlarge', '--export=NONE'],
                     'descr': 'Graviton2, 32 cores, 64 GiB',
                 },
                 {
-                    'name': 'c7g.2xlarge-graviton3',
+                    'name': 'aarch64-graviton3-8c-16gb',
                     'access': ['--constraint shape=c7g.2xlarge', '--export=NONE'],
                     'descr': 'Graviton3, 8 cores, 16 GiB',
                 },
                 {
-                    'name': 'c7g.4xlarge-graviton3',
+                    'name': 'aarch64-graviton3-8c-32gb',
                     'access': ['--constraint shape=c7g.4xlarge', '--export=NONE'],
                     'descr': 'Graviton3, 16 cores, 32 GiB',
                 },
@@ -141,9 +141,11 @@ site_configuration = {
 # Add default things to each partition:
 partition_defaults = {
     'scheduler': 'squeue',
-    # Can't use mpirun, because there is no system mpirun on citc
+    # mpirun causes problems with cpu autodetect, since there is no system mpirun.
     # See https://github.com/EESSI/test-suite/pull/53#issuecomment-1590849226
-    'launcher': 'mpirun',
+    # Use srun for now, could be replaced by mpirun if this feature is implemented:
+    # https://github.com/reframe-hpc/reframe/issues/2926
+    'launcher': 'srun',
     'environs': ['default'],
     'features': ['cpu'],
     'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash '],
