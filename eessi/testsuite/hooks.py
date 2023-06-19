@@ -5,8 +5,9 @@ import math
 import shlex
 
 import reframe as rfm
+
 from eessi.testsuite.constants import DEVICES, FEATURES, SCALES
-from eessi.testsuite import utils
+from eessi.testsuite.utils import get_max_avail_gpus_per_node, is_cuda_required_module, log
 
 PROCESSOR_INFO_MISSING = '''
 This test requires the number of CPUs to be known for the partition it runs on.
@@ -55,6 +56,8 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
     else:
         # no default set yet, so setting one
         test.default_num_cpus_per_node = int(test.max_avail_cpus_per_node / test.node_part)
+
+    log(f'default_num_cpus_per_node set to {test.default_num_cpus_per_node}')
 
     if compute_unit == DEVICES['GPU']:
         _assign_one_task_per_gpu(test)
@@ -134,6 +137,11 @@ def _assign_one_task_per_cpu(test: rfm.RegressionTest):
 
     test.num_tasks = test.num_nodes * test.num_tasks_per_node
 
+    log(f'num_tasks_per_node set to {test.num_tasks_per_node}')
+    log(f'num_cpus_per_task set to {test.num_cpus_per_task}')
+    log(f'num_tasks set to {test.num_tasks}')
+
+
 def _assign_one_task_per_gpu(test: rfm.RegressionTest):
     """
     Sets num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node, unless specified with:
@@ -154,7 +162,7 @@ def _assign_one_task_per_gpu(test: rfm.RegressionTest):
     If num_tasks_per_node is set, set num_gpus_per_node equal to either num_tasks_per_node or default_num_gpus_per_node
     (whichever is smallest), unless num_gpus_per_node is also set.
     """
-    max_avail_gpus_per_node = utils.get_max_avail_gpus_per_node(test)
+    max_avail_gpus_per_node = get_max_avail_gpus_per_node(test)
 
     # Check if the default number of gpus per node is already defined in the test
     # (e.g. by earlier hooks like set_tag_scale).
@@ -197,6 +205,11 @@ def _assign_one_task_per_gpu(test: rfm.RegressionTest):
 
     test.num_tasks = test.num_nodes * test.num_tasks_per_node
 
+    log(f'num_gpus_per_node set to {test.num_gpus_per_node}')
+    log(f'num_tasks_per_node set to {test.num_tasks_per_node}')
+    log(f'num_cpus_per_task set to {test.num_cpus_per_task}')
+    log(f'num_tasks set to {test.num_tasks}')
+
 
 def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_device_type: str):
     """
@@ -204,7 +217,7 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     unless valid_systems is specified with --setvar valid_systems=<comma-separated-list>.
     """
     if not test.valid_systems:
-        is_cuda_module = utils.is_cuda_required_module(test.module_name)
+        is_cuda_module = is_cuda_required_module(test.module_name)
         valid_systems = ''
 
         if is_cuda_module and required_device_type == DEVICES['GPU']:
@@ -223,6 +236,8 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
         if valid_systems:
             test.valid_systems = [valid_systems]
 
+    log(f'valid_systems set to {test.valid_systems}')
+
 
 def set_modules(test: rfm.RegressionTest):
     """
@@ -231,8 +246,10 @@ def set_modules(test: rfm.RegressionTest):
     """
     if test.modules and test.module_name not in test.modules:
         test.valid_systems = []
+        log(f'valid_systems set to {test.valid_systems}')
 
     test.modules = [test.module_name]
+    log(f'modules set to {test.modules}')
 
 
 def set_tag_scale(test: rfm.RegressionTest):
@@ -243,6 +260,7 @@ def set_tag_scale(test: rfm.RegressionTest):
     test.default_num_gpus_per_node = SCALES[scale].get('num_gpus_per_node')
     test.node_part = SCALES[scale].get('node_part')
     test.tags.add(scale)
+    log(f'tags set to {test.tags}')
 
 
 def check_custom_executable_opts(test: rfm.RegressionTest, num_default: int = 0):
@@ -254,6 +272,8 @@ def check_custom_executable_opts(test: rfm.RegressionTest, num_default: int = 0)
     test.has_custom_executable_opts = False
     if len(test.executable_opts) > num_default:
         test.has_custom_executable_opts = True
+    log(f'has_custom_executable_opts set to {test.has_custom_executable_opts}')
+
 
 def set_compact_process_binding(test: rfm.RegressionTest):
     """
