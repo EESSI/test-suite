@@ -143,15 +143,17 @@ partition_defaults = {
     'scheduler': 'squeue',
     # mpirun causes problems with cpu autodetect, since there is no system mpirun.
     # See https://github.com/EESSI/test-suite/pull/53#issuecomment-1590849226
-    # Use srun for now, could be replaced by mpirun if this feature is implemented:
-    # https://github.com/reframe-hpc/reframe/issues/2926
-    'launcher': 'srun',
+    # and this feature request https://github.com/reframe-hpc/reframe/issues/2926
+    # However, using srun requires either using pmix or proper pmi2 integration in the MPI library
+    # See https://github.com/EESSI/test-suite/pull/53#issuecomment-1598753968
+    # Thus, we use mpirun for now, and manually swap to srun if we want to autodetect CPUs...
+    'launcher': 'mpirun',
     'environs': ['default'],
     'features': ['cpu'],
     'prepare_cmds': [
         'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
         # Required when using srun as launcher with --export=NONE in partition access, in order to ensure job
-        # steps inherit environment
+        # steps inherit environment. It doesn't hurt to define this even if srun is not used
         'export SLURM_EXPORT_ENV=ALL'
     ],
 }
