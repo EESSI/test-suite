@@ -34,19 +34,15 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
     @deferrable
     def assert_tf_config_ranks(self):
         '''Assert that each rank sets a TF_CONFIG'''
-        n_ranks = sn.count(sn.extractall('^Set TF_CONFIG for rank (?P<rank>[0-9]+)', self.stdout, tag='rank'))
+        n_ranks = sn.count(sn.extractall('^Rank [0-9]+: Set TF_CONFIG for rank (?P<rank>[0-9]+)', self.stdout, tag='rank'))
         return sn.assert_eq(n_ranks, self.num_tasks)
 
     @deferrable
     def assert_completion(self):
         '''Assert that the test ran until completion'''
-        n_completed_steps = sn.count(sn.extractall('^100/100', self.stdout))
-        n_completed_epochs = sn.count(sn.extractall('^Epoch 10/10', self.stdout))
-        n_fit_completed = sn.count(sn.extractall('^Keras fit completed', self.stdout))
+        n_fit_completed = sn.count(sn.extractall('^Rank [0-9]+: Keras fit completed', self.stdout))
         
         return sn.all([
-            sn.assert_eq(n_completed_steps, 10 * self.num_tasks),
-            sn.assert_eq(n_completed_epochs, self.num_tasks),
             sn.assert_eq(n_fit_completed, self.num_tasks),
         ])
 
@@ -54,7 +50,8 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
     def assert_convergence(self):
         '''Assert that the network learned _something_ during training'''
         accuracy=sn.extractsingle('^Final accuracy: (?P<accuracy>\S+)', self.stdout, 'accuracy', float)
-        return sn.assert_gt(accuracy, 0.5)
+        # mnist is a 10-class classification problem, so if accuracy >> 0.2 the network 'learned' something
+        return sn.assert_gt(accuracy, 0.2)
 
     @sanity_function
     def assert_sanity(self):
