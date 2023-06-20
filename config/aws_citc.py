@@ -6,81 +6,81 @@ site_configuration = {
             'descr': 'Cluster in the Cloud build and test environment on AWS',
             'modules_system': 'lmod',
     	    'hostnames': ['mgmt', 'login', 'fair-mastodon*'],
-            'prefix': f'reframe_logs/',
+            'prefix': f'reframe_runs/',
             'partitions': [
                 {
                     'name': 'x86_64-haswell-8c-15gb',
-                    'access': ['--constraint shape=c4.2xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c4.2xlarge', '--export=NONE'],
                     'descr': 'Haswell, 8 cores, 15 GiB',
                 },
                 {
                     'name': 'x86_64-haswell-16c-30gb',
-                    'access': ['--constraint shape=c4.4xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c4.4xlarge', '--export=NONE'],
                     'descr': 'Haswell, 16 cores, 30 GiB',
                 },
                 {
                     'name': 'x86_64-zen2-8c-16gb',
-                    'access': ['--constraint shape=c5a.2xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c5a.2xlarge', '--export=NONE'],
                     'descr': 'Zen2, 8 cores, 16 GiB',
                 },
                 {
                     'name': 'x86_64-zen2-16c-32gb',
-                    'access': ['--constraint shape=c5a.4xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c5a.4xlarge', '--export=NONE'],
                     'descr': 'Zen2, 16 cores, 32 GiB',
                 },
                 {
                     'name': 'x86_64-zen3-8c-16gb',
-                    'access': ['--constraint shape=c6a.2xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c6a.2xlarge', '--export=NONE'],
                     'descr': 'Zen3, 8 cores, 16 GiB',
                 },
                 {
                     'name': 'X86_64-zen3-16c-32gb',
-                    'access': ['--constraint shape=c6a.4xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c6a.4xlarge', '--export=NONE'],
                     'descr': 'Zen3, 16 cores, 32 GiB',
                 },
                 {
                     'name': 'x86_64-skylake-cascadelake-8c-16gb',
-                    'access': ['--constraint shape=c5.2xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c5.2xlarge', '--export=NONE'],
                     'descr': 'Skylake/Cascade lake, 8 cores, 16 GiB',
                 },
                 {
                     'name': 'x86_64-skylake-cascadelake-16c-32gb',
-                    'access': ['--constraint shape=c5.4xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c5.4xlarge', '--export=NONE'],
                     'descr': 'Skylake/Cascade lake, 16 cores, 32 GiB',
                 },
                 {
                     'name': 'x86_64-skylake-cascadelake-8c-16gb-nvme',
-                    'access': ['--constraint shape=c5d.2xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c5d.2xlarge', '--export=NONE'],
                     'descr': 'Skylake/Cascade lake, 8 cores, 16 GiB, 200GB NVMe',
                 },
                 {
                     'name': 'x86_64-icelake-8c-16gb',
-                    'access': ['--constraint shape=c6i.2xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c6i.2xlarge', '--export=NONE'],
                     'descr': 'Icelake, 8 cores, 16 GiB',
                 },
                 {
                     'name': 'aarch64-graviton2-8c-16gb',
-                    'access': ['--constraint shape=c6g.2xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c6g.2xlarge', '--export=NONE'],
                     'descr': 'Graviton2, 8 cores, 16 GiB',
                 },
                 {
                     'name': 'aarch64-graviton2-16c-32gb',
-                    'access': ['--constraint shape=c6g.4xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c6g.4xlarge', '--export=NONE'],
                     'descr': 'Graviton2, 16 cores, 32 GiB',
                 },
                 {
                     'name': 'aarch64-graviton2-32c-64gb',
-                    'access': ['--constraint shape=c6g.8xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c6g.8xlarge', '--export=NONE'],
                     'descr': 'Graviton2, 32 cores, 64 GiB',
                 },
                 {
                     'name': 'aarch64-graviton3-8c-16gb',
-                    'access': ['--constraint shape=c7g.2xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c7g.2xlarge', '--export=NONE'],
                     'descr': 'Graviton3, 8 cores, 16 GiB',
                 },
                 {
                     'name': 'aarch64-graviton3-8c-32gb',
-                    'access': ['--constraint shape=c7g.4xlarge', '--export=NONE'],
+                    'access': ['--constraint=shape=c7g.4xlarge', '--export=NONE'],
                     'descr': 'Graviton3, 16 cores, 32 GiB',
                 },
              ]
@@ -106,11 +106,13 @@ site_configuration = {
                 },
                 {
                     'type': 'file',
+                    'prefix': 'reframe_runs',
                     'name': 'reframe.log',
                     'level': 'debug',
                     'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
-                    'append': False
-                }
+                    'append': False,
+                    'timestamp': "%Y%m%d_%H%M%S",
+                },
             ],
             'handlers_perflog': [
                 {
