@@ -14,8 +14,8 @@ site_configuration = {
             'descr': 'Vega, a EuroHPC JU system',
             'modules_system': 'lmod',
             'hostnames': ['vglogin*','cn*','gn*'],
-            'stagedir': f'/ceph/hpc/scratch/user/{username}/reframe_runs/staging',
-            'outputdir': f'reframe_runs/',
+            'stagedir': f'reframe_runs/staging',
+            'outputdir': f'reframe_runs/output',
             'partitions': [
                 {
                     'name': 'cpu',
