@@ -26,6 +26,6 @@ def build_and_compile_cnn_model():
   ])
   model.compile(
       loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-      optimizer=tf.keras.optimizers.SGD(learning_rate=0.001),
+      optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
       metrics=['accuracy'])
   return model
