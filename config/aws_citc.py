@@ -148,7 +148,12 @@ partition_defaults = {
     'launcher': 'srun',
     'environs': ['default'],
     'features': ['cpu'],
-    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash '],
+    'prepare_cmds': [
+        'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
+        # Required when using srun as launcher with --export=NONE in partition access, in order to ensure job
+        # steps inherit environment
+        'export SLURM_EXPORT_ENV=ALL'
+    ],
 }
 for system in site_configuration['systems']:
     for partition in system['partitions']:
