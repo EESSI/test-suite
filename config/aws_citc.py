@@ -4,6 +4,8 @@
 # In order to do CPU autodetection, two changes are needed:
 # 1. Remove all '--export=NONE'
 # 2. Set 'launcher = srun'
+# You can run the CPU autodetect by listing all tests (reframe -l ...)
+# and then, once all CPUs are autodetected, change the config back for a 'real' run (reframe -r ...)
 
 site_configuration = {
     'systems': [
