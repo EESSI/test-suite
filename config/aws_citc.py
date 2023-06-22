@@ -1,4 +1,10 @@
 # This is an example configuration file
+
+# Note that CPU autodetect currently does not work with this configuration file on AWS
+# In order to do CPU autodetection, two changes are needed:
+# 1. Remove all '--export=NONE'
+# 2. Set 'launcher = srun'
+
 site_configuration = {
     'systems': [
         {
