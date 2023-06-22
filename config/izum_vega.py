@@ -20,7 +20,10 @@ site_configuration = {
                 {
                     'name': 'cpu',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
+                    'prepare_cmds': [
+                        'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
+                        'export SLURM_EXPORT_ENV=ALL',
+                    ],
                     'launcher': 'mpirun',
                     'access':  ['-p cpu', '--export=None'],
                     'environs': ['default'],
@@ -33,7 +36,10 @@ site_configuration = {
                 {
                     'name': 'gpu',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
+                    'prepare_cmds': [
+                        'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
+                        'export SLURM_EXPORT_ENV=ALL',
+                    ],
                     'launcher': 'mpirun',
                     'access':  ['-p gpu', '--export=None'],
                     'environs': ['default'],
