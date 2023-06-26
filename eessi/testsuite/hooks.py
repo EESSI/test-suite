@@ -312,9 +312,12 @@ def set_compact_process_binding(test: rfm.RegressionTest):
 
     # Do binding for intel and OpenMPI's mpirun, and srun
     # Other launchers may or may not do the correct binding
+
+    # Number of cores to bind each individual task to:
+    physical_cpus_per_task = test.num_cpus_per_task / num_cpus_per_core
     test.env_vars['I_MPI_PIN_CELL'] = 'core'  # Don't bind to hyperthreads, only to physcial cores
-    test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % test.num_cpus_per_task / num_cpus_per_core
-    test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'node:PE=%s' % test.num_cpus_per_task / num_cpus_per_core
+    test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % physical_cpus_per_task
+    test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'node:PE=%s' % physical_cpus_per_task
     # Default binding for SLURM. Only effective if the task/affinity plugin is enabled
     # and when number of tasks times cpus per task equals either socket, core or thread count
     test.env_vars['SLURM_CPU_BIND'] = 'q'
