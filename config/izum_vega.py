@@ -23,6 +23,9 @@ site_configuration = {
                     'prepare_cmds': [
                         'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
                         'export SLURM_EXPORT_ENV=ALL',
+                        # Avoid https://github.com/EESSI/software-layer/issues/136
+                        # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
+                        'export OMPI_MCA_pml=ucx',
                     ],
                     'launcher': 'mpirun',
                     'access':  ['-p cpu', '--export=None'],
@@ -39,6 +42,9 @@ site_configuration = {
                     'prepare_cmds': [
                         'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
                         'export SLURM_EXPORT_ENV=ALL',
+                        # Avoid https://github.com/EESSI/software-layer/issues/136
+                        # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
+                        'export OMPI_MCA_pml=ucx',
                     ],
                     'launcher': 'mpirun',
                     'access':  ['-p gpu', '--export=None'],
