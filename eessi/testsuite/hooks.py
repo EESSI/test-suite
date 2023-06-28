@@ -41,10 +41,16 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
     - assign_one_task_per_compute_unit(test, DEVICES['CPU_SOCKET'], false) will launch 2 tasks with 32 threads per task
     - assign_one_task_per_compute_unit(test, DEVICES['CPU_SOCKET'], true) will launch 2 tasks with 64 threads per task
     """
-    test.max_avail_cpus_per_node = \
-        test.current_partition.processor.num_cpus / test.current_partition.processor.num_cpus_per_core
+    if use_hyperthreading and test.current_partition.processor.num_cpus:
+        test.max_avail_cpus_per_node = test.current_partition.processor.num_cpus
+    elif (not use_hyperthreading and 
+          test.current_partition.processor.num_cpus and 
+          test.current_partition.processor.num_cpus_per_core):
+        test.max_avail_cpus_per_node = \
+            test.current_partition.processor.num_cpus / test.current_partition.processor.num_cpus_per_core
     if test.max_avail_cpus_per_node is None:
         raise AttributeError(PROCESSOR_INFO_MISSING)
+    log(f'max_avail_cpus_per_node set to {test.max_avail_cpus_per_node}')
 
     # Check if either node_part, or default_num_cpus_per_node and default_num_gpus_per_node are set correctly
     if not (
@@ -82,7 +88,7 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
     else:
         raise ValueError(f'compute unit {compute_unit} is currently not supported')
 
-def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
+def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest, use_hyperthreading: bool = False):
     """
     Determines the number of tasks per node by dividing the default_num_cpus_per_node by
     the number of cpus available per socket, and rounding up. The result is that for full-node jobs the default 
@@ -112,13 +118,30 @@ def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
     # neither num_tasks_per_node nor num_cpus_per_task are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
         if test.current_partition.processor.num_sockets:
-            num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets
+            # TOOD: make this if elif else a separate function, it is reused three times
+            if use_hyperthreading and test.current_partition.processor.num_cpus:
+                num_cpus_per_node = test.current_partition.processor.num_cpus
+            elif (not use_hyperthreading and
+                  test.current_partition.processor.num_cpus and
+                  test.current_partition.processor.num_cpus_per_core):
+                num_cpus_per_node = test.current_partition.processor.num_cpus / test.current_partition.processor.num_cpus_per_core
+            else:
+                raise AttributeError(PROCESSOR_INFO_MISSING)
+            num_cpus_per_socket = num_cpus_per_node / test.current_partition.processor.num_sockets
             test.num_tasks_per_node = math.ceil(test.default_num_cpus_per_node / num_cpus_per_socket)
             test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
 
     # num_tasks_per_node is not set, but num_cpus_per_task is
     elif not test.num_tasks_per_node:
-        num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets
+        if use_hyperthreading and test.current_partition.processor.num_cpus:
+            num_cpus_per_node = test.current_partition.processor.num_cpus
+        elif (not use_hyperthreading and
+              test.current_partition.processor.num_cpus and
+              test.current_partition.processor.num_cpus_per_core):
+            num_cpus_per_node = test.current_partition.processor.num_cpus / test.current_partition.processor.num_cpus_per_core
+        else:
+            raise AttributeError(PROCESSOR_INFO_MISSING)
+        num_cpus_per_socket = num_cpus_per_node / test.current_partition.processor.num_sockets
         test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.num_cpus_per_task)
 
     # num_cpus_per_task is not set, but num_tasks_per_node is
@@ -331,10 +354,10 @@ def set_compact_process_binding(test: rfm.RegressionTest):
     # Other launchers may or may not do the correct binding
 
     # Number of cores to bind each individual task to:
-    physical_cpus_per_task = test.num_cpus_per_task / num_cpus_per_core
+    physical_cpus_per_task = int(test.num_cpus_per_task / num_cpus_per_core)
     test.env_vars['I_MPI_PIN_CELL'] = 'core'  # Don't bind to hyperthreads, only to physcial cores
-    test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % physical_cpus_per_task
-    test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'node:PE=%s' % physical_cpus_per_task
+    test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % test.num_cpus_per_task
+    test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'node:PE=%s' % test.num_cpus_per_task
     # Default binding for SLURM. Only effective if the task/affinity plugin is enabled
     # and when number of tasks times cpus per task equals either socket, core or thread count
     test.env_vars['SLURM_CPU_BIND'] = 'q'
