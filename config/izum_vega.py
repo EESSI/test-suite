@@ -23,6 +23,7 @@ site_configuration = {
                     'prepare_cmds': [
                         'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
                         'export SLURM_EXPORT_ENV=ALL',
+                        'export OMPI_MCA_pml=ucx',
                     ],
                     'launcher': 'mpirun',
                     'access':  ['-p cpu', '--export=None'],
@@ -39,6 +40,7 @@ site_configuration = {
                     'prepare_cmds': [
                         'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
                         'export SLURM_EXPORT_ENV=ALL',
+                        'export OMPI_MCA_pml=ucx',
                     ],
                     'launcher': 'mpirun',
                     'access':  ['-p gpu', '--export=None'],

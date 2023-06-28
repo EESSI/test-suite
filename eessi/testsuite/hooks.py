@@ -18,7 +18,7 @@ or manually set in the ReFrame configuration file
 '''
 
 
-def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str):
+def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, use_hyperthreading: bool = False):
     """
     Assign one task per compute unit (DEVICES['CPU'], DEVICES['CPU_SOCKET'] or DEVICES['GPU']).
     Automatically sets num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
@@ -26,9 +26,23 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
     For GPU tests, one task per GPU is set, and num_cpus_per_task is based on the ratio of CPU-cores/GPUs.
     For CPU tests, one task per CPU is set, and num_cpus_per_task is set to 1.
     Total task count is determined based on the number of nodes to be used in the test.
+    If use_hyperthreading is True, each hyperthread is considered a valid place to run one thread.
     Behaviour of this function is (usually) sensible for MPI tests.
+
+    Arguments:
+    - test: the ReFrame test to which this hook should apply
+    - compute_unit: a device as listed in eessi.testsuite.constants.DEVICES
+    - use_hyperthreading: whether hyperthreading should be considered when computing task counts
+
+    Examples:
+    On a single node with 2 sockets, 64 cores and 128 hyperthreads:
+    - assign_one_task_per_compute_unit(test, DEVICES['CPU'], false) will launch 64 tasks with 1 thread
+    - assign_one_task_per_compute_unit(test, DEVICES['CPU'], true) will launch 128 tasks with 1 thread
+    - assign_one_task_per_compute_unit(test, DEVICES['CPU_SOCKET'], false) will launch 2 tasks with 32 threads per task
+    - assign_one_task_per_compute_unit(test, DEVICES['CPU_SOCKET'], true) will launch 2 tasks with 64 threads per task
     """
-    test.max_avail_cpus_per_node = test.current_partition.processor.num_cpus
+    test.max_avail_cpus_per_node = \
+        test.current_partition.processor.num_cpus / test.current_partition.processor.num_cpus_per_core
     if test.max_avail_cpus_per_node is None:
         raise AttributeError(PROCESSOR_INFO_MISSING)
 
@@ -304,6 +318,9 @@ def set_compact_process_binding(test: rfm.RegressionTest):
     - OpenMPI (through OMPI_MCA_rmaps_base_mapping_policy)
     - srun (LIMITED SUPPORT: through SLURM_CPU_BIND, but only effective if task/affinity plugin is enabled)
     """
+
+    # WARNING: this function currently binds tasks to cores, which asumes assign_one_task_per_compute_unit is called 
+    # with use_hyperthreading = False. This function should be extend to also do proper binding when use_hyperthreading = True
 
     # If hyperthreading is enabled, we need to change our process binding
     num_cpus_per_core = test.current_partition.processor.num_cpus_per_core
