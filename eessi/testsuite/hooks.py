@@ -41,13 +41,14 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
     - assign_one_task_per_compute_unit(test, DEVICES['CPU_SOCKET'], false) will launch 2 tasks with 32 threads per task
     - assign_one_task_per_compute_unit(test, DEVICES['CPU_SOCKET'], true) will launch 2 tasks with 64 threads per task
     """
-    if use_hyperthreading and test.current_partition.processor.num_cpus:
-        test.max_avail_cpus_per_node = test.current_partition.processor.num_cpus
-    elif (not use_hyperthreading and 
-          test.current_partition.processor.num_cpus and 
-          test.current_partition.processor.num_cpus_per_core):
-        test.max_avail_cpus_per_node = \
-            test.current_partition.processor.num_cpus / test.current_partition.processor.num_cpus_per_core
+#    if use_hyperthreading and test.current_partition.processor.num_cpus:
+#        test.max_avail_cpus_per_node = test.current_partition.processor.num_cpus
+#    elif (not use_hyperthreading and 
+#          test.current_partition.processor.num_cpus and 
+#          test.current_partition.processor.num_cpus_per_core):
+#        test.max_avail_cpus_per_node = \
+#            test.current_partition.processor.num_cpus / test.current_partition.processor.num_cpus_per_core
+    test.max_avail_cpus_per_node = test.current_partition.processor.num_cpus
     if test.max_avail_cpus_per_node is None:
         raise AttributeError(PROCESSOR_INFO_MISSING)
     log(f'max_avail_cpus_per_node set to {test.max_avail_cpus_per_node}')
@@ -118,30 +119,30 @@ def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest, use_hyperthreading
     # neither num_tasks_per_node nor num_cpus_per_task are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
         if test.current_partition.processor.num_sockets:
-            # TOOD: make this if elif else a separate function, it is reused three times
-            if use_hyperthreading and test.current_partition.processor.num_cpus:
-                num_cpus_per_node = test.current_partition.processor.num_cpus
-            elif (not use_hyperthreading and
-                  test.current_partition.processor.num_cpus and
-                  test.current_partition.processor.num_cpus_per_core):
-                num_cpus_per_node = test.current_partition.processor.num_cpus / test.current_partition.processor.num_cpus_per_core
-            else:
-                raise AttributeError(PROCESSOR_INFO_MISSING)
-            num_cpus_per_socket = num_cpus_per_node / test.current_partition.processor.num_sockets
+#            # TOOD: make this if elif else a separate function, it is reused three times
+#            if use_hyperthreading and test.current_partition.processor.num_cpus:
+#                num_cpus_per_node = test.current_partition.processor.num_cpus
+#            elif (not use_hyperthreading and
+#                  test.current_partition.processor.num_cpus and
+#                  test.current_partition.processor.num_cpus_per_core):
+#                num_cpus_per_node = test.current_partition.processor.num_cpus / test.current_partition.processor.num_cpus_per_core
+#            else:
+#                raise AttributeError(PROCESSOR_INFO_MISSING)
+            num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets
             test.num_tasks_per_node = math.ceil(test.default_num_cpus_per_node / num_cpus_per_socket)
             test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
 
     # num_tasks_per_node is not set, but num_cpus_per_task is
     elif not test.num_tasks_per_node:
-        if use_hyperthreading and test.current_partition.processor.num_cpus:
-            num_cpus_per_node = test.current_partition.processor.num_cpus
-        elif (not use_hyperthreading and
-              test.current_partition.processor.num_cpus and
-              test.current_partition.processor.num_cpus_per_core):
-            num_cpus_per_node = test.current_partition.processor.num_cpus / test.current_partition.processor.num_cpus_per_core
-        else:
-            raise AttributeError(PROCESSOR_INFO_MISSING)
-        num_cpus_per_socket = num_cpus_per_node / test.current_partition.processor.num_sockets
+#        if use_hyperthreading and test.current_partition.processor.num_cpus:
+#            num_cpus_per_node = test.current_partition.processor.num_cpus
+#        elif (not use_hyperthreading and
+#              test.current_partition.processor.num_cpus and
+#              test.current_partition.processor.num_cpus_per_core):
+#            num_cpus_per_node = test.current_partition.processor.num_cpus / test.current_partition.processor.num_cpus_per_core
+#        else:
+#            raise AttributeError(PROCESSOR_INFO_MISSING)
+        num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets
         test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.num_cpus_per_task)
 
     # num_cpus_per_task is not set, but num_tasks_per_node is
