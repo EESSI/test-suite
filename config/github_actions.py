@@ -1,4 +1,8 @@
 # ReFrame configuration file that can be used in GitHub Actions with EESSI
+
+from eessi.testsuite.constants import *
+
+
 site_configuration = {
     'systems': [
         {
@@ -12,7 +16,7 @@ site_configuration = {
                     'scheduler': 'local',
                     'launcher': 'local',
                     'environs': ['default'],
-                    'features': ['cpu'],
+                    'features': [FEATURES[CPU]],
                     'processor': {'num_cpus': 2},
                     'max_jobs': 1
                     }

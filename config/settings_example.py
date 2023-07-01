@@ -3,7 +3,8 @@ Example configuration file
 """
 from os import environ
 
-from eessi.testsuite.constants import DEVICES, FEATURES, GPU_VENDORS
+from eessi.testsuite.constants import *
+
 
 username = environ.get('USER')
 
@@ -30,7 +31,7 @@ site_configuration = {
                         'num_cpus_per_socket': 64,
                         'arch': 'zen2',
                     },
-                    'features': [FEATURES['CPU']],
+                    'features': [FEATURES[CPU]],
                     'descr': 'CPU partition'
                 },
                 {
@@ -54,16 +55,16 @@ site_configuration = {
                     ],
                     'devices': [
                         {
-                            'type': DEVICES['GPU'],
+                            'type': DEVICES[GPU],
                             'num_devices': 4,
                         }
                     ],
                     'features': [
-                        FEATURES['CPU'],
-                        FEATURES['GPU'],
+                        FEATURES[CPU],
+                        FEATURES[GPU],
                     ],
                     'extras': {
-                        'gpu_vendor': GPU_VENDORS['NVIDIA'],
+                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },
                     'descr': 'GPU partition'
                 },

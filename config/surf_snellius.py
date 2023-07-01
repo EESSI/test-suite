@@ -1,4 +1,8 @@
 from os import environ
+
+from eessi.testsuite.constants import *
+
+
 username = environ.get('USER')
 
 # This is an example configuration file
@@ -26,7 +30,7 @@ site_configuration = {
                         'arch': 'zen2',
                     },
                     'features': [
-                        'cpu',
+                        FEATURES[CPU],
                     ],
                     'descr': 'Test CPU partition with native EESSI stack'
                 },
@@ -46,7 +50,7 @@ site_configuration = {
                     },
                     'devices': [
                         {
-                            'type': 'gpu',
+                            'type': DEVICES[GPU],
                             'num_devices': 4,
                         }
                     ],
@@ -57,10 +61,10 @@ site_configuration = {
                         }
                     ],
                     'features': [
-                        'gpu',
+                        FEATURES[GPU],
                     ],
                     'extras': {
-                        'gpu_vendor': 'nvidia',
+                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },
                     'descr': 'Test GPU partition with native EESSI stack'
                 },

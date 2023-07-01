@@ -48,21 +48,21 @@ reframe \
 ## Configuring GPU/non-GPU partitions in your site config file:
 
 - running GPU jobs in GPU nodes
-    - add `'features': [gpu]` to the GPU partitions
-    - add `'extras': {'gpu_vendor': 'nvidia'}` to the GPU partitions (or
-      `'intel'` or `'amd'`, see `GPU_VENDORS` in `constants.py`)
+    - add `'features': [FEATURES[GPU]]` to the GPU partitions
+    - add `'extras': {GPU_VENDOR: GPU_VENDORS[NVIDIA]}` to the GPU partitions (or
+      `INTEL` or `AMD`, see `GPU_VENDORS` in `constants.py`)
 
 - running non-GPU jobs in non-GPU nodes
-    - add feature `cpu` to the non-GPU partitions
+    - add `'features': [FEATURES[CPU]]` to the non-GPU partitions
 
-- running GPU jobs and non-GPU jobs on gpu nodes
-    - add `'features': ['cpu', 'gpu']` to the GPU partitions
+- running both GPU jobs and non-GPU jobs in GPU nodes
+    - add `'features': [FEATURES[CPU], FEATURES[GPU]]` to the GPU partitions
 
 - setting the number of GPUS per node <x> for a partition:
     ```
     'access': ['-p <partition_name>'],
     'devices': [
-        {'type': 'gpu', 'num_devices': <x>}
+        {'type': DEVICES[GPU], 'num_devices': <x>}
     ],
     ```
 - requesting GPUs per node for a partition:
@@ -100,7 +100,7 @@ respect those variables. To override a variable only for specific tests, one
 can use the `TEST.VAR` syntax. For example, to run the `GROMACS_EESSI` test with the
 module `GROMACS/2021.6-foss-2022a`:
 
-- `--setvar GROMACS_EESSI.modules=GROMACS/2021.6-foss-2022a'
+- `--setvar GROMACS_EESSI.modules=GROMACS/2021.6-foss-2022a`
 
 ## Developers
 If you want to install the EESSI test suite from a branch, you can either

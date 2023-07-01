@@ -6,6 +6,9 @@
 from reframe.core.backends import register_launcher
 from reframe.core.launchers import JobLauncher
 
+from eessi.testsuite.constants import *
+
+
 account = "my-slurm-account"
 
 # use 'info' to log to syslog
@@ -65,7 +68,7 @@ site_configuration = {
                         'arch': 'zen2',
                     },
                     'features': [
-                        'cpu',
+                        FEATURES[CPU],
                     ],
                 },
                 {
@@ -84,7 +87,7 @@ site_configuration = {
                         'arch': 'zen2',
                     },
                     'features': [
-                        'cpu',
+                        FEATURES[CPU],
                     ],
                 },
                 {
@@ -103,7 +106,7 @@ site_configuration = {
                         'arch': 'zen3',
                     },
                     'features': [
-                        'cpu',
+                        FEATURES[CPU],
                     ],
                 },
                 {
@@ -122,10 +125,10 @@ site_configuration = {
                         'arch': 'zen2',
                     },
                     'features': [
-                        'gpu',
+                        FEATURES[GPU],
                     ],
                     'extras': {
-                        'gpu_vendor': 'nvidia',
+                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },
                     'resources': [
                         {
@@ -135,7 +138,7 @@ site_configuration = {
                     ],
                     'devices': [
                        {
-                            'type': 'gpu',
+                            'type': DEVICES[GPU],
                             'num_devices': 4,
                         }
                     ],
@@ -157,10 +160,10 @@ site_configuration = {
                         'arch': 'zen2',
                     },
                     'features': [
-                        'gpu',
+                        FEATURES[GPU],
                     ],
                     'extras': {
-                        'gpu_vendor': 'nvidia',
+                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },
                     'resources': [
                         {
@@ -170,7 +173,7 @@ site_configuration = {
                     ],
                     'devices': [
                         {
-                            'type': 'gpu',
+                            'type': DEVICES[GPU],
                             'num_devices': 4,
                         }
                     ],

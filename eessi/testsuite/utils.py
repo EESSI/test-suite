@@ -11,7 +11,7 @@ import reframe.core.runtime as rt
 from reframe.frontend.printer import PrettyPrinter
 from reframe.utility import OrderedSet
 
-from eessi.testsuite.constants import DEVICES
+from eessi.testsuite.constants import *
 
 printer = PrettyPrinter()
 
@@ -22,7 +22,7 @@ def log(msg, logger=printer.debug):
 
 
 def _get_gpu_list(test: rfm.RegressionTest) -> list:
-    return [dev.num_devices for dev in test.current_partition.devices if dev.device_type == DEVICES['GPU']]
+    return [dev.num_devices for dev in test.current_partition.devices if dev.device_type == DEVICES[GPU]]
 
 
 def get_max_avail_gpus_per_node(test: rfm.RegressionTest) -> int:
@@ -31,12 +31,12 @@ def get_max_avail_gpus_per_node(test: rfm.RegressionTest) -> int:
     taken from 'num_devices' of device GPU_DEV_NAME in the 'devices' attribute of the current partition
     """
     gpu_list = _get_gpu_list(test)
-    # If multiple devices are called DEVICES['GPU'] in the current partition,
+    # If multiple devices have type DEVICES[GPU] in the current partition,
     # we don't know for which to return the device count...
     if len(gpu_list) != 1:
         partname = test.current_partition.name
         raise ValueError(
-            f"{len(gpu_list)} devices defined in config file with name {DEVICES['GPU']} for partition {partname}. "
+            f"{len(gpu_list)} devices defined in config file with name {DEVICES[GPU]} for partition {partname}. "
             "Cannot determine maximum number of GPUs available for the test. "
             f"Please check the definition of partition {partname} in your ReFrame config file."
         )

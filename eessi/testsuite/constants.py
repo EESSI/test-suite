@@ -1,24 +1,32 @@
 """
 Constants for ReFrame tests
 """
+AMD = 'AMD'
+CI = 'CI'
+CPU = 'CPU'
+GPU = 'GPU'
+GPU_VENDOR = 'GPU_VENDOR'
+INTEL = 'INTEL'
+NVIDIA = 'NVIDIA'
+
 DEVICES = {
-    'CPU': 'cpu',
-    'GPU': 'gpu',
+    CPU: 'cpu',
+    GPU: 'gpu',
 }
 
 TAGS = {
-    'CI': 'CI',
+    CI: 'CI',
 }
 
 FEATURES = {
-    'CPU': 'cpu',
-    'GPU': 'gpu',
+    CPU: 'cpu',
+    GPU: 'gpu',
 }
 
 GPU_VENDORS = {
-    'AMD': 'amd',
-    'INTEL': 'intel',
-    'NVIDIA': 'nvidia',
+    AMD: 'amd',
+    INTEL: 'intel',
+    NVIDIA: 'nvidia',
 }
 
 SCALES = {
