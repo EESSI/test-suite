@@ -62,7 +62,7 @@ reframe \
     ```
     'access': ['-p <partition_name>'],
     'devices': [
-        {'type': DEVICES[GPU], 'num_devices': <x>}
+        {'type': DEVICE_TYPES[GPU], 'num_devices': <x>}
     ],
     ```
 - requesting GPUs per node for a partition:

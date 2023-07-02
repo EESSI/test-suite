@@ -9,7 +9,7 @@ GPU_VENDOR = 'GPU_VENDOR'
 INTEL = 'INTEL'
 NVIDIA = 'NVIDIA'
 
-DEVICES = {
+DEVICE_TYPES = {
     CPU: 'cpu',
     GPU: 'gpu',
 }

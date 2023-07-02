@@ -55,7 +55,7 @@ site_configuration = {
                     ],
                     'devices': [
                         {
-                            'type': DEVICES[GPU],
+                            'type': DEVICE_TYPES[GPU],
                             'num_devices': 4,
                         }
                     ],
