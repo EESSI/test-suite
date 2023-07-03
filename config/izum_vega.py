@@ -1,10 +1,23 @@
-from os import environ
-username = environ.get('USER')
+from os import environ, makedirs
+
+from eessi.testsuite.constants import FEATURES, DEVICES
+
+# Get username of current user
+homedir = environ.get('HOME')
+
+# This config will write all staging, output and logging to subdirs under this prefix
+reframe_prefix = f'{homedir}/reframe_runs'
+log_prefix = f'{home_prefix}/logs'
+
+# ReFrame complains if the directory for the file logger doesn't exist yet
+makedirs(f'{log_prefix}', exist_ok=True)
 
 # This is an example configuration file
 site_configuration = {
     'general': [
         {
+            # Enable automatic detection of CPU architecture for each partition
+            # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
             'remote_detect': True,
         }
     ],
@@ -14,26 +27,28 @@ site_configuration = {
             'descr': 'Vega, a EuroHPC JU system',
             'modules_system': 'lmod',
             'hostnames': ['vglogin*','cn*','gn*'],
-            'stagedir': f'reframe_runs/staging',
-            'outputdir': f'reframe_runs/output',
+            'prefix': reframe_prefix,
             'partitions': [
                 {
                     'name': 'cpu',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
                         'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
+                        # Pass job environment variables like $PATH, etc., into job steps
                         'export SLURM_EXPORT_ENV=ALL',
-                        'export SLURM_MPI_TYPE=pmix',  # Needed when using srun launcher
+                        # Needed when using srun launcher
+                        'export SLURM_MPI_TYPE=pmix',
                         # Avoid https://github.com/EESSI/software-layer/issues/136
                         # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
                         'export OMPI_MCA_pml=ucx',
                     ],
-                    'launcher': 'srun',
+                    'launcher': 'mpirun',
+                    # Use --export=None to avoid that login environment is passed down to submitted jobs
                     'access':  ['-p cpu', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
                     'features': [
-                        'cpu',
+                        FEATURES['CPU'],
                     ],
                     'descr': 'CPU partition Standard, see https://en-doc.vega.izum.si/architecture/'
                 },
@@ -42,19 +57,22 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': [
                         'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
+                        # Pass job environment variables like $PATH, etc., into job steps
                         'export SLURM_EXPORT_ENV=ALL',
-                        'export SLURM_MPI_TYPE=pmix',  # Needed when using srun launcher
+                        # Needed when using srun launcher
+                        'export SLURM_MPI_TYPE=pmix',
                         # Avoid https://github.com/EESSI/software-layer/issues/136
                         # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
                         'export OMPI_MCA_pml=ucx',
                     ],
-                    'launcher': 'srun',
+                    'launcher': 'mpirun',
+                    # Use --export=None to avoid that login environment is passed down to submitted jobs
                     'access':  ['-p gpu', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 60,
                     'devices': [
                         {
-                            'type': 'gpu',
+                            'type': DEVICES['GPU'],
                             'num_devices': 4,
                         }
                     ],
@@ -65,7 +83,7 @@ site_configuration = {
                         }
                     ],
                     'features': [
-                        'gpu',
+                        FEATURES['GPU'],
                     ],
                     'descr': 'GPU partition, see https://en-doc.vega.izum.si/architecture/'
                 },
@@ -92,17 +110,17 @@ site_configuration = {
                 },
                 {
                     'type': 'file',
-                    'name': 'reframe.log',
+                    'name': f'{log_prefix}/reframe.log',
                     'level': 'debug',
                     'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
-                    'append': False,
+                    'append': True,
                     'timestamp': "%Y%m%d_%H%M%S",
                 }
             ],
             'handlers_perflog': [
                 {
                     'type': 'filelog',
-                    'prefix': '%(check_system)s/%(check_partition)s',
+                    'prefix': f'{log_prefix}/%(check_system)s/%(check_partition)s',
                     'level': 'info',
                     'format': (
                         '%(check_job_completion_time)s|reframe %(version)s|'
