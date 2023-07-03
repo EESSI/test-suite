@@ -42,7 +42,7 @@ site_configuration = {
                         # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
                         'export OMPI_MCA_pml=ucx',
                     ],
-                    'launcher': 'mpirun',
+                    'launcher': 'mpirun',  # Needs to be temporarily changed to srun for cpu autodetection
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
                     'access':  ['-p cpu', '--export=None'],
                     'environs': ['default'],
@@ -65,7 +65,7 @@ site_configuration = {
                         # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
                         'export OMPI_MCA_pml=ucx',
                     ],
-                    'launcher': 'mpirun',
+                    'launcher': 'mpirun',  # Needs to be temporarily changed to srun for cpu autodetection
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
                     'access':  ['-p gpu', '--export=None'],
                     'environs': ['default'],
