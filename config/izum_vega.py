@@ -7,7 +7,7 @@ homedir = environ.get('HOME')
 
 # This config will write all staging, output and logging to subdirs under this prefix
 reframe_prefix = f'{homedir}/reframe_runs'
-log_prefix = f'{home_prefix}/logs'
+log_prefix = f'{reframe_prefix}/logs'
 
 # ReFrame complains if the directory for the file logger doesn't exist yet
 makedirs(f'{log_prefix}', exist_ok=True)
