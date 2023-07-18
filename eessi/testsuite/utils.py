@@ -3,13 +3,22 @@ Utility functions for ReFrame tests
 """
 
 import re
+import sys
 from typing import Iterator
 
 import reframe as rfm
 import reframe.core.runtime as rt
+from reframe.frontend.printer import PrettyPrinter
 from reframe.utility import OrderedSet
 
 from eessi.testsuite.constants import DEVICES
+
+printer = PrettyPrinter()
+
+
+def log(msg, logger=printer.debug):
+    funcname = sys._getframe().f_back.f_code.co_name
+    logger(f'[{funcname}]: {msg}')
 
 
 def _get_gpu_list(test: rfm.RegressionTest) -> list:
