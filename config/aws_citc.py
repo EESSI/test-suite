@@ -182,7 +182,6 @@ citc_aarch64_graviton2_16c_32gb = {
 }
 
 citc_aarch64_graviton2_32c_64gb = {
-{
   "arch": "neoverse_n1",
   "topology": {
     "numa_nodes": [
@@ -661,7 +660,7 @@ partition_defaults = {
     'launcher': 'mpirun',
     'environs': ['default'],
     'features': [
-        FEATURES['cpu']
+        FEATURES['CPU']
     ],
     'prepare_cmds': [
         'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
