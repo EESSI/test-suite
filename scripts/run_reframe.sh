@@ -8,7 +8,6 @@
 TEMPDIR=$(mktemp --directory --tmpdir=/tmp  -t rfm.XXXXXXXXXX)
 RFM_CONFIG_NAME=izum_vega.py
 TAGS="-t 1_node|2_nodes"
-GIT_PRIVATE_KEY="~/.ssh/id_github_ed25519"  # Location of git private key, to be added to ssh-agent
 # The hpctestlib as well as the reframe command will be based on this version
 # May be adapted later to simply use reframe from the EESSI software stack
 REFRAME_VERSION=4.2.1
