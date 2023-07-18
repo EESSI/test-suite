@@ -7,6 +7,10 @@
 # You can run the CPU autodetect by listing all tests (reframe -l ...)
 # and then, once all CPUs are autodetected, change the config back for a 'real' run (reframe -r ...)
 
+from os import environ, makedirs
+
+from eessi.testsuite.constants import FEATURES
+
 # CPU topologies for Graviton nodes
 # Can be removed once autodetection works on Graviton nodes
 citc_aarch64_graviton2_8c_16gb = {
@@ -490,6 +494,16 @@ citc_aarch64_graviton3_16c_32gb = {
   "num_sockets": 1
 }
 
+# Get username of current user
+homedir = environ.get('HOME')
+
+# This config will write all staging, output and logging to subdirs under this prefix
+reframe_prefix = f'{homedir}/reframe_runs'
+log_prefix = f'{reframe_prefix}/logs'
+
+# ReFrame complains if the directory for the file logger doesn't exist yet
+makedirs(f'{log_prefix}', exist_ok=True)
+
 # AWS CITC site configuration
 site_configuration = {
     'systems': [
@@ -498,7 +512,7 @@ site_configuration = {
             'descr': 'Cluster in the Cloud build and test environment on AWS',
             'modules_system': 'lmod',
     	    'hostnames': ['mgmt', 'login', 'fair-mastodon*'],
-            'prefix': f'reframe_runs/',
+            'prefix': reframe_prefix,
             'partitions': [
                 {
                     'name': 'x86_64-haswell-8c-15gb',
@@ -601,7 +615,7 @@ site_configuration = {
                 },
                 {
                     'type': 'file',
-                    'prefix': 'reframe_runs',
+                    'prefix': f'{log_prefix}/reframe.log',
                     'name': 'reframe.log',
                     'level': 'debug',
                     'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
@@ -612,7 +626,7 @@ site_configuration = {
             'handlers_perflog': [
                 {
                     'type': 'filelog',
-                    'prefix': '%(check_system)s/%(check_partition)s',
+                    'prefix': f'{log_prefix}/%(check_system)s/%(check_partition)s',
                     'level': 'info',
                     'format': (
                         '%(check_job_completion_time)s|reframe %(version)s|'
@@ -646,7 +660,9 @@ partition_defaults = {
     # Thus, we use mpirun for now, and manually swap to srun if we want to autodetect CPUs...
     'launcher': 'mpirun',
     'environs': ['default'],
-    'features': ['cpu'],
+    'features': [
+        FEATURES['cpu']
+    ],
     'prepare_cmds': [
         'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
         # Required when using srun as launcher with --export=NONE in partition access, in order to ensure job
