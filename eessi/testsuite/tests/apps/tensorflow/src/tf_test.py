@@ -33,8 +33,8 @@ def find_free_port():
 def get_local_rank(rank_info, rank_info_list):
     '''Function that figures out the local rank based on a list of rank,
     hostname, and port gathered from each of the workers'''
-    # Note that rank_info_vector is sorted by rank, by definition of the MPI allgather routine.
-    # Thus, if our current rank is the n-th item in rank_info_vector for which the hostname matches,
+    # Note that rank_info_list is sorted by rank, by definition of the MPI allgather routine.
+    # Thus, if our current rank is the n-th item in rank_info_list for which the hostname matches,
     # our local rank is n
     local_rank = 0
     for item in rank_info_list:
