@@ -1,7 +1,8 @@
 #!/bin/bash
 # Author: Caspar van Leeuwen
 # Description: This script can be used to do regular runs of the ReFrame test suite, e.g. from a cronjob.
-# 
+# Setup instructions: make sure you have your github access key configured in your .ssh/config
+# i.e. configure an entry with HostName github.com and IdentityFile pointing to the ssh key registered with Github
 
 # Configurable items 
 TEMPDIR=$(mktemp --directory --tmpdir=/tmp  -t rfm.XXXXXXXXXX)
@@ -12,10 +13,6 @@ GIT_PRIVATE_KEY="~/.ssh/id_github_ed25519"  # Location of git private key, to be
 # May be adapted later to simply use reframe from the EESSI software stack
 REFRAME_VERSION=4.2.1
 REFRAME_VENV=reframe_421
-
-# Add SSH key to agent, needed for git clone commands
-eval "$(ssh-agent -s)"
-ssh-add ${GIT_PRIVATE_KEY}
 
 # Create virtualenv for ReFrame using system python
 python3 -m venv ${TEMPDIR}/${REFRAME_VENV}
