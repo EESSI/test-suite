@@ -36,13 +36,9 @@ def get_local_rank(rank_info, rank_info_list):
     # Note that rank_info_list is sorted by rank, by definition of the MPI allgather routine.
     # Thus, if our current rank is the n-th item in rank_info_list for which the hostname matches,
     # our local rank is n
-    local_rank = 0
-    for item in rank_info_list:
-        if item['hostname'] == rank_info['hostname']:
-            if item['rank'] == rank_info['rank']:
-                return local_rank
-            else:
-                local_rank += 1
+    for index, item in enumerate(rank_info_list):
+        if item['hostname'] == rank_info['hostname'] and item['rank'] == rank_info['rank']:
+                return index
 
 def get_rank_info(comm=MPI.COMM_WORLD):
     '''Create a dict for this worker containing rank, hostname and port to be used by this worker'''
