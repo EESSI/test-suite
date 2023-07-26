@@ -361,7 +361,7 @@ def set_compact_process_binding(test: rfm.RegressionTest):
     test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'node:PE=%s' % test.num_cpus_per_task
     # Default binding for SLURM. Only effective if the task/affinity plugin is enabled
     # and when number of tasks times cpus per task equals either socket, core or thread count
-    test.env_vars['SLURM_CPU_BIND'] = 'q'
+    test.env_vars['SLURM_CPU_BIND'] = 'verbose'
     log(f'Set environment variable I_MPI_PIN_DOMAIN to {test.env_vars["I_MPI_PIN_DOMAIN"]}')
     log(f'Set environment variable OMPI_MCA_rmaps_base_mapping_policy to {test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
     log(f'Set environment variable SLURM_CPU_BIND to {test.env_vars["SLURM_CPU_BIND"]}')
