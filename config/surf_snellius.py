@@ -19,12 +19,6 @@ site_configuration = {
                     'access':  ['-p thin', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
-                    'processor': {
-                        'num_cpus': 128,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 64,
-                        'arch': 'zen2',
-                    },
                     'features': [
                         'cpu',
                     ],
@@ -34,16 +28,10 @@ site_configuration = {
                     'name': 'gpu',
                     'scheduler': 'slurm',
                     'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
-                    'launcher': 'srun',
+                    'launcher': 'mpirun',
                     'access':  ['-p gpu', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 60,
-                    'processor': {
-                        'num_cpus': 72,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 36,
-                        'arch': 'icelake',
-                    },
                     'devices': [
                         {
                             'type': 'gpu',
@@ -107,6 +95,14 @@ site_configuration = {
                     'append': True
                 }
             ]
+        }
+    ],
+    'general': [
+        {
+            # For autodetect to work, temporarily change:
+            # 1. The launchers to srun
+            # 2. Add --exclusive to GPU 'access' field above (avoids submission error that no GPUs are requested)
+            'remote_detect': True,
         }
     ],
 }
