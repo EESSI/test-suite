@@ -8,7 +8,7 @@ import reframe as rfm
 import reframe.utility.sanity as sn
 
 from eessi.testsuite import hooks, utils
-from eessi.testsuite.constants import SCALES, DEVICES, TAGS
+from eessi.testsuite.constants import *
 
 @rfm.simple_test
 class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
@@ -23,7 +23,7 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
 
     # Make CPU and GPU versions of this test
     device_type = parameter(['cpu', 'gpu'])
-
+    
     executable = 'python tf_test.py'
 
     time_limit = '30m'
@@ -80,6 +80,7 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
         hooks.check_custom_executable_opts(self, num_default=num_default)
         if not self.has_custom_executable_opts:
             self.executable_opts += ['--device', self.device_type]
+            utils.log(f'executable_opts set to {self.executable_opts}')
 
     @run_after('init')
     def set_test_descr(self):
@@ -102,15 +103,7 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
     @run_after('setup')
     def set_binding_policy(self):
         """Set a binding policy"""
-        if self.current_partition.processor.num_sockets:
-            num_cpus_per_socket = self.max_avail_cpus_per_node / self.current_partition.processor.num_sockets
-            # Does a single task fit in a socket? If so, bind to socket
-            if self.num_cpus_per_task <= num_cpus_per_socket and self.num_cpus_per_task > 1:
-                # Should do binding for intel and OpenMPI's mpirun, and srun
-                # Other launchers may or may not do the correct binding
-                self.env_vars['I_MPI_PIN_DOMAIN'] = 'socket'
-                self.env_vars['OMPI_MCA_hwloc_base_binding_policy'] = 'socket'
-                self.env_vars['SLURM_CPU_BIND'] = 'socket'  # Only effective if the task/affinity plugin is enabled
+        hooks.set_compact_process_binding(self)
 
     @run_after('setup')
     def set_thread_count_args(self):
@@ -118,6 +111,7 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
         if not self.has_custom_executable_opts:
             self.executable_opts += ['--intra-op-parallelism', '%s' % self.num_cpus_per_task]
             self.executable_opts += ['--inter-op-parallelism', '1']
+            utils.log(f'executable_opts set to {self.executable_opts}')
 
     @run_after('setup')
     def set_binding_policy(self):

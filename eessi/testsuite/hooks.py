@@ -9,15 +9,6 @@ import reframe as rfm
 from eessi.testsuite.constants import DEVICES, FEATURES, SCALES
 from eessi.testsuite.utils import get_max_avail_gpus_per_node, is_cuda_required_module, log, check_proc_attribute_defined
 
-PROCESSOR_INFO_MISSING = '''
-This test requires the number of CPUs to be known for the partition it runs on.
-Check that processor information is either autodetected
-(see https://reframe-hpc.readthedocs.io/en/stable/configure.html#proc-autodetection),
-or manually set in the ReFrame configuration file
-(see https://reframe-hpc.readthedocs.io/en/stable/config_reference.html#processor-info).
-'''
-
-
 def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, use_hyperthreading: bool = False):
     """
     Assign one task per compute unit (DEVICES['CPU'], DEVICES['CPU_SOCKET'] or DEVICES['GPU']).
@@ -131,6 +122,9 @@ def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest, use_hyperthreading
         pass  # both num_tasks_per_node and num_cpus_per_node are already set
 
     test.num_tasks = test.num_nodes * test.num_tasks_per_node
+    log(f'Number of tasks per node set to: {test.num_tasks_per_node}')
+    log(f'Number of cpus per task set to {test.num_cpus_per_task}')
+    log(f'num_tasks set to {test.num_tasks}')
 
 def _assign_one_task_per_cpu(test: rfm.RegressionTest):
     """
@@ -321,22 +315,17 @@ def set_compact_process_binding(test: rfm.RegressionTest):
     - srun (LIMITED SUPPORT: through SLURM_CPU_BIND, but only effective if task/affinity plugin is enabled)
     """
 
-    # WARNING: this function currently binds tasks to cores, which asumes assign_one_task_per_compute_unit is called 
-    # with use_hyperthreading = False. This function should be extend to also do proper binding when use_hyperthreading = True
-
-    # If hyperthreading is enabled, we need to change our process binding
+    # Check if hyperthreading is enabled. If so, divide the number of cpus per task by the number
+    # of hw threads per core to get a physical core count
+    check_proc_attribute_defined(test, 'num_cpus_per_core')
     num_cpus_per_core = test.current_partition.processor.num_cpus_per_core
-    if num_cpus_per_core is None:
-        raise AttributeError(PROCESSOR_INFO_MISSING)
+    physical_cpus_per_task = int(test.num_cpus_per_task / num_cpus_per_core)
 
     # Do binding for intel and OpenMPI's mpirun, and srun
     # Other launchers may or may not do the correct binding
-
-    # Number of cores to bind each individual task to:
-    physical_cpus_per_task = int(test.num_cpus_per_task / num_cpus_per_core)
     test.env_vars['I_MPI_PIN_CELL'] = 'core'  # Don't bind to hyperthreads, only to physcial cores
-    test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % test.num_cpus_per_task
-    test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'node:PE=%s' % test.num_cpus_per_task
+    test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % physical_cpus_per_task
+    test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'node:PE=%s' % physical_cpus_per_task
     # Default binding for SLURM. Only effective if the task/affinity plugin is enabled
     # and when number of tasks times cpus per task equals either socket, core or thread count
     test.env_vars['SLURM_CPU_BIND'] = 'verbose'
