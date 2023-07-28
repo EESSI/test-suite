@@ -6,31 +6,33 @@ import shlex
 
 import reframe as rfm
 
-from eessi.testsuite.constants import DEVICES, FEATURES, SCALES
+from eessi.testsuite.constants import *
 from eessi.testsuite.utils import get_max_avail_gpus_per_node, is_cuda_required_module, log, check_proc_attribute_defined
 
-def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, use_hyperthreading: bool = False):
+def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str):
     """
-    Assign one task per compute unit (DEVICES['CPU'], DEVICES['CPU_SOCKET'] or DEVICES['GPU']).
+    Assign one task per compute unit (COMPUTE_UNIT[CPU], COMPUTE_UNIT[CPU_SOCKET] or COMPUTE_UNIT[GPU]).
     Automatically sets num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
     based on the current scale and the current partition’s num_cpus, max_avail_gpus_per_node and num_nodes.
     For GPU tests, one task per GPU is set, and num_cpus_per_task is based on the ratio of CPU-cores/GPUs.
     For CPU tests, one task per CPU is set, and num_cpus_per_task is set to 1.
     Total task count is determined based on the number of nodes to be used in the test.
-    If use_hyperthreading is True, each hyperthread is considered a valid place to run one thread.
     Behaviour of this function is (usually) sensible for MPI tests.
 
     Arguments:
     - test: the ReFrame test to which this hook should apply
-    - compute_unit: a device as listed in eessi.testsuite.constants.DEVICES
-    - use_hyperthreading: whether hyperthreading should be considered when computing task counts
+    - compute_unit: a device as listed in eessi.testsuite.constants.COMPUTE_UNIT
 
     Examples:
     On a single node with 2 sockets, 64 cores and 128 hyperthreads:
-    - assign_one_task_per_compute_unit(test, DEVICES['CPU'], false) will launch 64 tasks with 1 thread
-    - assign_one_task_per_compute_unit(test, DEVICES['CPU'], true) will launch 128 tasks with 1 thread
-    - assign_one_task_per_compute_unit(test, DEVICES['CPU_SOCKET'], false) will launch 2 tasks with 32 threads per task
-    - assign_one_task_per_compute_unit(test, DEVICES['CPU_SOCKET'], true) will launch 2 tasks with 64 threads per task
+    - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU]) will launch 64 tasks with 1 thread
+    - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET]) will launch 2 tasks with 32 threads per task
+
+    Future work: 
+    Currently, on a single node with 2 sockets, 64 cores and 128 hyperthreads, this
+    - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU], true) will launch 128 tasks with 1 thread
+    - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET], true) will launch 2 tasks with 64 threads per task
+    In the future, we'd like to add an arugment that disables spawning tasks for hyperthreads.
     """
     check_proc_attribute_defined(test, 'num_cpus')
     test.max_avail_cpus_per_node = test.current_partition.processor.num_cpus
@@ -63,16 +65,16 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
 
     log(f'default_num_cpus_per_node set to {test.default_num_cpus_per_node}')
 
-    if compute_unit == DEVICES['GPU']:
+    if compute_unit == COMPUTE_UNIT[GPU]:
         _assign_one_task_per_gpu(test)
-    elif compute_unit == DEVICES['CPU']:
+    elif compute_unit == COMPUTE_UNIT[CPU]:
         _assign_one_task_per_cpu(test)
-    elif compute_unit == DEVICES['CPU_SOCKET']:
+    elif compute_unit == COMPUTE_UNIT[CPU_SOCKET]:
         _assign_one_task_per_cpu_socket(test)
     else:
         raise ValueError(f'compute unit {compute_unit} is currently not supported')
 
-def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest, use_hyperthreading: bool = False):
+def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
     """
     Determines the number of tasks per node by dividing the default_num_cpus_per_node by
     the number of cpus available per socket, and rounding up. The result is that for full-node jobs the default 
@@ -239,25 +241,28 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     Filter valid_systems by required device type and by whether the module supports CUDA,
     unless valid_systems is specified with --setvar valid_systems=<comma-separated-list>.
     """
-    if not test.valid_systems:
-        is_cuda_module = is_cuda_required_module(test.module_name)
+    if test.valid_systems:
+        # valid_systems is specified, so don't filter
+        return
+
+    is_cuda_module = is_cuda_required_module(test.module_name)
+
+    if is_cuda_module and required_device_type == DEVICE_TYPES[GPU]:
+        # CUDA modules and when using a GPU require partitions with FEATURES[GPU] feature and
+        # GPU_VENDOR=GPU_VENDORS[NVIDIA] extras
+        valid_systems = f'+{FEATURES[GPU]} %{GPU_VENDOR}={GPU_VENDORS[NVIDIA]}'
+
+    elif required_device_type == DEVICE_TYPES[CPU]:
+        # Using the CPU requires partitions with FEATURES[CPU] feature
+        # Note: making FEATURES[CPU] an explicit feature allows e.g. skipping CPU-based tests on GPU partitions
+        valid_systems = f'+{FEATURES[CPU]}'
+
+    elif not is_cuda_module and required_device_type == DEVICE_TYPES[GPU]:
+        # Invalid combination: a module without GPU support cannot use a GPU
         valid_systems = ''
 
-        if is_cuda_module and required_device_type == DEVICES['GPU']:
-            # CUDA modules and when using a GPU require partitions with 'gpu' feature
-            valid_systems = f'+{FEATURES["GPU"]}'
-
-        elif required_device_type == DEVICES['CPU']:
-            # Using the CPU requires partitions with 'cpu' feature
-            # Note: making 'cpu' an explicit feature allows e.g. skipping CPU-based tests on GPU partitions
-            valid_systems = f'+{FEATURES["CPU"]}'
-
-        elif not is_cuda_module and required_device_type == DEVICES['GPU']:
-            # Invalid combination: a module without GPU support cannot use a GPU
-            valid_systems = ''
-
-        if valid_systems:
-            test.valid_systems = [valid_systems]
+    if valid_systems:
+        test.valid_systems = [valid_systems]
 
     log(f'valid_systems set to {test.valid_systems}')
 

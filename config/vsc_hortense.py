@@ -6,6 +6,9 @@
 from reframe.core.backends import register_launcher
 from reframe.core.launchers import JobLauncher
 
+from eessi.testsuite.constants import *
+
+
 account = "my-slurm-account"
 
 # use 'info' to log to syslog
@@ -65,7 +68,7 @@ site_configuration = {
                         'arch': 'zen2',
                     },
                     'features': [
-                        'cpu',
+                        FEATURES[CPU],
                     ],
                 },
                 {
@@ -84,7 +87,7 @@ site_configuration = {
                         'arch': 'zen2',
                     },
                     'features': [
-                        'cpu',
+                        FEATURES[CPU],
                     ],
                 },
                 {
@@ -103,7 +106,7 @@ site_configuration = {
                         'arch': 'zen3',
                     },
                     'features': [
-                        'cpu',
+                        FEATURES[CPU],
                     ],
                 },
                 {
@@ -122,8 +125,11 @@ site_configuration = {
                         'arch': 'zen2',
                     },
                     'features': [
-                        'gpu',
+                        FEATURES[GPU],
                     ],
+                    'extras': {
+                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                    },
                     'resources': [
                         {
                             'name': '_rfm_gpu',
@@ -132,7 +138,7 @@ site_configuration = {
                     ],
                     'devices': [
                        {
-                            'type': 'gpu',
+                            'type': DEVICE_TYPES[GPU],
                             'num_devices': 4,
                         }
                     ],
@@ -154,8 +160,11 @@ site_configuration = {
                         'arch': 'zen2',
                     },
                     'features': [
-                        'gpu',
+                        FEATURES[GPU],
                     ],
+                    'extras': {
+                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                    },
                     'resources': [
                         {
                             'name': '_rfm_gpu',
@@ -164,7 +173,7 @@ site_configuration = {
                     ],
                     'devices': [
                         {
-                            'type': 'gpu',
+                            'type': DEVICE_TYPES[GPU],
                             'num_devices': 4,
                         }
                     ],
@@ -217,7 +226,8 @@ site_configuration = {
                     'name': 'reframe.log',
                     'level': 'debug',
                     'format': '[%(asctime)s] %(levelname)s: %(check_name)s: %(message)s',  # noqa: E501
-                    'append': False,
+                    'append': True,
+                    'timestamp': "%Y%m%d_%H%M%S",
                 },
                 {
                     'type': 'stream',
@@ -230,7 +240,8 @@ site_configuration = {
                     'name': 'reframe.out',
                     'level': 'info',
                     'format': '%(message)s',
-                    'append': False,
+                    'append': True,
+                    'timestamp': "%Y%m%d_%H%M%S",
                 },
             ],
             'handlers_perflog': [

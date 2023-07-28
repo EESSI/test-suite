@@ -43,12 +43,14 @@ jobs:
             export RFM_SYSTEM=github_actions_eessi
             export RFM_CHECK_SEARCH_PATH=$PWD/eessi/testsuite/tests/apps
 
+            # update $PYTHONPATH so 'import eessi.testsuite.utils' works
+            export PYTHONPATH=$PWD:$PYTHONPATH
+            echo $PYTHONPATH
+            python -c 'import eessi.testsuite.utils'
+
             # show active ReFrame configuration,
             # enable verbose output to help expose problems with configuration file (if any)
             reframe -vvv --show-config
-
-            # update $PYTHONPATH so 'import eessi.testsuite.utils' works
-            export PYTHONPATH=$PWD:$PYTHONPATH
 
             # perform a dry run of *all* tests, without any filtering
             time reframe --dry-run 2>&1 | tee dry_run.out

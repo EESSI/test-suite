@@ -1,4 +1,8 @@
 from os import environ
+
+from eessi.testsuite.constants import *
+
+
 username = environ.get('USER')
 
 # This is an example configuration file
@@ -8,7 +12,7 @@ site_configuration = {
             'name': 'snellius',
             'descr': 'Dutch National Supercomputer',
             'modules_system': 'lmod',
-            'hostnames': ['int*','tcn*','hcn*','fcn*','gcn*','srv*'],
+            'hostnames': ['int*', 'tcn*', 'hcn*', 'fcn*', 'gcn*', 'srv*'],
             'stagedir': f'/scratch-shared/{username}/reframe_output/staging',
             'partitions': [
                 {
@@ -20,7 +24,7 @@ site_configuration = {
                     'environs': ['default'],
                     'max_jobs': 120,
                     'features': [
-                        'cpu',
+                        FEATURES[CPU],
                     ],
                     'descr': 'Test CPU partition with native EESSI stack'
                 },
@@ -34,7 +38,7 @@ site_configuration = {
                     'max_jobs': 60,
                     'devices': [
                         {
-                            'type': 'gpu',
+                            'type': DEVICE_TYPES[GPU],
                             'num_devices': 4,
                         }
                     ],
@@ -45,13 +49,16 @@ site_configuration = {
                         }
                     ],
                     'features': [
-                        'gpu',
+                        FEATURES[GPU],
                     ],
+                    'extras': {
+                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                    },
                     'descr': 'Test GPU partition with native EESSI stack'
                 },
-             ]
-         },
-     ],
+            ]
+        },
+    ],
     'environments': [
         {
             'name': 'default',
@@ -59,8 +66,8 @@ site_configuration = {
             'cxx': '',
             'ftn': '',
         },
-     ],
-     'logging': [
+    ],
+    'logging': [
         {
             'level': 'debug',
             'handlers': [
@@ -75,7 +82,8 @@ site_configuration = {
                     'name': 'reframe.log',
                     'level': 'debug',
                     'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
-                    'append': False
+                    'append': True,
+                    'timestamp': "%Y%m%d_%H%M%S",
                 }
             ],
             'handlers_perflog': [

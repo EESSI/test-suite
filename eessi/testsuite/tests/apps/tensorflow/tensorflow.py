@@ -94,9 +94,9 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
         # We should at very least prevent that it binds to single core per process, as that results in many threads being scheduled to one core
         # binding may also differ per launcher used. It'll be hard to support a wide range and still get proper binding
         if self.device_type == 'cpu':
-            hooks.assign_one_task_per_compute_unit(test=self, compute_unit=DEVICES['CPU_SOCKET'])
+            hooks.assign_one_task_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['CPU_SOCKET'])
         elif self.device_type == 'gpu':
-            hooks.assign_one_task_per_compute_unit(test=self, compute_unit=DEVICES['GPU'])
+            hooks.assign_one_task_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['GPU'])
         else:
             raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')
 

@@ -3,14 +3,15 @@ Example configuration file
 """
 from os import environ
 
-from eessi.testsuite.constants import DEVICES, FEATURES
+from eessi.testsuite.constants import *
+
 
 username = environ.get('USER')
 
 site_configuration = {
     'systems': [
         {
-            'name': 'examle',
+            'name': 'example',
             'descr': 'Example cluster',
             'modules_system': 'lmod',
             'hostnames': ['*'],
@@ -30,7 +31,7 @@ site_configuration = {
                         'num_cpus_per_socket': 64,
                         'arch': 'zen2',
                     },
-                    'features': [FEATURES['CPU']],
+                    'features': [FEATURES[CPU]],
                     'descr': 'CPU partition'
                 },
                 {
@@ -54,11 +55,17 @@ site_configuration = {
                     ],
                     'devices': [
                         {
-                            'type': DEVICES['GPU'],
+                            'type': DEVICE_TYPES[GPU],
                             'num_devices': 4,
                         }
                     ],
-                    'features': [FEATURES['CPU'], FEATURES['GPU']],
+                    'features': [
+                        FEATURES[CPU],
+                        FEATURES[GPU],
+                    ],
+                    'extras': {
+                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                    },
                     'descr': 'GPU partition'
                 },
             ]
@@ -87,7 +94,8 @@ site_configuration = {
                     'name': 'reframe.log',
                     'level': 'debug',
                     'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
-                    'append': False
+                    'append': True,
+                    'timestamp': "%Y%m%d_%H%M%S",
                 }
             ],
             'handlers_perflog': [
