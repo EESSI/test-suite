@@ -1,6 +1,6 @@
 from os import environ, makedirs
 
-from eessi.testsuite.constants import FEATURES, DEVICES
+from eessi.testsuite.constants import *
 
 # Get username of current user
 homedir = environ.get('HOME')
@@ -48,7 +48,7 @@ site_configuration = {
                     'environs': ['default'],
                     'max_jobs': 120,
                     'features': [
-                        FEATURES['CPU'],
+                        FEATURES[CPU],
                     ],
                     'descr': 'CPU partition Standard, see https://en-doc.vega.izum.si/architecture/'
                 },
@@ -72,7 +72,7 @@ site_configuration = {
                     'max_jobs': 60,
                     'devices': [
                         {
-                            'type': DEVICES['GPU'],
+                            'type': DEVICE_TYPES[GPU],
                             'num_devices': 4,
                         }
                     ],
@@ -83,7 +83,7 @@ site_configuration = {
                         }
                     ],
                     'features': [
-                        FEATURES['GPU'],
+                        FEATURES[GPU],
                     ],
                     'descr': 'GPU partition, see https://en-doc.vega.izum.si/architecture/'
                 },
