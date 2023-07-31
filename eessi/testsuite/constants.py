@@ -1,9 +1,11 @@
 """
 Constants for ReFrame tests
 """
+
 AMD = 'AMD'
 CI = 'CI'
 CPU = 'CPU'
+CPU_SOCKET = 'CPU_SOCKET'
 GPU = 'GPU'
 GPU_VENDOR = 'GPU_VENDOR'
 INTEL = 'INTEL'
@@ -11,6 +13,12 @@ NVIDIA = 'NVIDIA'
 
 DEVICE_TYPES = {
     CPU: 'cpu',
+    GPU: 'gpu',
+}
+
+COMPUTE_UNIT = {
+    CPU: 'cpu',
+    CPU_SOCKET: 'cpu_socket',
     GPU: 'gpu',
 }
 
