@@ -4,6 +4,12 @@
 # Setup instructions: make sure you have your github access key configured in your .ssh/config
 # i.e. configure an entry with HostName github.com and IdentityFile pointing to the ssh key registered with Github
 
+# Print info on the when and where this is ran
+# Allows easy localization of the host with the cronjob
+DATE=$(date)
+HOST=$(hostname)
+echo "Starting test suite on ${HOST} at ${date}"
+
 # Configurable items 
 TEMPDIR=$(mktemp --directory --tmpdir=/tmp  -t rfm.XXXXXXXXXX)
 RFM_CONFIG_NAME=izum_vega.py
@@ -38,7 +44,7 @@ source ${TEMPDIR}/${REFRAME_VENV}/bin/activate
 
 # Run ReFrame
 echo "PYTHONPATH: ${PYTHONPATH}"
-reframe -C ${TEMPDIR}/test-suite/config/${RFM_CONFIG_NAME} -c ${TEMPDIR}/test-suite/eessi/testsuite/tests/apps/ -R -t CI ${TAGS} -r
+reframe -C ${TEMPDIR}/test-suite/config/${RFM_CONFIG_NAME} -c ${TEMPDIR}/test-suite/eessi/testsuite/tests/apps/ -R -t CI ${TAGS} -r --performance-report
 
 # Cleanup
 rm -rf ${TEMPDIR}
