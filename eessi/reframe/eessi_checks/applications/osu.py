@@ -12,11 +12,21 @@ from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
 from eessi_utils import hooks, utils
 from eessi_utils.constants import SCALES, TAGS
 
+def my_filtering_function(test: rfm.RegressionTest):
+    """
+    Filtering function for filtering scales for the OSU test
+    """
+    for key in list(SCALES):
+        if(key == '1_core' or key == '4_cores' or SCALES.get(key).get('num_nodes') > 2):
+            test.scale_filtered.pop(key)
+    return test.scale_filtered
+
 
 @rfm.simple_test
-class osu_run(osu_benchmark):
+class osu_pt_2_pt(osu_benchmark):
     ''' Run-only OSU test '''
-    scale = parameter(SCALES.keys())
+    scale_filtered = SCALES
+    scale = parameter(my_filtering_function())
     valid_prog_environs = ['default']
     valid_systems = []
     time_limit = '30m'
@@ -33,12 +43,12 @@ class osu_run(osu_benchmark):
                self,
                required_device_type=self.device_buffers)
         hooks.set_modules(self)
-        hooks.set_tag_scale(self)
 
     @run_after('init')
     def set_tag_ci(self):
         if self.benchmark_info[0] =='mpi.pt2pt.osu_latency':
             self.tags.add('CI')
+
 
 #    @run_after('setup')
 #    def set_executable_opts(self):
