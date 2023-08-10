@@ -101,11 +101,6 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
             raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')
 
     @run_after('setup')
-    def set_binding_policy(self):
-        """Set a binding policy"""
-        hooks.set_compact_process_binding(self)
-
-    @run_after('setup')
     def set_thread_count_args(self):
         """Set exectuable opts defining the thread count"""
         if not self.has_custom_executable_opts:
