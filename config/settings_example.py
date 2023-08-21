@@ -1,12 +1,11 @@
 """
 Example configuration file
 """
-from os import environ
+import os
 
-from eessi.testsuite.constants import *
+from eessi.testsuite.common_config import common_logging_config, format_perfvars, perflog_format
+from eessi.testsuite.constants import *  # noqa: F403
 
-
-username = environ.get('USER')
 
 site_configuration = {
     'systems': [
@@ -16,7 +15,7 @@ site_configuration = {
             'modules_system': 'lmod',
             'hostnames': ['*'],
             # Note that the stagedir should be a shared directory available on all nodes running ReFrame tests
-            'stagedir': f'/some/shared/dir/{username}/reframe_output/staging',
+            'stagedir': f'/some/shared/dir/{os.environ.get("USER")}/reframe_output/staging',
             'partitions': [
                 {
                     'name': 'cpu_partition',
@@ -79,42 +78,15 @@ site_configuration = {
             'ftn': '',
         },
     ],
-    'logging': [
-        {
-            'level': 'debug',
-            'handlers': [
-                {
-                    'type': 'stream',
-                    'name': 'stdout',
-                    'level': 'info',
-                    'format': '%(message)s'
-                },
-                {
-                    'type': 'file',
-                    'name': 'reframe.log',
-                    'level': 'debug',
-                    'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
-                    'append': True,
-                    'timestamp': "%Y%m%d_%H%M%S",
-                }
-            ],
-            'handlers_perflog': [
-                {
-                    'type': 'filelog',
-                    'prefix': '%(check_system)s/%(check_partition)s',
-                    'level': 'info',
-                    'format': (
-                        '%(check_job_completion_time)s|reframe %(version)s|'
-                        '%(check_info)s|jobid=%(check_jobid)s|'
-                        '%(check_perf_var)s=%(check_perf_value)s|'
-                        'ref=%(check_perf_ref)s '
-                        '(l=%(check_perf_lower_thres)s, '
-                        'u=%(check_perf_upper_thres)s)|'
-                        '%(check_perf_unit)s'
-                    ),
-                    'append': True
-                }
-            ]
-        }
-    ],
+    'logging': common_logging_config,
 }
+
+# optional logging to syslog
+site_configuration['logging'][0]['handlers_perflog'].append({
+    'type': 'syslog',
+    'address': '/dev/log',
+    'level': 'info',
+    'format': f'reframe: {perflog_format}',
+    'format_perfvars': format_perfvars,
+    'append': True,
+})

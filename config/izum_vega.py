@@ -1,16 +1,5 @@
-from os import environ, makedirs
-
-from eessi.testsuite.constants import *
-
-# Get username of current user
-homedir = environ.get('HOME')
-
-# This config will write all staging, output and logging to subdirs under this prefix
-reframe_prefix = f'{homedir}/reframe_runs'
-log_prefix = f'{reframe_prefix}/logs'
-
-# ReFrame complains if the directory for the file logger doesn't exist yet
-makedirs(f'{log_prefix}', exist_ok=True)
+from eessi.testsuite.common_config import common_logging_config
+from eessi.testsuite.constants import *  # noqa: F403
 
 # This is an example configuration file
 site_configuration = {
@@ -26,8 +15,7 @@ site_configuration = {
             'name': 'vega',
             'descr': 'Vega, a EuroHPC JU system',
             'modules_system': 'lmod',
-            'hostnames': ['vglogin*','cn*','gn*'],
-            'prefix': reframe_prefix,
+            'hostnames': ['vglogin*', 'cn*', 'gn*'],
             'partitions': [
                 {
                     'name': 'cpu',
@@ -97,46 +85,6 @@ site_configuration = {
             'cxx': '',
             'ftn': '',
         },
-     ],
-     'logging': [
-        {
-            'level': 'debug',
-            'handlers': [
-                {
-                    'type': 'stream',
-                    'name': 'stdout',
-                    'level': 'info',
-                    'format': '%(message)s'
-                },
-                {
-                    'type': 'file',
-                    'name': f'{log_prefix}/reframe.log',
-                    'level': 'debug',
-                    'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
-                    'append': True,
-                    'timestamp': "%Y%m%d_%H%M%S",
-                }
-            ],
-            'handlers_perflog': [
-                {
-                    'type': 'filelog',
-                    'prefix': f'{log_prefix}/%(check_system)s/%(check_partition)s',
-                    'level': 'info',
-                    'format': (
-                        '%(check_job_completion_time)s|reframe %(version)s|'
-                        '%(check_info)s|jobid=%(check_jobid)s|'
-                        '%(check_perfvalues)s'
-                    ),
-                    'format_perfvars': (
-                         '%(check_perf_var)s=%(check_perf_value)s|'
-                         'ref=%(check_perf_ref)s '
-                         '(l=%(check_perf_lower_thres)s, '
-                         'u=%(check_perf_upper_thres)s)|'
-                         '%(check_perf_unit)s|'
-                    ),
-                    'append': True
-                }
-            ]
-        }
     ],
+    'logging': common_logging_config,
 }

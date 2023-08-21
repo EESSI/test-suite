@@ -42,9 +42,22 @@ source /cvmfs/pilot.eessi-hpc.org/latest/init/bash
 deactivate
 source ${TEMPDIR}/${REFRAME_VENV}/bin/activate
 
+# save dirs stage, output, perflogs into PREFIX
+PREFIX=$HOME/reframe_runs
+
 # Run ReFrame
 echo "PYTHONPATH: ${PYTHONPATH}"
-reframe -C ${TEMPDIR}/test-suite/config/${RFM_CONFIG_NAME} -c ${TEMPDIR}/test-suite/eessi/testsuite/tests/apps/ -R -t CI ${TAGS} -r --performance-report
+options=(
+    --config-file ${TEMPDIR}/test-suite/config/${RFM_CONFIG_NAME}
+    --checkpath ${TEMPDIR}/test-suite/eessi/testsuite/tests/apps/
+    --recursive  # Search for checks in the search path recursively
+    --tag CI ${TAGS}
+    --run
+    --performance-report
+    --prefix $PREFIX
+    --save-log-files  # copy ReFrame file logs to $PREFIX/output on exit
+)
+reframe "${options[@]}"
 
 # Cleanup
 rm -rf ${TEMPDIR}
