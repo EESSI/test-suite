@@ -41,6 +41,8 @@ export PYTHONPATH=$PWD:$PYTHONPATH
 reframe \
     --config-file <path_to_site_config_file> \
     --checkpath eessi/testsuite/tests/apps \
+    --prefix <path_to_all_output> \
+    --save-log-files \
     --tag CI --tag 1_node \
     --run --performance-report
 ```
