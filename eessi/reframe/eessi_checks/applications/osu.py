@@ -10,22 +10,26 @@ import reframe.utility.sanity as sn
 from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
 
 from eessi_utils import hooks, utils
-from eessi_utils.constants import SCALES, TAGS
+from eessi_utils.constants import SCALES, TAGS, DEVICES
 
-def my_filtering_function(test: rfm.RegressionTest):
+def my_filtering_function():
     """
     Filtering function for filtering scales for the OSU test
     """
+    scale_filtered = SCALES
     for key in list(SCALES):
-        if(key == '1_core' or key == '4_cores' or SCALES.get(key).get('num_nodes') > 2):
-            test.scale_filtered.pop(key)
-    return test.scale_filtered
+        if(key == '1_core' or key == '4_cores' or
+           SCALES.get(key).get('num_nodes') > 2):
+            scale_filtered.pop(key)
+        elif('node_part' in SCALES.get(key)):
+            if(SCALES.get(key).get('node_part') > 1):
+                scale_filtered.pop(key)
+    return scale_filtered
 
 
 @rfm.simple_test
 class osu_pt_2_pt(osu_benchmark):
     ''' Run-only OSU test '''
-    scale_filtered = SCALES
     scale = parameter(my_filtering_function())
     valid_prog_environs = ['default']
     valid_systems = []
@@ -35,7 +39,6 @@ class osu_pt_2_pt(osu_benchmark):
 # which means that this needs to be assigned or re-assigned in the class based
 # on other options
 #    osu_benchmark.num_tasks = 2
-
     @run_after('init')
     def run_after_init(self):
         """hooks to run after init phase"""
@@ -46,8 +49,30 @@ class osu_pt_2_pt(osu_benchmark):
 
     @run_after('init')
     def set_tag_ci(self):
-        if self.benchmark_info[0] =='mpi.pt2pt.osu_latency':
+        if (self.benchmark_info[0] == 'mpi.pt2pt.osu_latency' or
+           self.benchmark_info[0] == 'mpi.pt2pt.osu_bw'):
             self.tags.add('CI')
+
+
+    @run_after('init')
+    def set_num_tasks_per_node(self):
+        if(SCALES.get(self.scale).get('num_nodes') == 1):
+            self.num_tasks_per_node = 2
+
+
+    @run_after('setup')
+    def set_num_gpus_per_node(self):
+        """
+        This test does not require gpus and is for host to host within GPU
+        nodes. But some systems do require a GPU allocation for to perform any
+        activity in the GPU nodes.
+        """
+        if('gpu' in self.current_partition.features):
+            if(SCALES.get(self.scale).get('num_nodes') == 1):
+                self.num_gpus_per_node = 1
+            else:
+                self.num_gpus_per_node = \
+                    self.current_partition.devices[0].num_devices
 
 
 #    @run_after('setup')
