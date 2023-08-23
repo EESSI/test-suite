@@ -1,11 +1,15 @@
 # This is an example configuration file
 
-# Note that CPU autodetect currently does not work with this configuration file on AWS
-# In order to do CPU autodetection, two changes are needed:
-# 1. Remove all '--export=NONE'
-# 2. Set 'launcher = srun'
+# Note that CPU autodetect currently does not work with this configuration file on AWS.
+# This is because there is no system mpirun, and the CPU autodetection doesn't load any modules
+# that would make an mpirun command available (as normal multiprocessing tests would).
+# In order to do CPU autodetection, you'll need to change the launcer to srun:
+# 'launcher = srun'
 # You can run the CPU autodetect by listing all tests (reframe -l ...)
-# and then, once all CPUs are autodetected, change the config back for a 'real' run (reframe -r ...)
+# and then, once all CPUs are autodetected, change the launcher back to mpirun for a 'real' run (reframe -r ...)
+
+# Another known issue is that CPU autodetection fails if run from an actual installation of ReFrame.
+# It only works if run from a clone of their Github Repo. See https://github.com/reframe-hpc/reframe/issues/2914
 
 from os import environ, makedirs
 
@@ -172,7 +176,7 @@ partition_defaults = {
     # However, using srun requires either using pmix or proper pmi2 integration in the MPI library
     # See https://github.com/EESSI/test-suite/pull/53#issuecomment-1598753968
     # Thus, we use mpirun for now, and manually swap to srun if we want to autodetect CPUs...
-    'launcher': 'mpirun',
+    'launcher': 'srun',
     'environs': ['default'],
     'features': [
         FEATURES['CPU']
