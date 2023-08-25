@@ -1,65 +1,60 @@
-"""
-Example configuration file
-"""
 from os import environ
 
-from eessi_utils.constants import DEVICES, FEATURES
+from eessi.testsuite.constants import *
+
 
 username = environ.get('USER')
 
+# This is an example configuration file
 site_configuration = {
     'systems': [
         {
-            'name': 'examle',
-            'descr': 'Example cluster',
+            'name': 'snellius',
+            'descr': 'Dutch National Supercomputer',
             'modules_system': 'lmod',
-            'hostnames': ['*'],
-            # Note that the stagedir should be a shared directory available on all nodes running ReFrame tests
-            'stagedir': f'/some/shared/dir/{username}/reframe_output/staging',
+            'hostnames': ['int*', 'tcn*', 'hcn*', 'fcn*', 'gcn*', 'srv*'],
+            'stagedir': f'/scratch-shared/{username}/reframe_output/staging',
             'partitions': [
                 {
-                    'name': 'cpu_partition',
+                    'name': 'thin',
                     'scheduler': 'slurm',
+                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
                     'launcher': 'mpirun',
-                    'access':  ['-p cpu'],
+                    'access':  ['-p thin', '--export=None'],
                     'environs': ['default'],
-                    'max_jobs': 4,
-                    'processor': {
-                        'num_cpus': 128,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 64,
-                        'arch': 'znver2',
-                    },
-                    'features': [FEATURES['CPU']],
-                    'descr': 'CPU partition'
+                    'max_jobs': 120,
+                    'features': [
+                        FEATURES[CPU],
+                    ],
+                    'descr': 'Test CPU partition with native EESSI stack'
                 },
                 {
-                    'name': 'gpu_partition',
+                    'name': 'gpu',
                     'scheduler': 'slurm',
+                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
                     'launcher': 'mpirun',
-                    'access':  ['-p gpu'],
+                    'access':  ['-p gpu', '--export=None'],
                     'environs': ['default'],
-                    'max_jobs': 4,
-                    'processor': {
-                        'num_cpus': 72,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 36,
-                        'arch': 'icelake',
-                    },
+                    'max_jobs': 60,
+                    'devices': [
+                        {
+                            'type': DEVICE_TYPES[GPU],
+                            'num_devices': 4,
+                        }
+                    ],
                     'resources': [
                         {
                             'name': '_rfm_gpu',
                             'options': ['--gpus-per-node={num_gpus_per_node}'],
                         }
                     ],
-                    'devices': [
-                        {
-                            'type': DEVICES['GPU'],
-                            'num_devices': 4,
-                        }
+                    'features': [
+                        FEATURES[GPU],
                     ],
-                    'features': [FEATURES['CPU'], FEATURES['GPU']],
-                    'descr': 'GPU partition'
+                    'extras': {
+                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                    },
+                    'descr': 'Test GPU partition with native EESSI stack'
                 },
             ]
         },
@@ -87,7 +82,8 @@ site_configuration = {
                     'name': 'reframe.log',
                     'level': 'debug',
                     'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
-                    'append': False
+                    'append': True,
+                    'timestamp': "%Y%m%d_%H%M%S",
                 }
             ],
             'handlers_perflog': [
@@ -107,6 +103,14 @@ site_configuration = {
                     'append': True
                 }
             ]
+        }
+    ],
+    'general': [
+        {
+            # For autodetect to work, temporarily change:
+            # 1. The launchers to srun
+            # 2. Add --exclusive to GPU 'access' field above (avoids submission error that no GPUs are requested)
+            'remote_detect': True,
         }
     ],
 }

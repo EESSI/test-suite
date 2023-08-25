@@ -33,8 +33,9 @@ import reframe as rfm
 
 from hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
 
-from eessi_utils import hooks, utils
-from eessi_utils.constants import SCALES, TAGS
+from eessi.testsuite import hooks
+from eessi.testsuite.constants import SCALES, TAGS
+from eessi.testsuite.utils import find_modules, log
 
 
 @rfm.simple_test
@@ -43,7 +44,7 @@ class GROMACS_EESSI(gromacs_check):
     valid_prog_environs = ['default']
     valid_systems = []
     time_limit = '30m'
-    module_name = parameter(utils.find_modules('GROMACS'))
+    module_name = parameter(find_modules('GROMACS'))
 
     @run_after('init')
     def run_after_init(self):
@@ -62,10 +63,11 @@ class GROMACS_EESSI(gromacs_check):
 
     @run_after('init')
     def set_tag_ci(self):
-        """Set tag CI on first benchmark, so it can be selected on the cmd line via --tag CI"""
-
-        if self.benchmark_info[0] == 'HECBioSim/hEGFRDimer':
+        """Set tag CI on smallest benchmark, so it can be selected on the cmd line via --tag CI"""
+        # Crambin input is smallest input (20K atoms), cfr. https://www.hecbiosim.ac.uk/access-hpc/benchmarks
+        if self.benchmark_info[0] == 'HECBioSim/Crambin':
             self.tags.add(TAGS['CI'])
+            log(f'tags set to {self.tags}')
 
     @run_after('setup')
     def set_executable_opts(self):
@@ -78,6 +80,7 @@ class GROMACS_EESSI(gromacs_check):
         hooks.check_custom_executable_opts(self, num_default=num_default)
         if not self.has_custom_executable_opts:
             self.executable_opts += ['-dlb', 'yes', '-npme', '-1']
+            log(f'executable_opts set to {self.executable_opts}')
 
     @run_after('setup')
     def run_after_setup(self):
@@ -102,5 +105,7 @@ class GROMACS_EESSI(gromacs_check):
         else:
             omp_num_threads = self.num_cpus_per_task
             self.executable_opts += ['-ntomp', str(omp_num_threads)]
+            log(f'executable_opts set to {self.executable_opts}')
 
         self.env_vars['OMP_NUM_THREADS'] = omp_num_threads
+        log(f'env_vars set to {self.env_vars}')

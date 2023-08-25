@@ -1,0 +1,64 @@
+# documentation: https://help.github.com/en/articles/workflow-syntax-for-github-actions
+name: Tests for EESSI test suite, using EESSI pilot repo
+on: [push, pull_request, workflow_dispatch]
+permissions: read-all
+jobs:
+  test_with_eessi_pilot:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        EESSI_VERSION:
+        - "2021.12"
+    steps:
+        - name: Check out software-layer repository
+          uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
+          with:
+            persist-credentials: false
+
+        - name: Mount EESSI CernVM-FS pilot repository
+          uses: eessi/github-action-eessi@58b50fd2eead2162c2b9ac258d4fb60cc9f30503  # v2.0.13
+          with:
+            eessi_stack_version: ${{matrix.EESSI_VERSION}}
+
+        - name: Run test suite
+          run: |
+            # install latest version of EasyBuild, to install ReFrame with it,
+            # since that includes the ReFrame test library (hpctestlib) that we rely on
+            pip3 install --user easybuild
+            export PATH=$HOME/.local/bin:$PATH
+            eb --version
+            export EASYBUILD_PREFIX=$HOME/easybuild
+            # need to force module generation with --module-only --force because 'pip check' fails
+            # in EESSI pilot 2021.12, see https://github.com/EESSI/compatibility-layer/issues/152
+            eb ReFrame-4.2.0.eb || eb ReFrame-4.2.0.eb --module-only --force
+
+            # load ReFrame
+            module use $HOME/easybuild/modules/all
+            module load ReFrame/4.2.0
+            reframe --version
+
+            # configure ReFrame (cfr. https://reframe-hpc.readthedocs.io/en/stable/manpage.html#environment)
+            export RFM_CONFIG_FILES=$PWD/config/github_actions.py
+            export RFM_SYSTEM=github_actions_eessi
+            export RFM_CHECK_SEARCH_PATH=$PWD/eessi/testsuite/tests/apps
+
+            # update $PYTHONPATH so 'import eessi.testsuite.utils' works
+            export PYTHONPATH=$PWD:$PYTHONPATH
+            echo $PYTHONPATH
+            python -c 'import eessi.testsuite.utils'
+
+            # show active ReFrame configuration,
+            # enable verbose output to help expose problems with configuration file (if any)
+            reframe -vvv --show-config
+
+            # perform a dry run of *all* tests, without any filtering
+            time reframe --dry-run 2>&1 | tee dry_run.out
+            pattern='PASSED .*0 failure'
+            grep "${pattern}" dry_run.out || (echo "Pattern '${pattern}' not found!" && exit 1)
+
+            # list tests that are tagged with both 'CI' and '1_node'
+            time reframe --tag CI --tag 1_node --list-detailed 2>&1 | tee ci_1-node_tests_list.txt
+            # GROMACS CI test is HECBioSim/Crambin input
+            pattern='benchmark_info=HECBioSim/Crambin'
+            grep "${pattern}" ci_1-node_tests_list.txt || (echo "Pattern '${pattern}' not found!" && exit 1)
