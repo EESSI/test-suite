@@ -9,8 +9,8 @@ import reframe.utility.sanity as sn
 
 from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
 
-from eessi_utils import hooks, utils
-from eessi_utils.constants import SCALES, TAGS, DEVICES
+from eessi.testsuite import hooks, utils
+from eessi.testsuite.constants import SCALES, TAGS, DEVICE_TYPES
 
 def my_filtering_function():
     """
@@ -35,16 +35,26 @@ class osu_pt_2_pt(osu_benchmark):
     valid_systems = []
     time_limit = '30m'
     module_name = parameter(utils.find_modules('OSU-Micro-Benchmarks'))
-# This is required by the base class and needs to at least have a default value
-# which means that this needs to be assigned or re-assigned in the class based
-# on other options
-#    osu_benchmark.num_tasks = 2
+    # Device type for non-cuda OSU-Micro-Benchmarks should run on hosts of both
+    # node types. To do this the default device type is set to GPU.
+    device_type = DEVICE_TYPES['GPU']
+
+
     @run_after('init')
     def run_after_init(self):
         """hooks to run after init phase"""
         hooks.filter_valid_systems_by_device_type(
                self,
-               required_device_type=self.device_buffers)
+               required_device_type=self.device_type)
+        is_cuda_module = utils.is_cuda_required_module(self.module_name)
+        # This part of the hook is meant to be for the OSU cpu tests.
+        if not is_cuda_module and self.device_type == DEVICE_TYPES['GPU']:
+            self.valid_systems = ['*']
+            self.device_buffers = 'cpu'
+        elif is_cuda_module and self.device_type == DEVICE_TYPES['GPU']:
+            # Currently the device buffer is hard coded to be cuda. More
+            # options need to be introduced based on vendor and device type.
+            self.device_buffers = 'cuda'
         hooks.set_modules(self)
 
     @run_after('init')
@@ -67,12 +77,28 @@ class osu_pt_2_pt(osu_benchmark):
         nodes. But some systems do require a GPU allocation for to perform any
         activity in the GPU nodes.
         """
-        if('gpu' in self.current_partition.features):
+        if('gpu' in self.current_partition.features and
+           not utils.is_cuda_required_module(self.module_name)):
             if(SCALES.get(self.scale).get('num_nodes') == 1):
                 self.num_gpus_per_node = 1
             else:
+                # The devices section is sort of hard coded. This needs to be
+                # amended for a more heterogeneous system with more than one
+                # device type.
                 self.num_gpus_per_node = \
                     self.current_partition.devices[0].num_devices
+        elif('gpu' in self.current_partition.features and
+             utils.is_cuda_required_module(self.module_name)):
+            if(SCALES.get(self.scale).get('num_nodes') == 1):
+                self.num_gpus_per_node = 2
+            else:
+                # The devices section is sort of hard coded. This needs to be
+                # amended for a more heterogeneous system with more than one
+                # device type.
+                self.num_gpus_per_node = \
+                    self.current_partition.devices[0].num_devices
+
+
 
 
 #    @run_after('setup')
