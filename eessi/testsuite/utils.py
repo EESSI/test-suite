@@ -4,7 +4,7 @@ Utility functions for ReFrame tests
 
 import re
 import sys
-from typing import Iterator, List
+from typing import Iterator
 
 import reframe as rfm
 import reframe.core.runtime as rt
