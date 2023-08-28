@@ -41,6 +41,7 @@ site_configuration = {
                         'num_cpus': 128,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 64,
+                        'num_cpus_per_core': 1,
                         'arch': 'zen2',
                     },
                     'features': [
@@ -60,6 +61,7 @@ site_configuration = {
                         'num_cpus': 128,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 64,
+                        'num_cpus_per_core': 1,
                         'arch': 'zen2',
                     },
                     'features': [
@@ -79,6 +81,7 @@ site_configuration = {
                         'num_cpus': 128,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 64,
+                        'num_cpus_per_core': 1,
                         'arch': 'zen3',
                     },
                     'features': [
@@ -98,6 +101,7 @@ site_configuration = {
                         'num_cpus': 48,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 24,
+                        'num_cpus_per_core': 1,
                         'arch': 'zen2',
                     },
                     'features': [
@@ -133,6 +137,7 @@ site_configuration = {
                         'num_cpus': 48,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 24,
+                        'num_cpus_per_core': 1,
                         'arch': 'zen2',
                     },
                     'features': [
@@ -190,7 +195,6 @@ site_configuration = {
         {
             'purge_environment': True,
             'resolve_module_conflicts': False,  # avoid loading the module before submitting the job
-            'keep_stage_files': True,
         }
     ],
     'logging': common_logging_config,
