@@ -97,13 +97,13 @@ def find_modules(regex: str, name_only = True) -> Iterator[str]:
     modules = ms.available_modules('')
     for mod in modules:
         # Exclude anything without version, i.e. ending with / (e.g. Bison/)
-        if re.search('.*\/$', mod):
+        if re.search('.*/$', mod):
             continue
         # The thing we yield should always be the original module name (orig_mod), including version
         orig_mod = mod
         if name_only:
             # Remove part after the last forward slash, as we assume this is the version
-            mod = re.sub('\/[^\/]*$', '', mod)
+            mod = re.sub('/[^/]*$', '', mod)
         # Match the actual regular expression
         log(f"Matching module {mod} with regex {regex}")
         if re.search(regex, mod):
