@@ -73,6 +73,7 @@ site_configuration = {
             # 1. The launchers to srun
             # 2. Add --exclusive to GPU 'access' field above (avoids submission error that no GPUs are requested)
             'remote_detect': True,
+            'save_log_files': True,
         }
     ],
 }

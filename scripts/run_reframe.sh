@@ -51,7 +51,6 @@ options=(
     --tag CI ${TAGS}
     --run
     --performance-report
-    --save-log-files  # copy ReFrame file logs to <prefix>/output on exit
 )
 reframe "${options[@]}"
 

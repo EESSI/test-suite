@@ -79,6 +79,9 @@ site_configuration = {
         },
     ],
     'logging': common_logging_config,
+    'general': {
+        'save_log_files': True,  # copy ReFrame file logs to <prefix>/output on exit
+    },
 }
 
 # optional logging to syslog

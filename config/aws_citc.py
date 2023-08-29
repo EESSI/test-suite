@@ -120,6 +120,7 @@ site_configuration = {
     'general': [
         {
             'remote_detect': True,
+            'save_log_files': True,
         }
     ],
 }
