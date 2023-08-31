@@ -84,7 +84,7 @@ def find_modules(regex: str, name_only = True) -> Iterator[str]:
     find_modules('gompi$') => [gompi/2022a]
     find_modules('gompi', name_only = False) => [gompic/2022a, gompi/2022a, CGAL/4.14.3-gompi-2022a]
     find_modules('^gompi', name_only = False) => [gompic/2022a, gompi/2022a]
-    find_modules('^gompi\/', name_only = False) => [gompi/2022a]
+    find_modules('^gompi/', name_only = False) => [gompi/2022a]
     find_modules('-gompi-2022a', name_only = False) => [CGAL/4.14.3-gompi-2022a]
 
     """
