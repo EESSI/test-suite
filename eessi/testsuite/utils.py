@@ -57,14 +57,14 @@ def is_cuda_required_module(module_name: str) -> bool:
     return requires_cuda
 
 
-def find_modules(regex: str, name_only = True) -> Iterator[str]:
+def find_modules(regex: str, name_only=True) -> Iterator[str]:
     """
     Return all modules matching the regular expression regex. Note that since we use re.search,
     a module matches if the regex matches the module name at any place. I.e. the match does
     not have to be at the start of the smodule name
     
     Arguments:
-    - regex: a regular expresion
+    - regex: a regular expression
     - name_only: regular expressions will only be matched on the module name, not the version (default: True).
     
     Note: the name_only feature assumes anything after the last forward '/' is the version,
