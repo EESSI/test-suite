@@ -102,6 +102,8 @@ def find_modules(regex: str, name_only = True) -> Iterator[str]:
         # The thing we yield should always be the original module name (orig_mod), including version
         orig_mod = mod
         if name_only:
+            # Remove trailing slashes from the regex (in case the callee forgot)
+            regex = regex.rstrip('/')
             # Remove part after the last forward slash, as we assume this is the version
             mod = re.sub('\/[^\/]*$', '', mod)
         # Match the actual regular expression
