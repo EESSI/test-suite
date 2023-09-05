@@ -57,14 +57,14 @@ def is_cuda_required_module(module_name: str) -> bool:
     return requires_cuda
 
 
-def find_modules(regex: str, name_only = True) -> Iterator[str]:
+def find_modules(regex: str, name_only=True) -> Iterator[str]:
     """
     Return all modules matching the regular expression regex. Note that since we use re.search,
     a module matches if the regex matches the module name at any place. I.e. the match does
     not have to be at the start of the smodule name
     
     Arguments:
-    - regex: a regular expresion
+    - regex: a regular expression
     - name_only: regular expressions will only be matched on the module name, not the version (default: True).
     
     Note: the name_only feature assumes anything after the last forward '/' is the version,
@@ -84,7 +84,7 @@ def find_modules(regex: str, name_only = True) -> Iterator[str]:
     find_modules('gompi$') => [gompi/2022a]
     find_modules('gompi', name_only = False) => [gompic/2022a, gompi/2022a, CGAL/4.14.3-gompi-2022a]
     find_modules('^gompi', name_only = False) => [gompic/2022a, gompi/2022a]
-    find_modules('^gompi\/', name_only = False) => [gompi/2022a]
+    find_modules('^gompi/', name_only = False) => [gompi/2022a]
     find_modules('-gompi-2022a', name_only = False) => [CGAL/4.14.3-gompi-2022a]
 
     """
@@ -97,7 +97,7 @@ def find_modules(regex: str, name_only = True) -> Iterator[str]:
     modules = ms.available_modules('')
     for mod in modules:
         # Exclude anything without version, i.e. ending with / (e.g. Bison/)
-        if re.search('.*\/$', mod):
+        if re.search('.*/$', mod):
             continue
         # The thing we yield should always be the original module name (orig_mod), including version
         orig_mod = mod
@@ -105,7 +105,7 @@ def find_modules(regex: str, name_only = True) -> Iterator[str]:
             # Remove trailing slashes from the regex (in case the callee forgot)
             regex = regex.rstrip('/')
             # Remove part after the last forward slash, as we assume this is the version
-            mod = re.sub('\/[^\/]*$', '', mod)
+            mod = re.sub('/[^/]*$', '', mod)
         # Match the actual regular expression
         log(f"Matching module {mod} with regex {regex}")
         if re.search(regex, mod):
