@@ -55,6 +55,10 @@ class osu_pt_2_pt(osu_benchmark):
             # Currently the device buffer is hard coded to be cuda. More
             # options need to be introduced based on vendor and device type.
             self.device_buffers = 'cuda'
+        # This part of the code removes the collective communication calls out
+        # of the run list since this test is only meant for pt2pt.
+        if not self.benchmark_info[0].startswith('mpi.pt2pt'):
+            self.valid_systems = []
         hooks.set_modules(self)
 
     @run_after('init')
