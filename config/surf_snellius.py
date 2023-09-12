@@ -3,9 +3,8 @@ import os
 from eessi.testsuite.common_config import common_logging_config
 from eessi.testsuite.constants import *  # noqa: F403
 
-# This config will write all staging, output (and logging with --save-log-files) to subdirs under this prefix
-# Override with --prefix
-reframe_prefix = f'{os.environ.get("HOME")}/reframe_runs'
+# This config will write all staging, output and logging to subdirs under this prefix
+reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 
 # This is an example configuration file
 site_configuration = {
