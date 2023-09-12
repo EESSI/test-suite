@@ -17,6 +17,7 @@ from eessi.testsuite.common_config import common_logging_config
 from eessi.testsuite.constants import FEATURES
 
 # This config will write all staging, output and logging to subdirs under this prefix
+# Override with RFM_PREFIX environment variable
 reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 
 # AWS CITC site configuration
