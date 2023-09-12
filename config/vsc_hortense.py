@@ -195,8 +195,7 @@ site_configuration = {
         {
             'purge_environment': True,
             'resolve_module_conflicts': False,  # avoid loading the module before submitting the job
-            'save_log_files': True,
         }
     ],
-    'logging': common_logging_config,
+    'logging': common_logging_config(),
 }

@@ -66,14 +66,13 @@ site_configuration = {
             'ftn': '',
         },
     ],
-    'logging': common_logging_config,
+    'logging': common_logging_config(),
     'general': [
         {
             # For autodetect to work, temporarily change:
             # 1. The launchers to srun
             # 2. Add --exclusive to GPU 'access' field above (avoids submission error that no GPUs are requested)
             'remote_detect': True,
-            'save_log_files': True,
         }
     ],
 }

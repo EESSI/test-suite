@@ -1,3 +1,5 @@
+import os
+
 perflog_format = '|'.join([
     '%(check_job_completion_time)s',
     '%(osuser)s',
@@ -27,32 +29,42 @@ format_perfvars = '|'.join([
     ''  # final delimiter required
 ])
 
-common_logging_config = [{
-    'level': 'debug',
-    'handlers': [
-        {
-            'type': 'stream',
-            'name': 'stdout',
-            'level': 'info',
-            'format': '%(message)s',
-        },
-        {
-            'type': 'file',
-            'name': 'reframe.log',
-            'level': 'debug',
-            'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',
-            'append': True,
-            'timestamp': "%Y%m%d_%H%M%S",  # add a timestamp to the filename (reframe_<timestamp>.log)
-        },
-    ],
-    'handlers_perflog': [
-        {
-            'type': 'filelog',
-            'prefix': '%(check_system)s/%(check_partition)s',
-            'level': 'info',
-            'format': perflog_format,
-            'format_perfvars': format_perfvars,
-            'append': True,  # avoid overwriting
-        },
-    ],
-}]
+
+def common_logging_config(prefix=None):
+    """
+    return default logging configuration as a list: stdout, file log, perflog
+    :param prefix: file log prefix
+    """
+    prefix = os.getenv('RFM_PREFIX', prefix if prefix else '.')
+
+    os.makedirs(os.path.join(prefix, 'log'), exist_ok=True)
+
+    return [{
+        'level': 'debug',
+        'handlers': [
+            {
+                'type': 'stream',
+                'name': 'stdout',
+                'level': 'info',
+                'format': '%(message)s',
+            },
+            {
+                'type': 'file',
+                'name': os.path.join(prefix, 'log', 'reframe.log'),
+                'level': 'debug',
+                'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',
+                'append': True,
+                'timestamp': "%Y%m%d_%H%M%S",  # add a timestamp to the filename (reframe_<timestamp>.log)
+            },
+        ],
+        'handlers_perflog': [
+            {
+                'type': 'filelog',
+                'prefix': '%(check_system)s/%(check_partition)s',
+                'level': 'info',
+                'format': perflog_format,
+                'format_perfvars': format_perfvars,
+                'append': True,  # avoid overwriting
+            },
+        ],
+    }]
