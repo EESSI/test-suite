@@ -3,6 +3,9 @@ import os
 from eessi.testsuite.common_config import common_logging_config
 from eessi.testsuite.constants import *  # noqa: F403
 
+# This config will write all staging, output (and logging with --save-log-files) to subdirs under this prefix
+# Override with --prefix
+reframe_prefix = f'{os.environ.get("HOME")}/reframe_runs'
 
 # This is an example configuration file
 site_configuration = {
@@ -12,6 +15,7 @@ site_configuration = {
             'descr': 'Dutch National Supercomputer',
             'modules_system': 'lmod',
             'hostnames': ['int*', 'tcn*', 'hcn*', 'fcn*', 'gcn*', 'srv*'],
+            'prefix': reframe_prefix,
             'stagedir': f'/scratch-shared/{os.environ.get("USER")}/reframe_output/staging',
             'partitions': [
                 {
