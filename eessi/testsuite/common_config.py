@@ -36,8 +36,8 @@ def common_logging_config(prefix=None):
     :param prefix: file log prefix
     """
     prefix = os.getenv('RFM_PREFIX', prefix if prefix else '.')
-
-    os.makedirs(os.path.join(prefix, 'log'), exist_ok=True)
+    logdir = os.path.join(prefix, 'logs')
+    os.makedirs(logdir, exist_ok=True)
 
     return [{
         'level': 'debug',
@@ -50,7 +50,7 @@ def common_logging_config(prefix=None):
             },
             {
                 'type': 'file',
-                'name': os.path.join(prefix, 'log', 'reframe.log'),
+                'name': os.path.join(logdir, 'reframe.log'),
                 'level': 'debug',
                 'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',
                 'append': True,
