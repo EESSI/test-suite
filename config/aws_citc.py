@@ -11,19 +11,14 @@
 # Another known issue is that CPU autodetection fails if run from an actual installation of ReFrame.
 # It only works if run from a clone of their Github Repo. See https://github.com/reframe-hpc/reframe/issues/2914
 
-from os import environ, makedirs
+import os
 
+from eessi.testsuite.common_config import common_logging_config
 from eessi.testsuite.constants import FEATURES
 
-# Get username of current user
-homedir = environ.get('HOME')
-
 # This config will write all staging, output and logging to subdirs under this prefix
-reframe_prefix = f'{homedir}/reframe_runs'
-log_prefix = f'{reframe_prefix}/logs'
-
-# ReFrame complains if the directory for the file logger doesn't exist yet
-makedirs(f'{log_prefix}', exist_ok=True)
+# Override with RFM_PREFIX environment variable
+reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 
 # AWS CITC site configuration
 site_configuration = {
@@ -32,7 +27,7 @@ site_configuration = {
             'name': 'citc',
             'descr': 'Cluster in the Cloud build and test environment on AWS',
             'modules_system': 'lmod',
-    	    'hostnames': ['mgmt', 'login', 'fair-mastodon*'],
+            'hostnames': ['mgmt', 'login', 'fair-mastodon*'],
             'prefix': reframe_prefix,
             'partitions': [
                 {
@@ -110,9 +105,9 @@ site_configuration = {
                     'access': ['--constraint=shape=c7g.4xlarge', '--export=NONE'],
                     'descr': 'Graviton3, 16 cores, 32 GiB',
                 },
-             ]
-         },
-     ],
+            ]
+        },
+    ],
     'environments': [
         {
             'name': 'default',
@@ -120,46 +115,8 @@ site_configuration = {
             'cxx': '',
             'ftn': '',
         },
-     ],
-     'logging': [
-        {
-            'level': 'debug',
-            'handlers': [
-                {
-                    'type': 'stream',
-                    'name': 'stdout',
-                    'level': 'info',
-                    'format': '%(message)s'
-                },
-                {
-                    'type': 'file',
-                    'prefix': f'{log_prefix}/reframe.log',
-                    'name': 'reframe.log',
-                    'level': 'debug',
-                    'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
-                    'append': True,
-                    'timestamp': "%Y%m%d_%H%M%S",
-                },
-            ],
-            'handlers_perflog': [
-                {
-                    'type': 'filelog',
-                    'prefix': f'{log_prefix}/%(check_system)s/%(check_partition)s',
-                    'level': 'info',
-                    'format': (
-                        '%(check_job_completion_time)s|reframe %(version)s|'
-                        '%(check_info)s|jobid=%(check_jobid)s|'
-                        '%(check_perf_var)s=%(check_perf_value)s|'
-                        'ref=%(check_perf_ref)s '
-                        '(l=%(check_perf_lower_thres)s, '
-                        'u=%(check_perf_upper_thres)s)|'
-                        '%(check_perf_unit)s'
-                    ),
-                    'append': True
-                }
-            ]
-        }
     ],
+    'logging': common_logging_config(reframe_prefix),
     'general': [
         {
             'remote_detect': True,
@@ -176,7 +133,7 @@ partition_defaults = {
     # However, using srun requires either using pmix or proper pmi2 integration in the MPI library
     # See https://github.com/EESSI/test-suite/pull/53#issuecomment-1598753968
     # Thus, we use mpirun for now, and manually swap to srun if we want to autodetect CPUs...
-    'launcher': 'srun',
+    'launcher': 'mpirun',
     'environs': ['default'],
     'features': [
         FEATURES['CPU']
@@ -191,5 +148,3 @@ partition_defaults = {
 for system in site_configuration['systems']:
     for partition in system['partitions']:
         partition.update(partition_defaults)
-
-

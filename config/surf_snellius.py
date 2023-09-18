@@ -1,9 +1,11 @@
-from os import environ
+import os
 
-from eessi.testsuite.constants import *
+from eessi.testsuite.common_config import common_logging_config
+from eessi.testsuite.constants import *  # noqa: F403
 
-
-username = environ.get('USER')
+# This config will write all staging, output and logging to subdirs under this prefix
+# Override with RFM_PREFIX environment variable
+reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 
 # This is an example configuration file
 site_configuration = {
@@ -13,7 +15,8 @@ site_configuration = {
             'descr': 'Dutch National Supercomputer',
             'modules_system': 'lmod',
             'hostnames': ['int*', 'tcn*', 'hcn*', 'fcn*', 'gcn*', 'srv*'],
-            'stagedir': f'/scratch-shared/{username}/reframe_output/staging',
+            'prefix': reframe_prefix,
+            'stagedir': f'/scratch-shared/{os.environ.get("USER")}/reframe_output/staging',
             'partitions': [
                 {
                     'name': 'thin',
@@ -67,44 +70,7 @@ site_configuration = {
             'ftn': '',
         },
     ],
-    'logging': [
-        {
-            'level': 'debug',
-            'handlers': [
-                {
-                    'type': 'stream',
-                    'name': 'stdout',
-                    'level': 'info',
-                    'format': '%(message)s'
-                },
-                {
-                    'type': 'file',
-                    'name': 'reframe.log',
-                    'level': 'debug',
-                    'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
-                    'append': True,
-                    'timestamp': "%Y%m%d_%H%M%S",
-                }
-            ],
-            'handlers_perflog': [
-                {
-                    'type': 'filelog',
-                    'prefix': '%(check_system)s/%(check_partition)s',
-                    'level': 'info',
-                    'format': (
-                        '%(check_job_completion_time)s|reframe %(version)s|'
-                        '%(check_info)s|jobid=%(check_jobid)s|'
-                        '%(check_perf_var)s=%(check_perf_value)s|'
-                        'ref=%(check_perf_ref)s '
-                        '(l=%(check_perf_lower_thres)s, '
-                        'u=%(check_perf_upper_thres)s)|'
-                        '%(check_perf_unit)s'
-                    ),
-                    'append': True
-                }
-            ]
-        }
-    ],
+    'logging': common_logging_config(reframe_prefix),
     'general': [
         {
             # For autodetect to work, temporarily change:

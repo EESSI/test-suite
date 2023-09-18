@@ -37,6 +37,7 @@ cd /path/to/EESSI/test-suite
 module load ReFrame/4.2.0
 
 export PYTHONPATH=$PWD:$PYTHONPATH
+export RFM_PREFIX=<path_to_all_output>
 
 reframe \
     --config-file <path_to_site_config_file> \

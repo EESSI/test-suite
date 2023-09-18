@@ -1,39 +1,15 @@
 # ReFrame configuration file for VSC Tier-1 Hortense
 # https://docs.vscentrum.be/en/latest/gent/tier1_hortense.html
 #
-# authors: Sam Moors (VUB-HPC), Kenneth Hoste (HPC-UGent)
+# authors: Samuel Moors (VUB-HPC), Kenneth Hoste (HPC-UGent)
 
 from reframe.core.backends import register_launcher
 from reframe.core.launchers import JobLauncher
 
-from eessi.testsuite.constants import *
-
+from eessi.testsuite.common_config import common_logging_config
+from eessi.testsuite.constants import *  # noqa: F403
 
 account = "my-slurm-account"
-
-# use 'info' to log to syslog
-syslog_level = 'warning'
-
-perf_logging_format = 'reframe: ' + '|'.join([
-    'username=%(osuser)s',
-    'version=%(version)s',
-    'name=%(check_name)s',
-    'system=%(check_system)s',
-    'partition=%(check_partition)s',
-    'environ=%(check_environ)s',
-    'num_tasks=%(check_num_tasks)s',
-    'num_cpus_per_task=%(check_num_cpus_per_task)s',
-    'num_tasks_per_node=%(check_num_tasks_per_node)s',
-    'modules=%(check_modules)s',
-    'jobid=%(check_jobid)s',
-    '%(check_perfvalues)s',
-])
-
-format_perfvars = '|'.join([
-    'perf_var=%(check_perf_var)s',
-    'perf_value=%(check_perf_value)s',
-    'unit=%(check_perf_unit)s',
-]) + '|'
 
 hortense_access = [f'-A {account}', '--export=NONE', '--get-user-env=60L']
 
@@ -41,7 +17,7 @@ hortense_access = [f'-A {account}', '--export=NONE', '--get-user-env=60L']
 @register_launcher('mympirun')
 class MyMpirunLauncher(JobLauncher):
     def command(self, job):
-        return ['mympirun', '--hybrid', str(job.num_tasks)]
+        return ['mympirun', '--hybrid', str(job.num_tasks_per_node)]
 
 
 site_configuration = {
@@ -65,6 +41,7 @@ site_configuration = {
                         'num_cpus': 128,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 64,
+                        'num_cpus_per_core': 1,
                         'arch': 'zen2',
                     },
                     'features': [
@@ -84,6 +61,7 @@ site_configuration = {
                         'num_cpus': 128,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 64,
+                        'num_cpus_per_core': 1,
                         'arch': 'zen2',
                     },
                     'features': [
@@ -103,6 +81,7 @@ site_configuration = {
                         'num_cpus': 128,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 64,
+                        'num_cpus_per_core': 1,
                         'arch': 'zen3',
                     },
                     'features': [
@@ -122,6 +101,7 @@ site_configuration = {
                         'num_cpus': 48,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 24,
+                        'num_cpus_per_core': 1,
                         'arch': 'zen2',
                     },
                     'features': [
@@ -157,6 +137,7 @@ site_configuration = {
                         'num_cpus': 48,
                         'num_sockets': 2,
                         'num_cpus_per_socket': 24,
+                        'num_cpus_per_core': 1,
                         'arch': 'zen2',
                     },
                     'features': [
@@ -214,54 +195,7 @@ site_configuration = {
         {
             'purge_environment': True,
             'resolve_module_conflicts': False,  # avoid loading the module before submitting the job
-            'keep_stage_files': True,
         }
     ],
-    'logging': [
-        {
-            'level': 'debug',
-            'handlers': [
-                {
-                    'type': 'file',
-                    'name': 'reframe.log',
-                    'level': 'debug',
-                    'format': '[%(asctime)s] %(levelname)s: %(check_name)s: %(message)s',  # noqa: E501
-                    'append': True,
-                    'timestamp': "%Y%m%d_%H%M%S",
-                },
-                {
-                    'type': 'stream',
-                    'name': 'stdout',
-                    'level': 'info',
-                    'format': '%(message)s',
-                },
-                {
-                    'type': 'file',
-                    'name': 'reframe.out',
-                    'level': 'info',
-                    'format': '%(message)s',
-                    'append': True,
-                    'timestamp': "%Y%m%d_%H%M%S",
-                },
-            ],
-            'handlers_perflog': [
-                {
-                    'type': 'filelog',
-                    'prefix': '%(check_system)s/%(check_partition)s',
-                    'level': 'info',
-                    'format': '%(check_job_completion_time)s ' + perf_logging_format,
-                    'format_perfvars': format_perfvars,
-                    'append': True,
-                },
-                {
-                    'type': 'syslog',
-                    'address': '/dev/log',
-                    'level': syslog_level,
-                    'format': perf_logging_format,
-                    'format_perfvars': format_perfvars,
-                    'append': True,
-                },
-            ],
-        }
-    ],
+    'logging': common_logging_config(),
 }
