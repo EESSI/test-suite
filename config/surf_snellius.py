@@ -70,7 +70,7 @@ site_configuration = {
             'ftn': '',
         },
     ],
-    'logging': common_logging_config(),
+    'logging': common_logging_config(reframe_prefix),
     'general': [
         {
             # For autodetect to work, temporarily change:
