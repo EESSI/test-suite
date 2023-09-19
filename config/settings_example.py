@@ -54,6 +54,7 @@ site_configuration = {
                 },
                 {
                     'name': 'gpu_partition',
+                    'descr': 'GPU partition'
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access':  ['-p gpu', '--export=None'],
@@ -87,7 +88,6 @@ site_configuration = {
                     'extras': {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },
-                    'descr': 'GPU partition'
                 },
             ]
         },
