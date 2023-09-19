@@ -1,3 +1,12 @@
+# WARNING: for CPU autodetect to work correctly you need to
+# 1. Either use ReFrame >= 4.3.3 _or_ temporarily change the 'launcher' for each partition to srun
+# 2. Temporarily change the 'access' field for the GPU partition to
+# 'access':  ['-p gpu', '--export=None', '--gres=gpu:1'],
+
+# Without this, the autodetect job fails because
+# a missing mpirun command (change #1)
+# Vega doesn't allow submission to the GPU partition without requesting at least one GPU (change #2)
+
 import os
 
 from eessi.testsuite.common_config import common_logging_config
@@ -37,7 +46,7 @@ site_configuration = {
                         # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
                         'export OMPI_MCA_pml=ucx',
                     ],
-                    'launcher': 'mpirun',  # Needs to be temporarily changed to srun for cpu autodetection
+                    'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
                     'access':  ['-p cpu', '--export=None'],
                     'environs': ['default'],
@@ -60,7 +69,7 @@ site_configuration = {
                         # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
                         'export OMPI_MCA_pml=ucx',
                     ],
-                    'launcher': 'mpirun',  # Needs to be temporarily changed to srun for cpu autodetection
+                    'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
                     'access':  ['-p gpu', '--export=None'],
                     'environs': ['default'],
