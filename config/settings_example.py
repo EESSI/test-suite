@@ -35,33 +35,39 @@ site_configuration = {
             'partitions': [
                 {
                     'name': 'cpu_partition',
+                    'descr': 'CPU partition'
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
-                    'access':  ['-p cpu'],
+                    'access':  ['-p cpu', '--export=None'],
+                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
                     'environs': ['default'],
                     'max_jobs': 4,
-                    'processor': {
-                        'num_cpus': 128,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 64,
-                        'arch': 'zen2',
-                    },
+                    # We recommend to rely on ReFrame's CPU autodetection,
+                    # and only define the 'processor' field if autodetection fails
+                    # 'processor': {
+                        # 'num_cpus': 128,
+                        # 'num_sockets': 2,
+                        # 'num_cpus_per_socket': 64,
+                        # 'num_cpus_per_core': 1,
+                    # },
                     'features': [FEATURES[CPU]],
-                    'descr': 'CPU partition'
                 },
                 {
                     'name': 'gpu_partition',
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
-                    'access':  ['-p gpu'],
+                    'access':  ['-p gpu', '--export=None'],
+                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
                     'environs': ['default'],
                     'max_jobs': 4,
-                    'processor': {
-                        'num_cpus': 72,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 36,
-                        'arch': 'icelake',
-                    },
+                    # We recommend to rely on ReFrame's CPU autodetection,
+                    # and only define the 'processor' field if autodetection fails
+                    # 'processor': {
+                        # 'num_cpus': 72,
+                        # 'num_sockets': 2,
+                        # 'num_cpus_per_socket': 36,
+                        # 'num_cpus_per_core': 1,
+                    # },
                     'resources': [
                         {
                             'name': '_rfm_gpu',
