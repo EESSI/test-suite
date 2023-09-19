@@ -1,15 +1,14 @@
-# This is an example configuration file
+# WARNING: for CPU autodetect to work correctly you need to
+# 1. Either use ReFrame >= 4.3.3 or temporarily change the 'launcher' for each partition to srun
+# 2. Either use ReFrame >= 4.3.3 or run from a clone of the ReFrame repository
 
-# Note that CPU autodetect currently does not work with this configuration file on AWS.
-# This is because there is no system mpirun, and the CPU autodetection doesn't load any modules
-# that would make an mpirun command available (as normal multiprocessing tests would).
-# In order to do CPU autodetection, you'll need to change the launcer to srun:
-# 'launcher = srun'
-# You can run the CPU autodetect by listing all tests (reframe -l ...)
-# and then, once all CPUs are autodetected, change the launcher back to mpirun for a 'real' run (reframe -r ...)
+# Without this, the autodetect job fails because
+# 1. A missing mpirun command
+# 2. An incorrect directory structure is assumed when preparing the stagedir for the autodetect job
 
-# Another known issue is that CPU autodetection fails if run from an actual installation of ReFrame.
-# It only works if run from a clone of their Github Repo. See https://github.com/reframe-hpc/reframe/issues/2914
+# Related issues
+# 1. https://github.com/reframe-hpc/reframe/issues/2926
+# 2. https://github.com/reframe-hpc/reframe/issues/2914
 
 import os
 

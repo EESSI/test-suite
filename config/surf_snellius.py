@@ -1,11 +1,17 @@
 # WARNING: for CPU autodetect to work correctly you need to
-# 1. Either use ReFrame >= 4.3.3 _or_ temporarily change the 'launcher' for each partition to srun
-# 2. Temporarily change the 'access' field for the GPU partition to
+# 1. Either use ReFrame >= 4.3.3 or temporarily change the 'launcher' for each partition to srun
+# 2. Either use ReFrame >= 4.3.3 or run from a clone of the ReFrame repository
+# 3. Temporarily change the 'access' field for the GPU partition to
 # 'access':  ['-p gpu', '--export=None', '--exclusive'],
 
 # Without this, the autodetect job fails because
-# a missing mpirun command (change #1)
-# Snellius doesn't allow submission to the GPU partition without requesting at least one GPU (change #2)
+# 1. A missing mpirun command
+# 2. An incorrect directory structure is assumed when preparing the stagedir for the autodetect job
+# 3. Snellius doesn't allow submission to the GPU partition without requesting at least one GPU
+
+# Related issues
+# 1. https://github.com/reframe-hpc/reframe/issues/2926
+# 2. https://github.com/reframe-hpc/reframe/issues/2914
 
 import os
 
