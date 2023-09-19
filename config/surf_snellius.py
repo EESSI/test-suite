@@ -1,3 +1,12 @@
+# WARNING: for CPU autodetect to work correctly you need to
+# 1. Either use ReFrame >= 4.3.3 _or_ temporarily change the 'launcher' for each partition to srun
+# 2. Temporarily change the 'access' field for the GPU partition to
+# 'access':  ['-p gpu', '--export=None', '--exclusive'],
+
+# Without this, the autodetect job fails because
+# a missing mpirun command (change #1)
+# Snellius doesn't allow submission to the GPU partition without requesting at least one GPU (change #2)
+
 import os
 
 from eessi.testsuite.common_config import common_logging_config
@@ -87,9 +96,8 @@ site_configuration = {
     'logging': common_logging_config(reframe_prefix),
     'general': [
         {
-            # For autodetect to work, temporarily change:
-            # 1. The launchers to srun (or use ReFrame >= 4.3.3)
-            # 2. Add --exclusive to GPU 'access' field above (avoids submission error that no GPUs are requested)
+            # Enable automatic detection of CPU architecture for each partition
+            # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
             'remote_detect': True,
         }
     ],
