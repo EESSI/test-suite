@@ -19,18 +19,32 @@ site_configuration = {
             'stagedir': f'/scratch-shared/{os.environ.get("USER")}/reframe_output/staging',
             'partitions': [
                 {
-                    'name': 'thin',
+                    'name': 'rome',
                     'scheduler': 'slurm',
                     'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
                     'launcher': 'mpirun',
-                    'access':  ['-p thin', '--export=None'],
+                    'access':  ['-p rome', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
                     'features': [
                         FEATURES[CPU],
                     ],
-                    'descr': 'Test CPU partition with native EESSI stack'
+                    'descr': 'AMD Rome CPU partition with native EESSI stack'
                 },
+                {
+                    'name': 'genoa',
+                    'scheduler': 'slurm',
+                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
+                    'launcher': 'mpirun',
+                    'access':  ['-p genoa', '--export=None'],
+                    'environs': ['default'],
+                    'max_jobs': 120,
+                    'features': [
+                        FEATURES[CPU],
+                    ],
+                    'descr': 'AMD Genoa CPU partition with native EESSI stack'
+                },
+
                 {
                     'name': 'gpu',
                     'scheduler': 'slurm',
@@ -57,7 +71,7 @@ site_configuration = {
                     'extras': {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },
-                    'descr': 'Test GPU partition with native EESSI stack'
+                    'descr': 'Nvidia A100 GPU partition with native EESSI stack'
                 },
             ]
         },
