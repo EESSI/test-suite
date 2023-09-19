@@ -88,7 +88,7 @@ site_configuration = {
     'general': [
         {
             # For autodetect to work, temporarily change:
-            # 1. The launchers to srun
+            # 1. The launchers to srun (or use ReFrame >= 4.3.3)
             # 2. Add --exclusive to GPU 'access' field above (avoids submission error that no GPUs are requested)
             'remote_detect': True,
         }
