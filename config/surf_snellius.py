@@ -24,13 +24,6 @@ reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 
 # This is an example configuration file
 site_configuration = {
-    'general': [
-        {
-            # Enable automatic detection of CPU architecture for each partition
-            # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
-            'remote_detect': True,
-        }
-    ],
     'systems': [
         {
             'name': 'snellius',
@@ -107,4 +100,11 @@ site_configuration = {
         },
     ],
     'logging': common_logging_config(reframe_prefix),
+    'general': [
+        {
+            # Enable automatic detection of CPU architecture for each partition
+            # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
+            'remote_detect': True,
+        }
+    ],
 }

@@ -118,6 +118,8 @@ site_configuration = {
     'logging': common_logging_config(reframe_prefix),
     'general': [
         {
+            # Enable automatic detection of CPU architecture for each partition
+            # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
             'remote_detect': True,
         }
     ],
@@ -126,12 +128,6 @@ site_configuration = {
 # Add default things to each partition:
 partition_defaults = {
     'scheduler': 'squeue',
-    # mpirun causes problems with cpu autodetect, since there is no system mpirun.
-    # See https://github.com/EESSI/test-suite/pull/53#issuecomment-1590849226
-    # and this feature request https://github.com/reframe-hpc/reframe/issues/2926
-    # However, using srun requires either using pmix or proper pmi2 integration in the MPI library
-    # See https://github.com/EESSI/test-suite/pull/53#issuecomment-1598753968
-    # Thus, we use mpirun for now, and manually swap to srun if we want to autodetect CPUs...
     'launcher': 'mpirun',
     'environs': ['default'],
     'features': [
