@@ -9,11 +9,15 @@ jobs:
       fail-fast: false
       matrix:
         python: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11']
+        setuptools-version: ['39.2.0', '59.6.0', '68.2.2']
     steps:
         - name: Check out software-layer repository
           uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
           with:
             persist-credentials: false
+
+        - name: Install setuptools ${{ matrix.setuptools-version }}
+          run: pip install setuptools==${{ matrix.setuptools-version }}
 
         - name: Install ReFrame
           run: |
