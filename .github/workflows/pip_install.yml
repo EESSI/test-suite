@@ -4,20 +4,33 @@ on: [push, pull_request, workflow_dispatch]
 permissions: read-all
 jobs:
   test_pip_install:
-    runs-on: ubuntu-22.04
+    # ubuntu <= 20.04 is required for python 3.6
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
-        python: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11']
     steps:
         - name: Check out software-layer repository
           uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
           with:
             persist-credentials: false
 
+        - name: Set up Python
+          uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1  # v4.7.0
+          with:
+            python-version: ${{ matrix.python-version }}
+
+        - name: Install setuptools
+          run: |
+            if [[ "${{ matrix.python-version }}" == "3.6" ]]; then
+              # system installed setuptools version in RHEL8 and CO7
+              python -m pip install --user setuptools==39.2.0
+            fi
+
         - name: Install ReFrame
           run: |
-            pip install --user ReFrame-HPC
+            python -m pip install --user ReFrame-HPC
 
         - name: Install EESSI test suite with 'pip install'
           run: |
@@ -26,8 +39,15 @@ jobs:
             python setup.py sdist
             ls dist
 
-            pip install --user dist/eessi*.tar.gz
+            python -m pip install --user dist/eessi*.tar.gz
             find $HOME/.local
+
+            # make sure we are not in the source directory
+            cd $HOME
+
+            python --version
+            python -m pip --version
+            python -c 'import setuptools; print("setuptools", setuptools.__version__)'
 
             python -c 'import eessi.testsuite.utils'
             python -c 'import eessi.testsuite.tests.apps'
