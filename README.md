@@ -80,7 +80,7 @@ Finally, we can create a new local branch (`-c`) and checkout one of these
 feature branches (e.g. `example_branch` from the remote `casparvl`). Here, we've
 picked `my_own_example_branch` as the local branch name:
 ```bash
-$ git switch -c my_owm_example_branch casparvl/example_branch
+$ git switch -c my_own_example_branch casparvl/example_branch
 ```
 
 While the initial setup is a bit more involved, the advantage of this approach
