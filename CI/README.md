@@ -26,6 +26,7 @@ It should define:
 - `TEMPDIR` (mandatory): the temporary directory in which the CI pipeline can check out repositories and install ReFrame.
 - `REFRAME_VERSION` (mandatory): the version of ReFrame you'd like to use to drive the EESSI test suite in the CI pipeline.
 - `EESSI_VERSION` (mandatory): the version of the EESSI software stack you would like to be loaded & tested in the CI pipeline.
+- `EESSI_CI_TESTSUITE_VERSION` (mandatory): the version of the EESSI test-suite repository you want to use in the CI pipeline.
 - `RFM_CONFIG_FILES` (mandatory): the location of the ReFrame configuration file to be used for this system.
 - `RFM_CHECK_SEARCH_PATH` (mandatory): the search path where ReFrame should search for tests to run in this CI pipeline.
 - `RFM_CHECK_SEARCH_RECURSIVE` (mandatory): whether ReFrame should search `RFM_CHECK_SEARCH_PATH` recursively.
