@@ -33,7 +33,7 @@ git clone https://github.com/reframe-hpc/reframe.git --branch v${REFRAME_VERSION
 export PYTHONPATH=${PYTHONPATH}:${TEMPDIR}/reframe
 
 # Clone test suite repo
-git clone https://github.com/EESSI/test-suite.git ${TEMPDIR}/test-suite
+git clone https://github.com/EESSI/test-suite.git --branch v${EESSI_CI_TESTSUITE_VERSION} ${TEMPDIR}/test-suite
 export PYTHONPATH=${PYTHONPATH}:${TEMPDIR}/test-suite/
 
 # Start the EESSI environment

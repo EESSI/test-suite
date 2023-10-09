@@ -5,6 +5,7 @@ TAGS="--tag CI --tag 1_node|2_nodes"
 # May be adapted later to simply use reframe from the EESSI software stack
 REFRAME_VERSION=4.3.2
 EESSI_VERSION=2023.06
+EESSI_CI_TESTSUITE_VERSION=0.1.0
 
 # ReFrame configuration
 export RFM_CONFIG_FILES="${TEMPDIR}/test-suite/config/aws_citc.py"
