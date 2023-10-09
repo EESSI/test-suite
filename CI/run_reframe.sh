@@ -48,15 +48,16 @@ source ${TEMPDIR}/reframe_venv/bin/activate
 
 # Print ReFrame config
 echo "Starting CI run with the follwing settings:"
-echo "TMPDIR=${TMPDIR}"
+echo "EESSI test suite version: ${EESSI_CI_TESTSUITE_VERSION}"
+echo "EMPDIR: ${TEMPDIR}"
 echo "PYTHONPATH: ${PYTHONPATH}"
-echo "TAGS=${TAGS}"
-echo "ReFrame executable=$(which reframe)"
-echo "ReFrame version=$(reframe --version)"
-echo "ReFrame config file=${RFM_CONFIG_FILES}"
-echo "ReFrame check search path=${RFM_CHECK_SEARCH_PATH}"
-echo "ReFrame check search recursive=${RFM_CHECK_SEARCH_RECURSIVE}"
-echo "ReFrame prefix=${RFM_PREFIX}"
+echo "TAGS: ${TAGS}"
+echo "ReFrame executable: $(which reframe)"
+echo "ReFrame version: $(reframe --version)"
+echo "ReFrame config file: ${RFM_CONFIG_FILES}"
+echo "ReFrame check search path: ${RFM_CHECK_SEARCH_PATH}"
+echo "ReFrame check search recursive: ${RFM_CHECK_SEARCH_RECURSIVE}"
+echo "ReFrame prefix: ${RFM_PREFIX}"
 
 # List tests
 echo "Listing tests:"
