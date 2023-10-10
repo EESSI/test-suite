@@ -22,6 +22,14 @@ from eessi.testsuite.constants import *  # noqa: F403
 # Override with RFM_PREFIX environment variable
 reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 
+# This enables runtime selection of which EESSI_VERSION should be loaded. This is used e.g. in CI.
+eessi_version = os.getenv('EESSI_VERSION', 'latest')
+if eessi_version == 'latest':
+    eessi_init_script = '/cvmfs/pilot.eessi-hpc.org/latest/init/bash'
+else:
+    eessi_init_script = '/cvmfs/pilot.eessi-hpc.org/versions/%s/init/bash' % eessi_version
+
+
 # This is an example configuration file
 site_configuration = {
     'systems': [
@@ -36,7 +44,7 @@ site_configuration = {
                     'name': 'cpu',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
-                        'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
+                        'source %s' % eessi_init_script,
                         # Pass job environment variables like $PATH, etc., into job steps
                         'export SLURM_EXPORT_ENV=ALL',
                         # Needed when using srun launcher

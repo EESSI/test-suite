@@ -4,7 +4,11 @@
 # which has a datestamp in the name.
 
 # logfile
-LOGDIR=${HOME}/EESSI_CI_LOGS
+if [ ! -z ${EESSI_CI_LOGDIR} ]; then
+    LOGDIR=${EESSI_CI_LOGDIR}
+else
+    LOGDIR=${HOME}/EESSI_CI_LOGS
+fi
 mkdir -p ${LOGDIR}
 
 datestamp=$(date +%Y%m%d_%H%M%S)
