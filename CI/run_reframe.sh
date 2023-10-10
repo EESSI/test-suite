@@ -9,7 +9,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Check if EESSI_CI_SYSTEM_NAME is defined
 if [ -z "${EESSI_CI_SYSTEM_NAME}" ]; then 
-    echo "You have to define the RFM_CI_SYSTEM_NAME environment variable in order to run the EESSI test suite CI" > /dev/stderr
+    echo "You have to define the EESSI_CI_SYSTEM_NAME environment variable in order to run the EESSI test suite CI" > /dev/stderr
     exit 1
 fi
 
