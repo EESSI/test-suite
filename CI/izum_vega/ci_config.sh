@@ -4,7 +4,8 @@ TAGS="--tag CI --tag 1_node|2_nodes"
 # The hpctestlib as well as the reframe command will be based on this version
 # May be adapted later to simply use reframe from the EESSI software stack
 REFRAME_VERSION=4.3.2
-EESSI_VERSION=2023.06
+# Note: this version needs to match whatever version of EESSI is sourced in the prerun_cmds in the RFM_CONFIG_FILE referenced below
+EESSI_VERSION=2021.12
 EESSI_CI_TESTSUITE_VERSION=0.1.0
 
 # ReFrame configuration
