@@ -184,6 +184,41 @@ class osu_coll(osu_benchmark):
         else:
             self.num_tasks_per_node = max_avail_cpus_per_node
 
+        # The above setting is for all CPU tests including the ones occurring
+        # in the GPU nodes. This section is specifically for GPU tests the
+        # num_tasks should be equal to num gpus per node.
+        if('gpu' in self.current_partition.features and
+           utils.is_cuda_required_module(self.module_name)):
+            max_avail_gpus_per_node = \
+                    self.current_partition.devices[0].num_devices
+            if(max_avail_gpus_per_node == 1 and
+                    SCALES.get(self.scale).get('num_nodes') == 1):
+                raise ValueError(
+                                 "There is only 1 device within the node."
+                                 "There is no point of performing collective\
+                                  operations on 1 device."
+                                )
+            else:
+                if (SCALES.get(self.scale).get('num_nodes') == 1):
+                    if (SCALES.get(self.scale).get('node_part') is not None):
+                        self.num_tasks = int(max_avail_gpus_per_node /
+                                             SCALES.get(self.scale).get('node_part'))
+                        self.skip_if(self.num_tasks <= 1,
+                                     msg="There are not enough GPU cards to be divided")
+                    elif (SCALES.get(self.scale).get('num_cpus_per_node') is not None):
+                        if(SCALES.get(self.scale).get('num_cpus_per_node') >=
+                           max_avail_gpus_per_node):
+                            self.num_tasks = self.num_tasks_per_node =\
+                                    max_avail_gpus_per_node
+                        else:
+                            self.num_tasks = \
+                                    SCALES.get(self.scale).get('num_cpus_per_node')
+                            self.num_tasks_per_node = self.num_tasks
+
+                else:
+                    self.num_tasks = SCALES.get(self.scale).get('num_nodes') *\
+                           max_avail_gpus_per_node
+                    self.num_tasks_per_node = max_avail_gpus_per_node
 
     @run_after('setup')
     def set_num_gpus_per_node(self):
@@ -204,8 +239,33 @@ class osu_coll(osu_benchmark):
                     self.current_partition.devices[0].num_devices
         elif('gpu' in self.current_partition.features and
              utils.is_cuda_required_module(self.module_name)):
-            self.num_gpus_per_node = \
+            max_avail_gpus_per_node = \
                     self.current_partition.devices[0].num_devices
+            if(max_avail_gpus_per_node == 1 and
+                    SCALES.get(self.scale).get('num_nodes') == 1):
+                raise ValueError(
+                                 "There is only 1 device within the node."
+                                 "There is no point of performing collective\
+                                  operations on 1 device."
+                                )
+            else:
+                if (SCALES.get(self.scale).get('num_nodes') == 1):
+                    if (SCALES.get(self.scale).get('node_part') is not None):
+                        self.num_gpus_per_node = int(max_avail_gpus_per_node /
+                                                     SCALES.get(self.scale).get('node_part'))
+                        self.skip_if(self.num_gpus_per_node <= 1,
+                                     msg="There are not enough GPU cards to be divided")
+                    elif (SCALES.get(self.scale).get('num_cpus_per_node') is not None):
+                        if(SCALES.get(self.scale).get('num_cpus_per_node') >=
+                           max_avail_gpus_per_node):
+                            self.num_gpus_per_node =\
+                                    max_avail_gpus_per_node
+                        else:
+                            self.num_gpus_per_node = \
+                                    SCALES.get(self.scale).get('num_cpus_per_node')
+
+                else:
+                    self.num_gpus_per_node = max_avail_gpus_per_node
 
 
 #    @run_after('setup')
