@@ -49,7 +49,7 @@ source ${TEMPDIR}/reframe_venv/bin/activate
 # Print ReFrame config
 echo "Starting CI run with the follwing settings:"
 echo "EESSI test suite version: ${EESSI_CI_TESTSUITE_VERSION}"
-echo "EMPDIR: ${TEMPDIR}"
+echo "TEMPDIR: ${TEMPDIR}"
 echo "PYTHONPATH: ${PYTHONPATH}"
 echo "TAGS: ${TAGS}"
 echo "ReFrame executable: $(which reframe)"
