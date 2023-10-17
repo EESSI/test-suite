@@ -57,3 +57,7 @@ SCALES = {
     '8_nodes': {'num_nodes': 8, 'node_part': 1},
     '16_nodes': {'num_nodes': 16, 'node_part': 1},
 }
+
+# aliases
+SCALES['1_cpn_2_nodes'] = SCALES['1_core_per_node_2_nodes']
+SCALES['1_cpn_4_nodes'] = SCALES['1_core_per_node_4_nodes']
