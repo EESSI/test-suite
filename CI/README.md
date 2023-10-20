@@ -21,16 +21,20 @@ git checkout
 ```
 
 ## Creating a CI configuration file
-If you are adding CI on a new system, first, pick a name for that system (we'll refer to this as `EESSI_CI_SYSTEM_NAME`). Using the example in `CI/aws_citc/ci_config.sh`, you can adapt the config to your needs.
+If you are adding CI on a new system, first, pick a name for that system (we'll refer to this as `EESSI_CI_SYSTEM_NAME`). The CI config should then be in `CI/${EESSI_CI_SYSTEM_NAME}/ci_config.sh`. You can use the example in `CI/aws_mc/ci_config.sh`, and adapt it to your needs.
 It should define:
-- `TEMPDIR` (mandatory): the temporary directory in which the CI pipeline can check out repositories and install ReFrame.
+- `TEMPDIR` (optional): the temporary directory in which the CI pipeline can check out repositories and install ReFrame. Default: `$(mktemp --directory --tmpdir=/tmp  -t rfm.XXXXXXXXXX)`.
+- `REFRAME_ARGS` (optional): additional arguments to pass to the `reframe` command. Typically, you'll use this to specify `--tag` arguments to run a subset of tests. Default: `"--tag CI --tag 1_node"`.
 - `REFRAME_VERSION` (mandatory): the version of ReFrame you'd like to use to drive the EESSI test suite in the CI pipeline.
+- `REFRAME_URL` (optional): the URL that will be used to `git clone` the ReFrame repository (in order to provide the `hpctestlib`). Typically this points to the official repository, but you may want to use another URL from a fork for development purposes. Default: `https://github.com/reframe-hpc/reframe.git`.
+- `REFRAME_BRANCH` (optional): the branch name to be cloned for the ReFrame repository (in order to provide the `hpctestlib`). Typically this points to the branch corresponding with `${REFRAME_VERSION}`, unless you want to run from a feature branch for development purposes. Default: `v${REFRAME_VERSION}`.
 - `EESSI_VERSION` (mandatory): the version of the EESSI software stack you would like to be loaded & tested in the CI pipeline.
-- `EESSI_CI_TESTSUITE_VERSION` (mandatory): the version of the EESSI test-suite repository you want to use in the CI pipeline.
-- `RFM_CONFIG_FILES` (mandatory): the location of the ReFrame configuration file to be used for this system.
-- `RFM_CHECK_SEARCH_PATH` (mandatory): the search path where ReFrame should search for tests to run in this CI pipeline.
-- `RFM_CHECK_SEARCH_RECURSIVE` (mandatory): whether ReFrame should search `RFM_CHECK_SEARCH_PATH` recursively.
-- `RFM_PREFIX`: the prefix in which ReFrame stores all the files.
+- `EESSI_TESTSUITE_URL` (optional): the URL that will be used to `git clone` the `EESSI/test-suite` repository. Typically this points to the official repository, but you may want to use another URL from a fork for development purposes. Default: `https://github.com/EESSI/test-suite.git`.
+- `EESSI_TESTSUITE_VERSION` (optional): the version of the EESSI test-suite repository you want to use in the CI pipeline. Default: latest release.
+- `RFM_CONFIG_FILES` (optional): the location of the ReFrame configuration file to be used for this system. Default: `${TEMPDIR}/test-suite/config/${EESSI_CI_SYSTEM_NAME}.py`.
+- `RFM_CHECK_SEARCH_PATH` (optional): the search path where ReFrame should search for tests to run in this CI pipeline. Default: `${TEMPDIR}/test-suite/eessi/testsuite/tests/`.
+- `RFM_CHECK_SEARCH_RECURSIVE` (optional): whether ReFrame should search `RFM_CHECK_SEARCH_PATH` recursively. Default: `1`.
+- `RFM_PREFIX` (optional): the prefix in which ReFrame stores all the files. Default: `${HOME}/reframe_CI_runs`.
 
 ## Creating the `crontab` entry and specifying `EESSI_CI_SYSTEM_NAME`
 This line depends on how often you want to run the tests, and where the `run_reframe_wrapper.sh` is located exactly. We also define the EESSI_CI_SYSTEM_NAME in this entry, as cronjobs don't normally read your `.bashrc` (and thus we need a different way of specifying this environment variable).
