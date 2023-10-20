@@ -15,7 +15,7 @@
 
 import os
 
-from eessi.testsuite.common_config import common_logging_config
+from eessi.testsuite.common_config import common_logging_config, common_eessi_init
 from eessi.testsuite.constants import *  # noqa: F403
 
 # This config will write all staging, output and logging to subdirs under this prefix
@@ -44,7 +44,7 @@ site_configuration = {
                     'name': 'cpu',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
-                        'source %s' % eessi_init_script,
+                        'source %s' % common_eessi_init(),
                         # Pass job environment variables like $PATH, etc., into job steps
                         'export SLURM_EXPORT_ENV=ALL',
                         # Needed when using srun launcher
@@ -67,7 +67,7 @@ site_configuration = {
                     'name': 'gpu',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
-                        'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
+                        'source %s' % common_eessi_init(),
                         # Pass job environment variables like $PATH, etc., into job steps
                         'export SLURM_EXPORT_ENV=ALL',
                         # Needed when using srun launcher

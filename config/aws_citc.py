@@ -12,20 +12,12 @@
 
 import os
 
-from eessi.testsuite.common_config import common_logging_config
+from eessi.testsuite.common_config import common_logging_config, common_eessi_init
 from eessi.testsuite.constants import FEATURES
 
 # This config will write all staging, output and logging to subdirs under this prefix
 # Override with RFM_PREFIX environment variable
 reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
-
-# This enables runtime selection of which EESSI_VERSION should be loaded. This is used e.g. in CI.
-eessi_version = os.getenv('EESSI_VERSION', 'latest')
-if eessi_version == 'latest':
-    eessi_init_script = '/cvmfs/pilot.eessi-hpc.org/latest/init/bash'
-else:
-    eessi_init_script = '/cvmfs/pilot.eessi-hpc.org/versions/%s/init/bash' % eessi_version
-
 
 # AWS CITC site configuration
 site_configuration = {
@@ -142,7 +134,7 @@ partition_defaults = {
         FEATURES['CPU']
     ],
     'prepare_cmds': [
-        'source %s' % eessi_init_script,
+        'source %s' % common_eessi_init(),
         # Required when using srun as launcher with --export=NONE in partition access, in order to ensure job
         # steps inherit environment. It doesn't hurt to define this even if srun is not used
         'export SLURM_EXPORT_ENV=ALL'

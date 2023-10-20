@@ -15,19 +15,12 @@
 
 import os
 
-from eessi.testsuite.common_config import common_logging_config
+from eessi.testsuite.common_config import common_logging_config, common_eessi_init
 from eessi.testsuite.constants import *  # noqa: F403
 
 # This config will write all staging, output and logging to subdirs under this prefix
 # Override with RFM_PREFIX environment variable
 reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
-
-# This enables runtime selection of which EESSI_VERSION should be loaded. This is used e.g. in CI.
-eessi_version = os.getenv('EESSI_VERSION', 'latest')
-if eessi_version == 'latest':
-    eessi_init_script = '/cvmfs/pilot.eessi-hpc.org/latest/init/bash'
-else:
-    eessi_init_script = '/cvmfs/pilot.eessi-hpc.org/versions/%s/init/bash' % eessi_version
 
 # This is an example configuration file
 site_configuration = {
@@ -43,7 +36,7 @@ site_configuration = {
                 {
                     'name': 'rome',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % eessi_init_script],
+                    'prepare_cmds': ['source %s' % common_eessi_init()],
                     'launcher': 'mpirun',
                     'access':  ['-p rome', '--export=None'],
                     'environs': ['default'],
@@ -56,7 +49,7 @@ site_configuration = {
                 {
                     'name': 'genoa',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % eessi_init_script],
+                    'prepare_cmds': ['source %s' % common_eessi_init()],
                     'launcher': 'mpirun',
                     'access':  ['-p genoa', '--export=None'],
                     'environs': ['default'],
@@ -70,7 +63,7 @@ site_configuration = {
                 {
                     'name': 'gpu',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % eessi_init_script],
+                    'prepare_cmds': ['source %s' % common_eessi_init()],
                     'launcher': 'mpirun',
                     'access':  ['-p gpu', '--export=None'],
                     'environs': ['default'],
