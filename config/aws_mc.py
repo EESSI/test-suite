@@ -26,7 +26,7 @@ site_configuration = {
             'name': 'Magic_Castle',
             'descr': 'Magic Castle build and test environment on AWS',
             'modules_system': 'lmod',
-            'hostnames': ['mgmt', 'login', 'fair-mastodon*'],
+            'hostnames': ['login*', '*-node'],
             'prefix': reframe_prefix,
             'partitions': [
                 {

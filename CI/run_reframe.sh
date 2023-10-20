@@ -15,72 +15,77 @@ fi
 
 # Check if CI_CONFIG file file exists
 CI_CONFIG="${SCRIPT_DIR}/${EESSI_CI_SYSTEM_NAME}/ci_config.sh"
-if [ ! -f ${CI_CONFIG} ]; then
+if [ ! -f "${CI_CONFIG}" ]; then
     echo "File ${CI_CONFIG} does not exist. Please check your RFM_CI_SYSTEM_NAME (${EESSI_CI_SYSTEM_NAME}) and make sure the directory in which the current script resides (${SCRIPT_DIR}) contains a subdirectory with that name, and a CI configuration file (ci_config.sh) inside". > /dev/stderr
     exit 1
 fi
 
 # Set the CI configuration for this system
-source ${CI_CONFIG}
+source "${CI_CONFIG}"
 
 # Set default configuration
-if [ -z ${TEMPDIR} ]; then
+if [ -z "${TEMPDIR}" ]; then
     TEMPDIR=$(mktemp --directory --tmpdir=/tmp  -t rfm.XXXXXXXXXX)
 fi
-if [ -z ${REFRAME_ARGS} ]; then
+if [ -z "${REFRAME_ARGS}" ]; then
     REFRAME_ARGS="--tag CI --tag 1_node"
 fi
-if [ -z ${REFRAME_URL} ]; then
+if [ -z "${REFRAME_URL}" ]; then
     REFRAME_URL='https://github.com/reframe-hpc/reframe.git'
 fi
-if [ -z ${REFRAME_BRANCH} ]; then
+if [ -z "${REFRAME_BRANCH}" ]; then
     REFRAME_BRANCH="v${REFRAME_VERSION}"
 fi
-if [ -z ${EESSI_TESTSUITE_URL} ]; then
+if [ -z "${EESSI_TESTSUITE_URL}" ]; then
     EESSI_TESTSUITE_URL='https://github.com/EESSI/test-suite.git'
 fi
-if [ -z ${EESSI_TESTSUITE_BRANCH} ]; then
+if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
     EESSI_TESTSUITE_BRANCH='v0.1.0'
 fi
-if [ -z ${EESSI_VERSION} ]; then
+if [ -z "${EESSI_VERSION}" ]; then
     EESSI_VERSION='latest'
 fi
-if [ -z ${RFM_CONFIG_FILES} ]; then
-    RFM_CONFIG_FILES="${TEMPDIR}/test-suite/config/${EESSI_CI_SYSTEM_NAME}.py"
+if [ -z "${RFM_CONFIG_FILES}" ]; then
+    export RFM_CONFIG_FILES="${TEMPDIR}/test-suite/config/${EESSI_CI_SYSTEM_NAME}.py"
 fi
-if [ -z ${RFM_CHECK_SEARCH_PATH} ]; then
-    RFM_CHECK_SEARCH_PATH="${TEMPDIR}/test-suite/eessi/testsuite/tests/"
+if [ -z "${RFM_CHECK_SEARCH_PATH}" ]; then
+    export RFM_CHECK_SEARCH_PATH="${TEMPDIR}/test-suite/eessi/testsuite/tests/"
 fi
-if [ -z ${RFM_CHECK_SEARCH_RECURSIVE} ]; then
-    RFM_CHECK_SEARCH_RECURSIVE=1
+if [ -z "${RFM_CHECK_SEARCH_RECURSIVE}" ]; then
+    export RFM_CHECK_SEARCH_RECURSIVE=1
 fi
-if [ -z ${RFM_PREFIX} ]; then
-    RFM_PREFIX="${HOME}/reframe_CI_runs"
+if [ -z "${RFM_PREFIX}" ]; then
+    export RFM_PREFIX="${HOME}/reframe_CI_runs"
 fi
 
 # Create virtualenv for ReFrame using system python
-python3 -m venv ${TEMPDIR}/reframe_venv
-source ${TEMPDIR}/reframe_venv/bin/activate
+python3 -m venv "${TEMPDIR}"/reframe_venv
+source "${TEMPDIR}"/reframe_venv/bin/activate
 python3 -m pip install --upgrade pip
-python3 -m pip install reframe-hpc==${REFRAME_VERSION}
+python3 -m pip install reframe-hpc=="${REFRAME_VERSION}"
 
 # Clone reframe repo to have the hpctestlib:
-git clone ${REFRAME_URL} --branch ${REFRAME_BRANCH} ${TEMPDIR}/reframe
-export PYTHONPATH=${PYTHONPATH}:${TEMPDIR}/reframe
+git clone "${REFRAME_URL}" --branch "${REFRAME_BRANCH}" "${TEMPDIR}"/reframe
+export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/reframe
 
 # Clone test suite repo
-git clone ${EESSI_TESTSUITE_URL} --branch ${EESSI_TESTSUITE_BRANCH} ${TEMPDIR}/test-suite
-export PYTHONPATH=${PYTHONPATH}:${TEMPDIR}/test-suite/
+git clone "${EESSI_TESTSUITE_URL}" --branch "${EESSI_TESTSUITE_BRANCH}" "${TEMPDIR}"/test-suite
+export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/test-suite/
 
 # Start the EESSI environment
 unset MODULEPATH
-source /cvmfs/pilot.eessi-hpc.org/versions/${EESSI_VERSION}/init/bash
+if [ "${EESSI_VERSION}" = 'latest' ]; then
+    eessi_init_path=/cvmfs/pilot.eessi-hpc.org/latest/init/bash
+else
+    eessi_init_path=/cvmfs/pilot.eessi-hpc.org/versions/"${EESSI_VERSION}"/init/bash
+fi
+source "${eessi_init_path}"
 
 # Needed in order to make sure the reframe from our TEMPDIR is first on the PATH,
 # prior to the one shipped with the 2021.12 compat layer
 # Probably no longer needed with newer compat layer that doesn't include ReFrame
 deactivate
-source ${TEMPDIR}/reframe_venv/bin/activate
+source "${TEMPDIR}"/reframe_venv/bin/activate
 
 # Print ReFrame config
 echo "Starting CI run with the follwing settings:"
@@ -109,4 +114,4 @@ echo "Run tests:"
 reframe ${REFRAME_ARGS} --run
 
 # Cleanup
-rm -rf ${TEMPDIR}
+rm -rf "${TEMPDIR}"
