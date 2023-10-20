@@ -26,6 +26,7 @@ source ${CI_CONFIG}
 # Create virtualenv for ReFrame using system python
 python3 -m venv ${TEMPDIR}/reframe_venv
 source ${TEMPDIR}/reframe_venv/bin/activate
+python3 -m pip install --upgrade pip
 python3 -m pip install reframe-hpc==${REFRAME_VERSION}
 
 # Clone reframe repo to have the hpctestlib:
