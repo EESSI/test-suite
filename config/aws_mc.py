@@ -31,8 +31,8 @@ else:
 site_configuration = {
     'systems': [
         {
-            'name': 'citc',
-            'descr': 'Cluster in the Cloud build and test environment on AWS',
+            'name': 'Magic_Castle',
+            'descr': 'Magic Castle build and test environment on AWS',
             'modules_system': 'lmod',
             'hostnames': ['mgmt', 'login', 'fair-mastodon*'],
             'prefix': reframe_prefix,
