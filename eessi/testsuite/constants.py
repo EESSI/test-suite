@@ -42,7 +42,8 @@ SCALES = {
     # - num_nodes
     # - either node_part or (num_cpus_per_node and num_gpus_per_node)
     # num_cpus_per_node and num_gpus_per_node are upper limits:
-    # the actual number depends on the number of cpus, gpus, and sockets present in the node
+    # the actual count depends on the specific configuration of cores, gpus, and sockets within the node,
+    # as well as the specific test being carried out.
     '1_core': {'num_nodes': 1, 'num_cpus_per_node': 1, 'num_gpus_per_node': 1},
     '2_cores': {'num_nodes': 1, 'num_cpus_per_node': 2, 'num_gpus_per_node': 1},
     '4_cores': {'num_nodes': 1, 'num_cpus_per_node': 4, 'num_gpus_per_node': 1},
