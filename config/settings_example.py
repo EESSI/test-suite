@@ -1,12 +1,27 @@
+# WARNING: for CPU autodetect to work correctly you need to
+# 1. Either use ReFrame >= 4.3.3 or temporarily change the 'launcher' for each partition to srun
+# 2. Either use ReFrame >= 4.3.3 or run from a clone of the ReFrame repository
+# If your system has a GPU partition, it might force jobs to request at least one GPU. If that is the
+# case, you also need to temporarily change 'access' field for the GPU partition to include the request
+# for one GPU, e.g. 'access':  ['-p gpu', '--export=None', '--gres=gpu:1'],
+
+# Without this, the autodetect job fails because
+# 1. A missing mpirun command
+# 2. An incorrect directory structure is assumed when preparing the stagedir for the autodetect job
+
+# Related issues
+# 1. https://github.com/reframe-hpc/reframe/issues/2926
+# 2. https://github.com/reframe-hpc/reframe/issues/2914
+
+
 """
 Example configuration file
 """
-from os import environ
+import os
 
-from eessi.testsuite.constants import *
+from eessi.testsuite.common_config import common_logging_config, format_perfvars, perflog_format
+from eessi.testsuite.constants import *  # noqa: F403
 
-
-username = environ.get('USER')
 
 site_configuration = {
     'systems': [
@@ -16,37 +31,44 @@ site_configuration = {
             'modules_system': 'lmod',
             'hostnames': ['*'],
             # Note that the stagedir should be a shared directory available on all nodes running ReFrame tests
-            'stagedir': f'/some/shared/dir/{username}/reframe_output/staging',
+            'stagedir': f'/some/shared/dir/{os.environ.get("USER")}/reframe_output/staging',
             'partitions': [
                 {
                     'name': 'cpu_partition',
+                    'descr': 'CPU partition'
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
-                    'access':  ['-p cpu'],
+                    'access':  ['-p cpu', '--export=None'],
+                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
                     'environs': ['default'],
                     'max_jobs': 4,
-                    'processor': {
-                        'num_cpus': 128,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 64,
-                        'arch': 'zen2',
-                    },
+                    # We recommend to rely on ReFrame's CPU autodetection,
+                    # and only define the 'processor' field if autodetection fails
+                    # 'processor': {
+                        # 'num_cpus': 128,
+                        # 'num_sockets': 2,
+                        # 'num_cpus_per_socket': 64,
+                        # 'num_cpus_per_core': 1,
+                    # },
                     'features': [FEATURES[CPU]],
-                    'descr': 'CPU partition'
                 },
                 {
                     'name': 'gpu_partition',
+                    'descr': 'GPU partition'
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
-                    'access':  ['-p gpu'],
+                    'access':  ['-p gpu', '--export=None'],
+                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
                     'environs': ['default'],
                     'max_jobs': 4,
-                    'processor': {
-                        'num_cpus': 72,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 36,
-                        'arch': 'icelake',
-                    },
+                    # We recommend to rely on ReFrame's CPU autodetection,
+                    # and only define the 'processor' field if autodetection fails
+                    # 'processor': {
+                        # 'num_cpus': 72,
+                        # 'num_sockets': 2,
+                        # 'num_cpus_per_socket': 36,
+                        # 'num_cpus_per_core': 1,
+                    # },
                     'resources': [
                         {
                             'name': '_rfm_gpu',
@@ -66,7 +88,6 @@ site_configuration = {
                     'extras': {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },
-                    'descr': 'GPU partition'
                 },
             ]
         },
@@ -79,42 +100,22 @@ site_configuration = {
             'ftn': '',
         },
     ],
-    'logging': [
+    'logging': common_logging_config(),
+    'general': [
         {
-            'level': 'debug',
-            'handlers': [
-                {
-                    'type': 'stream',
-                    'name': 'stdout',
-                    'level': 'info',
-                    'format': '%(message)s'
-                },
-                {
-                    'type': 'file',
-                    'name': 'reframe.log',
-                    'level': 'debug',
-                    'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
-                    'append': True,
-                    'timestamp': "%Y%m%d_%H%M%S",
-                }
-            ],
-            'handlers_perflog': [
-                {
-                    'type': 'filelog',
-                    'prefix': '%(check_system)s/%(check_partition)s',
-                    'level': 'info',
-                    'format': (
-                        '%(check_job_completion_time)s|reframe %(version)s|'
-                        '%(check_info)s|jobid=%(check_jobid)s|'
-                        '%(check_perf_var)s=%(check_perf_value)s|'
-                        'ref=%(check_perf_ref)s '
-                        '(l=%(check_perf_lower_thres)s, '
-                        'u=%(check_perf_upper_thres)s)|'
-                        '%(check_perf_unit)s'
-                    ),
-                    'append': True
-                }
-            ]
+            # Enable automatic detection of CPU architecture for each partition
+            # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
+            'remote_detect': True,
         }
     ],
 }
+
+# optional logging to syslog
+site_configuration['logging'][0]['handlers_perflog'].append({
+    'type': 'syslog',
+    'address': '/dev/log',
+    'level': 'info',
+    'format': f'reframe: {perflog_format}',
+    'format_perfvars': format_perfvars,
+    'append': True,
+})

@@ -1,9 +1,26 @@
-from os import environ
+# WARNING: for CPU autodetect to work correctly you need to
+# 1. Either use ReFrame >= 4.3.3 or temporarily change the 'launcher' for each partition to srun
+# 2. Either use ReFrame >= 4.3.3 or run from a clone of the ReFrame repository
+# 3. Temporarily change the 'access' field for the GPU partition to
+# 'access':  ['-p gpu', '--export=None', '--exclusive'],
 
-from eessi.testsuite.constants import *
+# Without this, the autodetect job fails because
+# 1. A missing mpirun command
+# 2. An incorrect directory structure is assumed when preparing the stagedir for the autodetect job
+# 3. Snellius doesn't allow submission to the GPU partition without requesting at least one GPU
 
+# Related issues
+# 1. https://github.com/reframe-hpc/reframe/issues/2926
+# 2. https://github.com/reframe-hpc/reframe/issues/2914
 
-username = environ.get('USER')
+import os
+
+from eessi.testsuite.common_config import common_logging_config
+from eessi.testsuite.constants import *  # noqa: F403
+
+# This config will write all staging, output and logging to subdirs under this prefix
+# Override with RFM_PREFIX environment variable
+reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 
 # This is an example configuration file
 site_configuration = {
@@ -13,21 +30,36 @@ site_configuration = {
             'descr': 'Dutch National Supercomputer',
             'modules_system': 'lmod',
             'hostnames': ['int*', 'tcn*', 'hcn*', 'fcn*', 'gcn*', 'srv*'],
-            'stagedir': f'/scratch-shared/{username}/reframe_output/staging',
+            'prefix': reframe_prefix,
+            'stagedir': f'/scratch-shared/{os.environ.get("USER")}/reframe_output/staging',
             'partitions': [
                 {
-                    'name': 'thin',
+                    'name': 'rome',
                     'scheduler': 'slurm',
                     'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
                     'launcher': 'mpirun',
-                    'access':  ['-p thin', '--export=None'],
+                    'access':  ['-p rome', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
                     'features': [
                         FEATURES[CPU],
                     ],
-                    'descr': 'Test CPU partition with native EESSI stack'
+                    'descr': 'AMD Rome CPU partition with native EESSI stack'
                 },
+                {
+                    'name': 'genoa',
+                    'scheduler': 'slurm',
+                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
+                    'launcher': 'mpirun',
+                    'access':  ['-p genoa', '--export=None'],
+                    'environs': ['default'],
+                    'max_jobs': 120,
+                    'features': [
+                        FEATURES[CPU],
+                    ],
+                    'descr': 'AMD Genoa CPU partition with native EESSI stack'
+                },
+
                 {
                     'name': 'gpu',
                     'scheduler': 'slurm',
@@ -54,7 +86,7 @@ site_configuration = {
                     'extras': {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },
-                    'descr': 'Test GPU partition with native EESSI stack'
+                    'descr': 'Nvidia A100 GPU partition with native EESSI stack'
                 },
             ]
         },
@@ -67,49 +99,11 @@ site_configuration = {
             'ftn': '',
         },
     ],
-    'logging': [
-        {
-            'level': 'debug',
-            'handlers': [
-                {
-                    'type': 'stream',
-                    'name': 'stdout',
-                    'level': 'info',
-                    'format': '%(message)s'
-                },
-                {
-                    'type': 'file',
-                    'name': 'reframe.log',
-                    'level': 'debug',
-                    'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
-                    'append': True,
-                    'timestamp': "%Y%m%d_%H%M%S",
-                }
-            ],
-            'handlers_perflog': [
-                {
-                    'type': 'filelog',
-                    'prefix': '%(check_system)s/%(check_partition)s',
-                    'level': 'info',
-                    'format': (
-                        '%(check_job_completion_time)s|reframe %(version)s|'
-                        '%(check_info)s|jobid=%(check_jobid)s|'
-                        '%(check_perf_var)s=%(check_perf_value)s|'
-                        'ref=%(check_perf_ref)s '
-                        '(l=%(check_perf_lower_thres)s, '
-                        'u=%(check_perf_upper_thres)s)|'
-                        '%(check_perf_unit)s'
-                    ),
-                    'append': True
-                }
-            ]
-        }
-    ],
+    'logging': common_logging_config(reframe_prefix),
     'general': [
         {
-            # For autodetect to work, temporarily change:
-            # 1. The launchers to srun
-            # 2. Add --exclusive to GPU 'access' field above (avoids submission error that no GPUs are requested)
+            # Enable automatic detection of CPU architecture for each partition
+            # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
             'remote_detect': True,
         }
     ],

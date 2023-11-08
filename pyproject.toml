@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eessi-testsuite"
-version = "0.0.2"
+version = "0.1.0"
 description = "Test suite for the EESSI software stack"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -14,10 +14,8 @@ classifiers = [
 requires-python = ">=3.6"
 
 [project.urls]
-"Homepage" = "https://eessi.github.io/docs/software_testing/"
+"Homepage" = "https://eessi.io/docs/test-suite"
 "Bug Tracker" = "https://github.com/EESSI/test-suite/issues"
 
 [tool.setuptools.packages.find]
-where = ["eessi/testsuite"]
 include = ["eessi*"]
-namespaces = true

@@ -1,32 +1,35 @@
-from os import environ, makedirs
+# WARNING: for CPU autodetect to work correctly you need to
+# 1. Either use ReFrame >= 4.3.3 or temporarily change the 'launcher' for each partition to srun
+# 2. Either use ReFrame >= 4.3.3 or run from a clone of the ReFrame repository
+# 3. Temporarily change the 'access' field for the GPU partition to
+# 'access':  ['-p gpu', '--export=None', '--gres=gpu:1'],
 
-from eessi.testsuite.constants import *
+# Without this, the autodetect job fails because
+# 1. A missing mpirun command
+# 2. An incorrect directory structure is assumed when preparing the stagedir for the autodetect job
+# 3. Vega doesn't allow submission to the GPU partition without requesting at least one GPU (change #2)
 
-# Get username of current user
-homedir = environ.get('HOME')
+# Related issues
+# 1. https://github.com/reframe-hpc/reframe/issues/2926
+# 2. https://github.com/reframe-hpc/reframe/issues/2914
+
+import os
+
+from eessi.testsuite.common_config import common_logging_config
+from eessi.testsuite.constants import *  # noqa: F403
 
 # This config will write all staging, output and logging to subdirs under this prefix
-reframe_prefix = f'{homedir}/reframe_runs'
-log_prefix = f'{reframe_prefix}/logs'
-
-# ReFrame complains if the directory for the file logger doesn't exist yet
-makedirs(f'{log_prefix}', exist_ok=True)
+# Override with RFM_PREFIX environment variable
+reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 
 # This is an example configuration file
 site_configuration = {
-    'general': [
-        {
-            # Enable automatic detection of CPU architecture for each partition
-            # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
-            'remote_detect': True,
-        }
-    ],
     'systems': [
         {
             'name': 'vega',
             'descr': 'Vega, a EuroHPC JU system',
             'modules_system': 'lmod',
-            'hostnames': ['vglogin*','cn*','gn*'],
+            'hostnames': ['vglogin*', 'cn*', 'gn*'],
             'prefix': reframe_prefix,
             'partitions': [
                 {
@@ -42,7 +45,7 @@ site_configuration = {
                         # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
                         'export OMPI_MCA_pml=ucx',
                     ],
-                    'launcher': 'mpirun',  # Needs to be temporarily changed to srun for cpu autodetection
+                    'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
                     'access':  ['-p cpu', '--export=None'],
                     'environs': ['default'],
@@ -65,7 +68,7 @@ site_configuration = {
                         # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
                         'export OMPI_MCA_pml=ucx',
                     ],
-                    'launcher': 'mpirun',  # Needs to be temporarily changed to srun for cpu autodetection
+                    'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
                     'access':  ['-p gpu', '--export=None'],
                     'environs': ['default'],
@@ -87,9 +90,9 @@ site_configuration = {
                     ],
                     'descr': 'GPU partition, see https://en-doc.vega.izum.si/architecture/'
                 },
-             ]
-         },
-     ],
+            ]
+        },
+    ],
     'environments': [
         {
             'name': 'default',
@@ -97,46 +100,13 @@ site_configuration = {
             'cxx': '',
             'ftn': '',
         },
-     ],
-     'logging': [
+    ],
+    'logging': common_logging_config(reframe_prefix),
+    'general': [
         {
-            'level': 'debug',
-            'handlers': [
-                {
-                    'type': 'stream',
-                    'name': 'stdout',
-                    'level': 'info',
-                    'format': '%(message)s'
-                },
-                {
-                    'type': 'file',
-                    'name': f'{log_prefix}/reframe.log',
-                    'level': 'debug',
-                    'format': '[%(asctime)s] %(levelname)s: %(check_info)s: %(message)s',   # noqa: E501
-                    'append': True,
-                    'timestamp': "%Y%m%d_%H%M%S",
-                }
-            ],
-            'handlers_perflog': [
-                {
-                    'type': 'filelog',
-                    'prefix': f'{log_prefix}/%(check_system)s/%(check_partition)s',
-                    'level': 'info',
-                    'format': (
-                        '%(check_job_completion_time)s|reframe %(version)s|'
-                        '%(check_info)s|jobid=%(check_jobid)s|'
-                        '%(check_perfvalues)s'
-                    ),
-                    'format_perfvars': (
-                         '%(check_perf_var)s=%(check_perf_value)s|'
-                         'ref=%(check_perf_ref)s '
-                         '(l=%(check_perf_lower_thres)s, '
-                         'u=%(check_perf_upper_thres)s)|'
-                         '%(check_perf_unit)s|'
-                    ),
-                    'append': True
-                }
-            ]
+            # Enable automatic detection of CPU architecture for each partition
+            # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
+            'remote_detect': True,
         }
     ],
 }

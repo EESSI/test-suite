@@ -1,0 +1,19 @@
+This file contains a description of the major changes to the EESSI test suite.
+For more detailed information, please see the git log.
+
+v0.1.0 (5 October 2023)
+-----------------------
+
+This is the first release of the EESSI test suite.
+
+It includes:
+
+* A well-structured `eessi.testsuite` Python package that provides constants, utilities, hooks, and tests, which can be installed with "`pip install`".
+* Tests for GROMACS and TensorFlow in `eessi.testsuite.tests.apps` that leverage the functionality provided by `eessi.testsuite.*`.
+* Examples of ReFrame configuration files for various systems in the `config` subdirectory.
+* A `common_logging_config()` function to facilitate the ReFrame logging configuration.
+* A set of standard device types and features that can be used in the partitions section of the ReFrame configuration file.
+* A set of tags (CI + scale) that can be used to filter checks.
+* Scripts that show how to run the test suite.
+
+For documentation, see https://eessi.io/docs/test-suite .
