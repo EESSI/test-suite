@@ -6,8 +6,32 @@ import shlex
 
 import reframe as rfm
 
-from eessi.testsuite.constants import *
-from eessi.testsuite.utils import get_max_avail_gpus_per_node, is_cuda_required_module, log, check_proc_attribute_defined
+from eessi.testsuite.constants import *  # noqa
+from eessi.testsuite.utils import (get_max_avail_gpus_per_node, is_cuda_required_module, log,
+                                   check_proc_attribute_defined)
+
+
+def assign_default_num_cpus_per_node(test: rfm.RegressionTest):
+    """
+    Check if the default number of cpus per node is already defined in the test
+    (e.g. by earlier hooks like set_tag_scale).
+    If so, check if it doesn't exceed the maximum available.
+    If not, set default_num_cpus_per_node based on the maximum available cpus and node_part
+    """
+
+    if test.default_num_cpus_per_node:
+        # may skip if not enough CPUs
+        test.skip_if(
+            test.default_num_cpus_per_node > test.max_avail_cpus_per_node,
+            f'Requested CPUs per node ({test.default_num_cpus_per_node}) is higher than max available'
+            f' ({test.max_avail_cpus_per_node}) in current partition ({test.current_partition.name}).'
+        )
+    else:
+        # no default set yet, so setting one
+        test.default_num_cpus_per_node = int(test.max_avail_cpus_per_node / test.node_part)
+
+    log(f'default_num_cpus_per_node set to {test.default_num_cpus_per_node}')
+
 
 def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str):
     """
@@ -28,10 +52,10 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
     - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU]) will launch 64 tasks with 1 thread
     - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET]) will launch 2 tasks with 32 threads per task
 
-    Future work: 
+    Future work:
     Currently, on a single node with 2 sockets, 64 cores and 128 hyperthreads, this
-    - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU], true) will launch 128 tasks with 1 thread
-    - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET], true) will launch 2 tasks with 64 threads per task
+    - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU], true) launches 128 tasks with 1 thread
+    - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET], true) launches 2 tasks with 64 threads per task
     In the future, we'd like to add an arugment that disables spawning tasks for hyperthreads.
     """
     check_proc_attribute_defined(test, 'num_cpus')
@@ -48,22 +72,8 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
             f' default num_gpus_per_node ({test.default_num_gpus_per_node}) must be defined and have integer values.'
         )
 
-    # Check if the default number of cpus per node is already defined in the test
-    # (e.g. by earlier hooks like set_tag_scale).
-    # If so, check if it doesn't exceed the maximum available.
-    # If not, set default_num_cpus_per_node based on the maximum available cpus and node_part
-    if test.default_num_cpus_per_node:
-        # may skip if not enough CPUs
-        test.skip_if(
-            test.default_num_cpus_per_node > test.max_avail_cpus_per_node,
-            f'Requested CPUs per node ({test.default_num_cpus_per_node}) is higher than max available'
-            f' ({test.max_avail_cpus_per_node}) in current partition ({test.current_partition.name}).'
-        )
-    else:
-        # no default set yet, so setting one
-        test.default_num_cpus_per_node = int(test.max_avail_cpus_per_node / test.node_part)
+    assign_default_num_cpus_per_node(test)
 
-    log(f'default_num_cpus_per_node set to {test.default_num_cpus_per_node}')
 
     if compute_unit == COMPUTE_UNIT[GPU]:
         _assign_one_task_per_gpu(test)
@@ -74,21 +84,22 @@ def assign_one_task_per_compute_unit(test: rfm.RegressionTest, compute_unit: str
     else:
         raise ValueError(f'compute unit {compute_unit} is currently not supported')
 
+
 def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
     """
     Determines the number of tasks per node by dividing the default_num_cpus_per_node by
-    the number of cpus available per socket, and rounding up. The result is that for full-node jobs the default 
+    the number of cpus available per socket, and rounding up. The result is that for full-node jobs the default
     will spawn one task per socket, with a number of cpus per task equal to the number of cpus per socket.
     Other examples:
     - half a node (i.e. node_part=2) on a 4-socket system would result in 2 tasks per node,
     with number of cpus per task equal to the number of cpus per socket.
-    - 2 cores (i.e. default_num_cpus_per_node=2) on a 16 core system with 2 sockets would result in 
+    - 2 cores (i.e. default_num_cpus_per_node=2) on a 16 core system with 2 sockets would result in
     1 task per node, with 2 cpus per task
 
     This default is set unless the test is run with:
     --setvar num_tasks_per_node=<x> and/or
     --setvar num_cpus_per_task=<y>.
-    In those cases, those take precedence, and the remaining variable (num_cpus_per task or 
+    In those cases, those take precedence, and the remaining variable (num_cpus_per task or
     num_tasks_per_node respectively) is calculated based on the equality
     test.num_tasks_per_node * test.num_cpus_per_task == test.default_num_cpus_per_node.
 
@@ -127,6 +138,7 @@ def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
     log(f'Number of tasks per node set to: {test.num_tasks_per_node}')
     log(f'Number of cpus per task set to {test.num_cpus_per_task}')
     log(f'num_tasks set to {test.num_tasks}')
+
 
 def _assign_one_task_per_cpu(test: rfm.RegressionTest):
     """
@@ -335,7 +347,8 @@ def set_compact_process_binding(test: rfm.RegressionTest):
     # and when number of tasks times cpus per task equals either socket, core or thread count
     test.env_vars['SLURM_CPU_BIND'] = 'verbose'
     log(f'Set environment variable I_MPI_PIN_DOMAIN to {test.env_vars["I_MPI_PIN_DOMAIN"]}')
-    log(f'Set environment variable OMPI_MCA_rmaps_base_mapping_policy to {test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
+    log('Set environment variable OMPI_MCA_rmaps_base_mapping_policy to '
+        f'{test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
     log(f'Set environment variable SLURM_CPU_BIND to {test.env_vars["SLURM_CPU_BIND"]}')
 
 
@@ -352,7 +365,7 @@ def set_compact_thread_binding(test: rfm.RegressionTest):
     # Set thread binding
     test.env_vars['OMP_PLACES'] = 'cores'
     test.env_vars['OMP_PROC_BIND'] = 'close'
-    # See https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-8/thread-affinity-interface.html
+    # See https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-8/thread-affinity-interface.html  # noqa
     test.env_vars['KMP_AFFINITY'] = 'granularity=fine,compact,1,0'
     log(f'Set environment variable OMP_PLACES to {test.env_vars["OMP_PLACES"]}')
     log(f'Set environment variable OMP_PROC_BIND to {test.env_vars["OMP_PROC_BIND"]}')
