@@ -2,41 +2,33 @@
 This module tests the binary 'osu' in available modules containing substring 'OSU-Micro-Benchmarks'.
 The basic application class is taken from the hpctestlib to which extra features are added.
 """
-
-import os
 import reframe as rfm
-from reframe.core.meta import parameters
-import reframe.utility.sanity as sn
-
 from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
 
 from eessi.testsuite import hooks, utils
-from eessi.testsuite.constants import SCALES, TAGS, DEVICE_TYPES
+from eessi.testsuite.constants import CPU, SCALES, TAGS, DEVICE_TYPES, COMPUTE_UNIT
 
 def my_filtering_function():
     """
     Filtering function for filtering scales for the pt2pt OSU test
     """
-    scale_filtered = SCALES.copy()
-    for key in list(SCALES):
-        if(key == '1_core' or key == '4_cores' or
-           SCALES.get(key).get('num_nodes') > 2):
-            scale_filtered.pop(key)
-        elif('node_part' in SCALES.get(key)):
-            if(SCALES.get(key).get('node_part') > 1):
-                scale_filtered.pop(key)
-    return scale_filtered
+    return [
+        k for (k, v) in SCALES.items()
+        if v['num_nodes'] * v.get('num_cpus_per_node', 0) == 2
+        or (v['num_nodes'] == 2 and v.get('node_part', 0) == 1)
+        or (v['num_nodes'] == 1 and v.get('node_part', 0) == 1)
+    ]
 
 
 def my_filtering_function_coll():
     """
     Filtering function for filtering scales for collective the OSU test
     """
-    scale_filtered = SCALES.copy()
-    for key in list(SCALES):
-        if(key == '1_core'):
-            scale_filtered.pop(key)
-    return scale_filtered
+    return [
+        k for (k, v) in SCALES.items()
+        if (v['num_nodes'] * v.get('num_cpus_per_node', 1) > 1)
+        or (v.get('node_part', 0) > 0)
+    ]
 
 
 @rfm.simple_test
@@ -75,16 +67,46 @@ class osu_pt_2_pt(osu_benchmark):
 
     @run_after('init')
     def set_tag_ci(self):
+        """ Setting tests under CI tag. """
         if (self.benchmark_info[0] == 'mpi.pt2pt.osu_latency' or
            self.benchmark_info[0] == 'mpi.pt2pt.osu_bw'):
             self.tags.add('CI')
 
+        if (self.benchmark_info[0] == 'mpi.pt2pt.osu_bw'):
+            self.tags.add('osu_bw')
+
+        if (self.benchmark_info[0] == 'mpi.pt2pt.osu_latency'):
+            self.tags.add('osu_latency')
+
+    @run_after('init')
+    def set_mem(self):
+        """ Setting an extra job option of memory. This test has only 4
+        possibilities: 1_node, 2_nodes, 2_cores and 1_cpn_2_nodes. Only the
+        last 2 require the memory to be set. """
+        is_cuda_module = utils.is_cuda_required_module(self.module_name)
+        if(SCALES.get(self.scale).get('node_part', 0) == 0):
+            self.extra_resources = {'memory': {'size': '8GB'}}
+
+    @run_after('init')
+    def set_num_tasks(self):
+        """ Setting scales as tags. """
+        hooks.set_tag_scale(self)
 
     @run_after('init')
     def set_num_tasks_per_node(self):
         if(SCALES.get(self.scale).get('num_nodes') == 1):
             self.num_tasks_per_node = 2
+        else:
+            self.num_tasks_per_node = 1
 
+    @run_after('setup')
+    def set_num_cpus_per_task(self):
+        """ Since num_tasks_per_node is already set. This function sets
+        num_cpus_per_task for 1 node and 2 node options. For """
+        if(SCALES.get(self.scale).get('num_nodes') == 1 and
+           SCALES.get(self.scale).get('node_part', 0) == 1):
+            hooks.assign_one_task_per_compute_unit(self,
+                                                   COMPUTE_UNIT.get(CPU, 'cpu'))
 
     @run_after('setup')
     def set_num_gpus_per_node(self):
@@ -101,18 +123,37 @@ class osu_pt_2_pt(osu_benchmark):
                 # The devices section is sort of hard coded. This needs to be
                 # amended for a more heterogeneous system with more than one
                 # device type.
+
+                # Even for 1_cpn_2_nodes, the gpus requested are for the full
+                # nodes. On Snellius 1 GPU card cannot be reserved on 2
+                # different nodes which can be different on different systems.
                 self.num_gpus_per_node = \
                     self.current_partition.devices[0].num_devices
         elif('gpu' in self.current_partition.features and
              utils.is_cuda_required_module(self.module_name)):
+            max_avail_gpus_per_node = \
+                    self.current_partition.devices[0].num_devices
             if(SCALES.get(self.scale).get('num_nodes') == 1):
-                self.num_gpus_per_node = 2
+                # Skip the single node test if there is only 1 device in the 
+                # node.
+                if(max_avail_gpus_per_node == 1):
+                    self.skip(msg="There is only 1 device within the node. Skipping tests involving only 1 node.")
+                else:
+                    self.num_gpus_per_node = 2
             else:
                 # The devices section is sort of hard coded. This needs to be
                 # amended for a more heterogeneous system with more than one
                 # device type.
-                self.num_gpus_per_node = \
-                    self.current_partition.devices[0].num_devices
+
+                # Note these settings are for 1_cpn_2_nodes. In that case we
+                # want to test for only 1 GPU per node since we have not
+                # requested for full nodes.
+                if(SCALES.get(self.scale).get('num_gpus_per_node', 0)):
+                    self.num_gpus_per_node = \
+                        SCALES.get(self.scale).get('num_gpus_per_node', 0)
+                else:
+                    self.num_gpus_per_node = \
+                        self.current_partition.devices[0].num_devices
 
 
 @rfm.simple_test
@@ -193,11 +234,7 @@ class osu_coll(osu_benchmark):
                     self.current_partition.devices[0].num_devices
             if(max_avail_gpus_per_node == 1 and
                     SCALES.get(self.scale).get('num_nodes') == 1):
-                raise ValueError(
-                                 "There is only 1 device within the node."
-                                 "There is no point of performing collective\
-                                  operations on 1 device."
-                                )
+                self.skip(msg="There is only 1 device within the node. Skipping collective tests involving only 1 node.")
             else:
                 if (SCALES.get(self.scale).get('num_nodes') == 1):
                     if (SCALES.get(self.scale).get('node_part') is not None):
@@ -243,11 +280,7 @@ class osu_coll(osu_benchmark):
                     self.current_partition.devices[0].num_devices
             if(max_avail_gpus_per_node == 1 and
                     SCALES.get(self.scale).get('num_nodes') == 1):
-                raise ValueError(
-                                 "There is only 1 device within the node."
-                                 "There is no point of performing collective\
-                                  operations on 1 device."
-                                )
+                self.skip(msg="There is only 1 device within the node. Skipping collective tests involving only 1 node.")
             else:
                 if (SCALES.get(self.scale).get('num_nodes') == 1):
                     if (SCALES.get(self.scale).get('node_part') is not None):
@@ -266,31 +299,3 @@ class osu_coll(osu_benchmark):
 
                 else:
                     self.num_gpus_per_node = max_avail_gpus_per_node
-
-
-#    @run_after('setup')
-#    def set_executable_opts(self):
-#        """
-#        Add extra executable_opts or ones that override default ones such as
-#        message sizes, unless specified via --setvar executable_opts=<x>
-#        """
-#        bench, bench_metric = self.benchmark_info
-#        if bench.startswith('mpi.pt2pt'):
-#            num_default = 8  # normalized number of executable opts added by parent class (osu_benchmark)
-#        elif self.device_buffers != 'cpu':
-#            num_default = 10
-#        else:
-#            num_default = 6
-#        hooks.check_custom_executable_opts(self, num_default=num_default)
-
-#    @run_after('setup')
-#    def run_after_setup(self):
-#        """Hooks to run after the setup phase"""
-#
-#        # Calculate default requested resources based on the scale:
-#        # 1 task per CPU for CPU-only tests, 1 task per GPU for GPU tests.
-#        # Also support setting the resources on the cmd line.
-#        hooks.assign_one_task_per_compute_unit(test=self, compute_unit=self.nb_impl)
-
-# TODO: Set slurm options per rack, switch.
-# TODO: Override already existing message sizes if specified.
