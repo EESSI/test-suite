@@ -19,6 +19,12 @@ site_configuration = {
                     'environs': ['default'],
                     'features': [FEATURES[CPU]],
                     'processor': {'num_cpus': 2},
+                    'resources': [
+                        {
+                            'name': 'memory',
+                            'options': ['--mem={size}'],
+                        }
+                    ],
                     'max_jobs': 1
                     }
                 ]
