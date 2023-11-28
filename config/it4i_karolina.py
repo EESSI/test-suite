@@ -29,7 +29,7 @@ site_configuration = {
             'name': 'karolina',
             'descr': 'Karolina, a EuroHPC JU system',
             'modules_system': 'lmod',
-            'hostnames': ['vglogin*', 'cn*', 'gn*'],
+            'hostnames': ['login*', 'acn*', 'cn*'],
             'prefix': reframe_prefix,
             'partitions': [
                 {
