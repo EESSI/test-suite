@@ -41,6 +41,12 @@ site_configuration = {
                     'access':  ['-p rome', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
+                    'resources': [
+                        {
+                            'name': 'memory',
+                            'options': ['--mem={size}'],
+                        }
+                    ],
                     'features': [
                         FEATURES[CPU],
                     ],
@@ -54,6 +60,12 @@ site_configuration = {
                     'access':  ['-p genoa', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
+                    'resources': [
+                        {
+                            'name': 'memory',
+                            'options': ['--mem={size}'],
+                        }
+                    ],
                     'features': [
                         FEATURES[CPU],
                     ],
@@ -78,6 +90,10 @@ site_configuration = {
                         {
                             'name': '_rfm_gpu',
                             'options': ['--gpus-per-node={num_gpus_per_node}'],
+                        },
+                        {
+                            'name': 'memory',
+                            'options': ['--mem={size}'],
                         }
                     ],
                     'features': [
