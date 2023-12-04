@@ -45,6 +45,12 @@ site_configuration = {
                         'num_cpus_per_core': 1,
                         'arch': 'zen2',
                     },
+                    'resources': [
+                        {
+                            'name': 'memory',
+                            'options': ['--mem={size}'],
+                        }
+                    ],
                     'features': [
                         FEATURES[CPU],
                     ],
@@ -66,6 +72,12 @@ site_configuration = {
                         'num_cpus_per_core': 1,
                         'arch': 'zen2',
                     },
+                    'resources': [
+                        {
+                            'name': 'memory',
+                            'options': ['--mem={size}'],
+                        }
+                    ],
                     'features': [
                         FEATURES[CPU],
                     ],
@@ -87,6 +99,12 @@ site_configuration = {
                         'num_cpus_per_core': 1,
                         'arch': 'zen3',
                     },
+                    'resources': [
+                        {
+                            'name': 'memory',
+                            'options': ['--mem={size}'],
+                        }
+                    ],
                     'features': [
                         FEATURES[CPU],
                     ],
@@ -118,6 +136,10 @@ site_configuration = {
                         {
                             'name': '_rfm_gpu',
                             'options': ['--gpus-per-node={num_gpus_per_node}'],
+                        },
+                        {
+                            'name': 'memory',
+                            'options': ['--mem={size}'],
                         }
                     ],
                     'devices': [
@@ -155,6 +177,10 @@ site_configuration = {
                         {
                             'name': '_rfm_gpu',
                             'options': ['--gpus-per-node={num_gpus_per_node}'],
+                        },
+                        {
+                            'name': 'memory',
+                            'options': ['--mem={size}'],
                         }
                     ],
                     'devices': [
