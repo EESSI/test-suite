@@ -102,8 +102,9 @@ class osu_pt_2_pt(osu_benchmark):
     @run_after('setup')
     def set_num_cpus_per_task(self):
         """ Since num_tasks_per_node is already set. This function sets
-        num_cpus_per_task for 1 node and 2 node options. For """
-        if(SCALES.get(self.scale).get('num_nodes') == 1 and
+        num_cpus_per_task for 1 node and 2 node options where the request is
+        for full nodes."""
+        if(SCALES.get(self.scale).get('num_nodes') >= 1 and
            SCALES.get(self.scale).get('node_part', 0) == 1):
             hooks.assign_one_task_per_compute_unit(self,
                                                    COMPUTE_UNIT.get(CPU, 'cpu'))
