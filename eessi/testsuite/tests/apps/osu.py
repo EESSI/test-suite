@@ -85,7 +85,7 @@ class osu_pt_2_pt(osu_benchmark):
         last 2 require the memory to be set. """
         is_cuda_module = utils.is_cuda_required_module(self.module_name)
         if(SCALES.get(self.scale).get('node_part', 0) == 0):
-            self.extra_resources = {'memory': {'size': '8GB'}}
+            self.extra_resources = {'memory': {'size': '32GB'}}
 
     @run_after('init')
     def set_num_tasks(self):
