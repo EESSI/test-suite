@@ -15,7 +15,7 @@
 
 import os
 
-from eessi.testsuite.common_config import common_logging_config
+from eessi.testsuite.common_config import common_logging_config, common_eessi_init
 from eessi.testsuite.constants import *  # noqa: F403
 
 # This config will write all staging, output and logging to subdirs under this prefix
@@ -36,7 +36,7 @@ site_configuration = {
                 {
                     'name': 'rome',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
+                    'prepare_cmds': ['source %s' % common_eessi_init()],
                     'launcher': 'mpirun',
                     'access':  ['-p rome', '--export=None'],
                     'environs': ['default'],
@@ -55,7 +55,7 @@ site_configuration = {
                 {
                     'name': 'genoa',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
+                    'prepare_cmds': ['source %s' % common_eessi_init()],
                     'launcher': 'mpirun',
                     'access':  ['-p genoa', '--export=None'],
                     'environs': ['default'],
@@ -75,7 +75,7 @@ site_configuration = {
                 {
                     'name': 'gpu',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
+                    'prepare_cmds': ['source %s' % common_eessi_init()],
                     'launcher': 'mpirun',
                     'access':  ['-p gpu', '--export=None'],
                     'environs': ['default'],
