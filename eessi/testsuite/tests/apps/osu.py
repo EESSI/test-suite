@@ -6,7 +6,10 @@ import reframe as rfm
 from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
 
 from eessi.testsuite import hooks, utils
-from eessi.testsuite.constants import CPU, SCALES, TAGS, DEVICE_TYPES, COMPUTE_UNIT
+from eessi.testsuite.constants import CPU, SCALES, TAGS, DEVICE_TYPES,\
+        COMPUTE_UNIT, GPU, GPU_VENDOR, FEATURES, GPU_VENDORS, NVIDIA
+from eessi.testsuite.utils import find_modules, log
+
 
 def my_filtering_function():
     """
@@ -38,10 +41,10 @@ class osu_pt_2_pt(osu_benchmark):
     valid_prog_environs = ['default']
     valid_systems = []
     time_limit = '30m'
-    module_name = parameter(utils.find_modules('OSU-Micro-Benchmarks'))
+    module_name = parameter(find_modules('OSU-Micro-Benchmarks'))
     # Device type for non-cuda OSU-Micro-Benchmarks should run on hosts of both
     # node types. To do this the default device type is set to GPU.
-    device_type = DEVICE_TYPES['GPU']
+    device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
 
 
     @run_after('init')
@@ -51,14 +54,22 @@ class osu_pt_2_pt(osu_benchmark):
                self,
                required_device_type=self.device_type)
         is_cuda_module = utils.is_cuda_required_module(self.module_name)
-        # This part of the hook is meant to be for the OSU cpu tests.
-        if not is_cuda_module and self.device_type == DEVICE_TYPES['GPU']:
-            self.valid_systems = ['*']
+        # This part of the hook is meant to be for the OSU cpu tests. This is
+        # required since the non CUDA module should be able to run in the GPU
+        # partition as well. This is specific for this test and not covered by
+        # the function above.
+        if not is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
+            self.valid_systems = [f'+{FEATURES[GPU]} %{GPU_VENDOR}={GPU_VENDORS[NVIDIA]}']
             self.device_buffers = 'cpu'
-        elif is_cuda_module and self.device_type == DEVICE_TYPES['GPU']:
+        elif is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
             # Currently the device buffer is hard coded to be cuda. More
             # options need to be introduced based on vendor and device type.
             self.device_buffers = 'cuda'
+
+        # If the device_type is CPU then device buffer should always be CPU.
+        if self.device_type == DEVICE_TYPES[CPU]:
+            self.device_buffers = 'cpu'
+
         # This part of the code removes the collective communication calls out
         # of the run list since this test is only meant for pt2pt.
         if not self.benchmark_info[0].startswith('mpi.pt2pt'):
@@ -68,9 +79,10 @@ class osu_pt_2_pt(osu_benchmark):
     @run_after('init')
     def set_tag_ci(self):
         """ Setting tests under CI tag. """
-        if (self.benchmark_info[0] == 'mpi.pt2pt.osu_latency' or
-           self.benchmark_info[0] == 'mpi.pt2pt.osu_bw'):
+        if (self.benchmark_info[0] in ['mpi.pt2pt.osu_latency',
+                                       'mpi.pt2pt.osu_bw']):
             self.tags.add('CI')
+            log(f'tags set to {self.tags}')
 
         if (self.benchmark_info[0] == 'mpi.pt2pt.osu_bw'):
             self.tags.add('osu_bw')
