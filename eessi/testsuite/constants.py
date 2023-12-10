@@ -9,6 +9,7 @@ CPU_SOCKET = 'CPU_SOCKET'
 GPU = 'GPU'
 GPU_VENDOR = 'GPU_VENDOR'
 INTEL = 'INTEL'
+NODE = 'NODE'
 NVIDIA = 'NVIDIA'
 
 DEVICE_TYPES = {
@@ -20,6 +21,7 @@ COMPUTE_UNIT = {
     CPU: 'cpu',
     CPU_SOCKET: 'cpu_socket',
     GPU: 'gpu',
+    NODE: 'node',
 }
 
 TAGS = {

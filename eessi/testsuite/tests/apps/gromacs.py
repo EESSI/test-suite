@@ -89,7 +89,7 @@ class GROMACS_EESSI(gromacs_check):
         # Calculate default requested resources based on the scale:
         # 1 task per CPU for CPU-only tests, 1 task per GPU for GPU tests.
         # Also support setting the resources on the cmd line.
-        hooks.assign_one_task_per_compute_unit(test=self, compute_unit=self.nb_impl)
+        hooks.assign_tasks_per_compute_unit(test=self, compute_unit=self.nb_impl)
 
     @run_after('setup')
     def set_omp_num_threads(self):
