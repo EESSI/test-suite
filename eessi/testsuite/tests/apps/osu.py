@@ -6,8 +6,7 @@ import reframe as rfm
 from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
 
 from eessi.testsuite import hooks, utils
-from eessi.testsuite.constants import CPU, SCALES, TAGS, DEVICE_TYPES,\
-        COMPUTE_UNIT, GPU, GPU_VENDOR, FEATURES, GPU_VENDORS, NVIDIA
+from eessi.testsuite.constants import *
 from eessi.testsuite.utils import find_modules, log
 
 
