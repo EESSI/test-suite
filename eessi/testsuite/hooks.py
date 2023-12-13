@@ -106,8 +106,9 @@ def _assign_num_tasks_per_node(test: rfm.RegressionTest, num_per: int = 1):
     - num_cpus_per_task = test.default_num_cpus_per_node / num_tasks_per_node
     """
 
-    # OSU test inherits a default num_tasks_per_node = 1 from hpctestlib.
-    # There has to be a condition where a non-default value of num_per replaces the original num_tasks_per_node.
+    # OSU test inherits a default num_tasks_per_node = 1 from hpctestlib. There
+    # has to be a condition where a non-default value of num_per replaces the
+    # original num_tasks_per_node.
     if test.num_tasks_per_node and num_per != 1:
         if test.num_tasks_per_node != num_per:
             test.num_tasks_per_node = num_per
