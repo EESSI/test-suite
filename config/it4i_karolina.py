@@ -26,14 +26,14 @@ reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 site_configuration = {
     'systems': [
         {
-            'name': 'vega',
-            'descr': 'Vega, a EuroHPC JU system',
+            'name': 'karolina',
+            'descr': 'Karolina, a EuroHPC JU system',
             'modules_system': 'lmod',
-            'hostnames': ['vglogin*', 'cn*', 'gn*'],
+            'hostnames': ['login*', 'acn*', 'cn*'],
             'prefix': reframe_prefix,
             'partitions': [
                 {
-                    'name': 'cpu',
+                    'name': 'qcpu',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
                         'source %s' % common_eessi_init(),
@@ -47,59 +47,50 @@ site_configuration = {
                     ],
                     'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
-                    'access':  ['-p cpu', '--export=None'],
+                    'access':  ['-p qcpu', '-A DD-23-96', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'features': [
                         FEATURES[CPU],
                     ],
-                    'descr': 'CPU partition Standard, see https://en-doc.vega.izum.si/architecture/'
+                    'descr': 'CPU Universal Compute Nodes, see https://docs.it4i.cz/karolina/hardware-overview/'
                 },
-                {
-                    'name': 'gpu',
-                    'scheduler': 'slurm',
-                    'prepare_cmds': [
-                        'source %s' % common_eessi_init(),
-                        # Pass job environment variables like $PATH, etc., into job steps
-                        'export SLURM_EXPORT_ENV=ALL',
-                        # Needed when using srun launcher
-                        # 'export SLURM_MPI_TYPE=pmix',  # WARNING: this broke the GROMACS on Vega
-                        # Avoid https://github.com/EESSI/software-layer/issues/136
-                        # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
-                        'export OMPI_MCA_pml=ucx',
-                    ],
-                    'launcher': 'mpirun',
-                    # Use --export=None to avoid that login environment is passed down to submitted jobs
-                    'access':  ['-p gpu', '--export=None'],
-                    'environs': ['default'],
-                    'max_jobs': 60,
-                    'devices': [
-                        {
-                            'type': DEVICE_TYPES[GPU],
-                            'num_devices': 4,
-                        }
-                    ],
-                    'resources': [
-                        {
-                            'name': '_rfm_gpu',
-                            'options': ['--gpus-per-node={num_gpus_per_node}'],
-                        },
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
-                    'features': [
-                        FEATURES[GPU],
-                    ],
-                    'descr': 'GPU partition, see https://en-doc.vega.izum.si/architecture/'
-                },
+# We don't have GPU budget on Karolina at this time
+#                 {
+#                     'name': 'qgpu',
+#                     'scheduler': 'slurm',
+#                     'prepare_cmds': [
+#                         'source %s' % common_eessi_init(),
+#                         # Pass job environment variables like $PATH, etc., into job steps
+#                         'export SLURM_EXPORT_ENV=ALL',
+#                         # Needed when using srun launcher
+#                         # 'export SLURM_MPI_TYPE=pmix',  # WARNING: this broke the GROMACS on Vega
+#                         # Avoid https://github.com/EESSI/software-layer/issues/136
+#                         # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
+#                         'export OMPI_MCA_pml=ucx',
+#                     ],
+#                     'launcher': 'mpirun',
+#                     # Use --export=None to avoid that login environment is passed down to submitted jobs
+#                     'access':  ['-p gpu', '-A DD-23-96', '--export=None'],
+#                     'environs': ['default'],
+#                     'max_jobs': 60,
+#                     'devices': [
+#                         {
+#                             'type': DEVICE_TYPES[GPU],
+#                             'num_devices': 8,
+#                         }
+#                     ],
+#                     'resources': [
+#                         {
+#                             'name': '_rfm_gpu',
+#                             'options': ['--gpus-per-node={num_gpus_per_node}'],
+#                         }
+#                     ],
+#                     'features': [
+#                         FEATURES[GPU],
+#                     ],
+#                     'descr': 'GPU partition with accelerated nodes, see https://docs.it4i.cz/karolina/hardware-overview/'
+#                 },
             ]
         },
     ],

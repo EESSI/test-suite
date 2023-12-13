@@ -12,7 +12,7 @@
 
 import os
 
-from eessi.testsuite.common_config import common_logging_config
+from eessi.testsuite.common_config import common_logging_config, common_eessi_init
 from eessi.testsuite.constants import FEATURES
 
 # This config will write all staging, output and logging to subdirs under this prefix
@@ -224,7 +224,7 @@ partition_defaults = {
         FEATURES['CPU']
     ],
     'prepare_cmds': [
-        'source /cvmfs/pilot.eessi-hpc.org/latest/init/bash',
+        'source %s' % common_eessi_init(),
         # Required when using srun as launcher with --export=NONE in partition access, in order to ensure job
         # steps inherit environment. It doesn't hurt to define this even if srun is not used
         'export SLURM_EXPORT_ENV=ALL'

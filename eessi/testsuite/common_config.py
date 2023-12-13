@@ -68,3 +68,16 @@ def common_logging_config(prefix=None):
             },
         ],
     }]
+
+def common_eessi_init(eessi_version=None):
+    """
+    Returns the full path that should be sourced to initialize the EESSI environment for a given version of EESSI.
+    If no eessi_version is passed, the EESSI_VERSION environment variable is read. If that is also not defined, default behaviour is to use `latest`.
+    :param eessi_version: version of EESSI that should be sourced (e.g. '2023.06' or 'latest') [optional]
+    """
+    if eessi_version == None:
+        eessi_version = os.getenv('EESSI_VERSION', 'latest')
+    if eessi_version == 'latest':
+        return '/cvmfs/pilot.eessi-hpc.org/latest/init/bash'
+    else:
+        return '/cvmfs/pilot.eessi-hpc.org/versions/%s/init/bash' % eessi_version
