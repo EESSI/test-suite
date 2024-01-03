@@ -1,6 +1,11 @@
 """
-This module tests the binary 'osu' in available modules containing substring 'OSU-Micro-Benchmarks'.
-The basic application class is taken from the hpctestlib to which extra features are added.
+This module tests the binary 'osu' in available modules containing substring
+'OSU-Micro-Benchmarks'. The basic application class is taken from the
+hpctestlib to which extra features are added.
+
+Note: OSU-Micro-Benchmarks CUDA module binaries must be linked to stubs so that
+it at the least finds libcuda.so.1 on non-GPU nodes. Otherwise those tests will
+FAIL.
 """
 import reframe as rfm
 from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
@@ -44,7 +49,7 @@ class osu_pt_2_pt(osu_benchmark):
     # Device type for non-cuda OSU-Micro-Benchmarks should run on hosts of both
     # node types. To do this the default device type is set to GPU.
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
-
+    num_tasks_per_node = None
 
     @run_after('init')
     def run_after_init(self):
@@ -57,13 +62,23 @@ class osu_pt_2_pt(osu_benchmark):
         # required since the non CUDA module should be able to run in the GPU
         # partition as well. This is specific for this test and not covered by
         # the function above.
-        if not is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
-            self.valid_systems = [f'+{FEATURES[GPU]} %{GPU_VENDOR}={GPU_VENDORS[NVIDIA]}']
-            self.device_buffers = 'cpu'
-        elif is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
+        # if not is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
+        #     self.valid_systems = [f'+{FEATURES[GPU]} %{GPU_VENDOR}={GPU_VENDORS[NVIDIA]}']
+        #     self.device_buffers = 'cpu'
+        # elif is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
+        #     # Currently the device buffer is hard coded to be cuda. More
+        #     # options need to be introduced based on vendor and device type.
+        #     self.device_buffers = 'cuda'
+        if is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
             # Currently the device buffer is hard coded to be cuda. More
             # options need to be introduced based on vendor and device type.
             self.device_buffers = 'cuda'
+        elif is_cuda_module and self.device_type == DEVICE_TYPES[CPU]:
+            # This if condition had to be added since the CUDA compiled osu
+            # tests do not run on cpu partitions. The binaries need
+            # libcuda.so.1 during runtime which can only be found in a
+            # partition with CUDA drivers.
+            self.valid_systems = [f'+{FEATURES[CPU]} +{FEATURES[GPU]} %{GPU_VENDOR}={GPU_VENDORS[NVIDIA]}']
 
         # If the device_type is CPU then device buffer should always be CPU.
         if self.device_type == DEVICE_TYPES[CPU]:
@@ -106,15 +121,15 @@ class osu_pt_2_pt(osu_benchmark):
     @run_after('setup')
     def set_num_tasks_per_node(self):
         """ Setting number of tasks per node and cpus per task in this function.
-        This function sets num_cpus_per_task for 1 node and 2 node options where 
+        This function sets num_cpus_per_task for 1 node and 2 node options where
         the request is for full nodes."""
         if(SCALES.get(self.scale).get('num_nodes') == 1):
-            print("test: ", self.num_tasks_per_node)
             hooks.assign_tasks_per_compute_unit(self,
                                                    COMPUTE_UNIT.get(NODE,
                                                                     'node'), 2)
         else:
-            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(NODE, 'node'))
+            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(NODE,
+                                                                       'node'))
 
     @run_after('setup')
     def set_num_gpus_per_node(self):
