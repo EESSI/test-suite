@@ -6,7 +6,7 @@
 from reframe.core.backends import register_launcher
 from reframe.core.launchers import JobLauncher
 
-from eessi.testsuite.common_config import common_logging_config, common_eessi_init()
+from eessi.testsuite.common_config import common_logging_config, common_eessi_init
 from eessi.testsuite.constants import *  # noqa: F403
 
 account = "my-slurm-account"
