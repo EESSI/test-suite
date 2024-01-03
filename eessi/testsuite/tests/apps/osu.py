@@ -49,6 +49,7 @@ class osu_pt_2_pt(osu_benchmark):
     # Device type for non-cuda OSU-Micro-Benchmarks should run on hosts of both
     # node types. To do this the default device type is set to GPU.
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
+    # unset num_tasks_per_node from the hpctestlib.
     num_tasks_per_node = None
 
     @run_after('init')
