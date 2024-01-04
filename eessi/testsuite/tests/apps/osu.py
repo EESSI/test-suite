@@ -110,7 +110,6 @@ class osu_pt_2_pt(osu_benchmark):
         """ Setting an extra job option of memory. This test has only 4
         possibilities: 1_node, 2_nodes, 2_cores and 1_cpn_2_nodes. Only the
         last 2 require the memory to be set. """
-        is_cuda_module = utils.is_cuda_required_module(self.module_name)
         if(SCALES.get(self.scale).get('node_part', 0) == 0):
             self.extra_resources = {'memory': {'size': '32GB'}}
 
@@ -158,7 +157,7 @@ class osu_pt_2_pt(osu_benchmark):
             max_avail_gpus_per_node = \
                     self.current_partition.devices[0].num_devices
             if(SCALES.get(self.scale).get('num_nodes') == 1):
-                # Skip the single node test if there is only 1 device in the 
+                # Skip the single node test if there is only 1 device in the
                 # node.
                 if(max_avail_gpus_per_node == 1):
                     self.skip(msg="There is only 1 device within the node. Skipping tests involving only 1 node.")
@@ -191,7 +190,9 @@ class osu_coll(osu_benchmark):
     module_name = parameter(utils.find_modules('OSU-Micro-Benchmarks'))
     # Device type for non-cuda OSU-Micro-Benchmarks should run on hosts of both
     # node types. To do this the default device type is set to GPU.
-    device_type = DEVICE_TYPES['GPU']
+    device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
+    # unset num_tasks_per_node from hpctestlib
+    num_tasks_per_node = None
 
 
     @run_after('init')
@@ -202,13 +203,27 @@ class osu_coll(osu_benchmark):
                required_device_type=self.device_type)
         is_cuda_module = utils.is_cuda_required_module(self.module_name)
         # This part of the hook is meant to be for the OSU cpu tests.
-        if not is_cuda_module and self.device_type == DEVICE_TYPES['GPU']:
-            self.valid_systems = ['*']
-            self.device_buffers = 'cpu'
-        elif is_cuda_module and self.device_type == DEVICE_TYPES['GPU']:
+#        if not is_cuda_module and self.device_type == DEVICE_TYPES['GPU']:
+#            self.valid_systems = ['*']
+#            self.device_buffers = 'cpu'
+#       elif is_cuda_module and self.device_type == DEVICE_TYPES['GPU']:
+#           # Currently the device buffer is hard coded to be cuda. More
+#           # options need to be introduced based on vendor and device type.
+#           self.device_buffers = 'cuda'
+        if is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
             # Currently the device buffer is hard coded to be cuda. More
             # options need to be introduced based on vendor and device type.
             self.device_buffers = 'cuda'
+        elif is_cuda_module and self.device_type == DEVICE_TYPES[CPU]:
+            # This if condition had to be added since the CUDA compiled osu
+            # tests do not run on cpu partitions. The binaries need
+            # libcuda.so.1 during runtime which can only be found in a
+            # partition with CUDA drivers.
+            self.valid_systems = [f'+{FEATURES[CPU]} +{FEATURES[GPU]} %{GPU_VENDOR}={GPU_VENDORS[NVIDIA]}']
+
+        # If the device_type is CPU then device buffer should always be CPU.
+        if self.device_type == DEVICE_TYPES[CPU]:
+            self.device_buffers = 'cpu'
         # This part of the code removes the collective communication calls out
         # of the run list since this test is only meant for collective.
         if not self.benchmark_info[0].startswith('mpi.collective'):
@@ -221,105 +236,76 @@ class osu_coll(osu_benchmark):
         if (self.benchmark_info[0] == 'mpi.collective.osu_allreduce' or
            self.benchmark_info[0] == 'mpi.collective.osu_alltoall'):
             self.tags.add('CI')
+        if (self.benchmark_info[0] == 'mpi.collective.osu_allreduce'):
+            self.tags.add('osu_allreduce')
 
+        if (self.benchmark_info[0] == 'mpi.collective.osu_alltoall'):
+            self.tags.add('osu_alltoall')
+
+
+    @run_after('init')
+    def set_mem(self):
+        """ Setting an extra job option of memory."""
+        if(SCALES.get(self.scale).get('node_part', 0) != 1):
+            self.extra_resources = {'memory': {'size': '64GB'}}
 
     @run_after('init')
     def set_num_tasks(self):
         hooks.set_tag_scale(self)
 
-
     @run_after('setup')
-    def run_after_setup(self):
-        """Hooks to run after the setup phase"""
-        # Calculate default requested resources based on the scale:
-        # 1 task per CPU for CPU-only tests, 1 task per GPU for GPU tests.
-        # Also support setting the resources on the cmd line.
-        # CPU settings for cpu based tests
-        # Setting num_tasks
+    def set_num_tasks_per_node(self):
+        """ Setting number of tasks per node, cpus per task and gpus per node
+        in this function. This function sets num_cpus_per_task for 1 node and 2
+        node options where the request is for full nodes."""
         max_avail_cpus_per_node = self.current_partition.processor.num_cpus
-        self.num_tasks = max_avail_cpus_per_node * SCALES.get(self.scale).get('num_nodes')
-        if (SCALES.get(self.scale).get('node_part') is not None):
-            self.num_tasks = int(self.num_tasks/SCALES.get(self.scale).get('node_part'))
-        elif (SCALES.get(self.scale).get('num_cpus_per_node') is not None):
-            self.num_tasks = SCALES.get(self.scale).get('num_cpus_per_node')
+        if(self.device_buffers == 'cpu'):
+            # Setting num_tasks and num_tasks_per_node for the CPU tests
+            if(SCALES.get(self.scale).get('num_cpus_per_node', 0)):
+                hooks.assign_tasks_per_compute_unit(self,
+                                                    COMPUTE_UNIT.get(NODE,
+                                                                     'node'),
+                                                    self.default_num_cpus_per_node)
+            elif(SCALES.get(self.scale).get('node_part', 0)):
+                pass_num_per = int(max_avail_cpus_per_node /
+                        SCALES.get(self.scale).get('node_part', 0))
+                hooks.assign_tasks_per_compute_unit(self,
+                                                    COMPUTE_UNIT.get(NODE,
+                                                                     'node'),
+                                                    pass_num_per)
 
-        # Setting num_tasks_per_node
-        if (SCALES.get(self.scale).get('num_nodes') == 1):
-            self.num_tasks_per_node = self.num_tasks
-        else:
-            self.num_tasks_per_node = max_avail_cpus_per_node
-
-        # The above setting is for all CPU tests including the ones occurring
-        # in the GPU nodes. This section is specifically for GPU tests the
-        # num_tasks should be equal to num gpus per node.
-        if('gpu' in self.current_partition.features and
-           utils.is_cuda_required_module(self.module_name)):
+            if('gpu' in self.current_partition.features):
+                # Setting number of GPU for a cpu test on a GPU node.
+                if(SCALES.get(self.scale).get('num_nodes') == 1):
+                    self.num_gpus_per_node = 1
+                else:
+                    # The devices section is sort of hard coded. This needs to be
+                    # amended for a more heterogeneous system with more than one
+                    # device type.
+                    self.num_gpus_per_node = \
+                        self.current_partition.devices[0].num_devices
+        elif(self.device_buffers == 'cuda'):
+            # Setting num_tasks and num_tasks_per_node for the GPU tests
             max_avail_gpus_per_node = \
                     self.current_partition.devices[0].num_devices
             if(max_avail_gpus_per_node == 1 and
                     SCALES.get(self.scale).get('num_nodes') == 1):
                 self.skip(msg="There is only 1 device within the node. Skipping collective tests involving only 1 node.")
             else:
-                if (SCALES.get(self.scale).get('num_nodes') == 1):
-                    if (SCALES.get(self.scale).get('node_part') is not None):
-                        self.num_tasks = int(max_avail_gpus_per_node /
-                                             SCALES.get(self.scale).get('node_part'))
-                        self.skip_if(self.num_tasks <= 1,
-                                     msg="There are not enough GPU cards to be divided")
-                    elif (SCALES.get(self.scale).get('num_cpus_per_node') is not None):
-                        if(SCALES.get(self.scale).get('num_cpus_per_node') >=
-                           max_avail_gpus_per_node):
-                            self.num_tasks = self.num_tasks_per_node =\
-                                    max_avail_gpus_per_node
-                        else:
-                            self.num_tasks = \
-                                    SCALES.get(self.scale).get('num_cpus_per_node')
-                            self.num_tasks_per_node = self.num_tasks
-
+                if(SCALES.get(self.scale).get('num_gpus_per_node', 0) *
+                   SCALES.get(self.scale).get('num_nodes', 0) > 1):
+                    hooks.assign_tasks_per_compute_unit(self,
+                                                        COMPUTE_UNIT.get(GPU,
+                                                                         'gpu'))
+                elif(SCALES.get(self.scale).get('node_part', 0)):
+                    pass_num_per = int(max_avail_gpus_per_node /
+                            SCALES.get(self.scale).get('node_part', 0))
+                    if(pass_num_per > 1):
+                        hooks.assign_tasks_per_compute_unit(self,
+                                                        COMPUTE_UNIT.get(GPU,
+                                                                         'gpu'))
+                    else:
+                        self.skip(msg="Total GPUs (max_avail_gpus_per_node / node_part) is 1 less.")
                 else:
-                    self.num_tasks = SCALES.get(self.scale).get('num_nodes') *\
-                           max_avail_gpus_per_node
-                    self.num_tasks_per_node = max_avail_gpus_per_node
+                    self.skip(msg="Total GPUs (num_nodes * num_gpus_per_node) = 1")
 
-    @run_after('setup')
-    def set_num_gpus_per_node(self):
-        """
-        This test does not require gpus and is for host to host within GPU
-        nodes. But some systems do require a GPU allocation for to perform any
-        activity in the GPU nodes.
-        """
-        if('gpu' in self.current_partition.features and
-           not utils.is_cuda_required_module(self.module_name)):
-            if(SCALES.get(self.scale).get('num_nodes') == 1):
-                self.num_gpus_per_node = 1
-            else:
-                # The devices section is sort of hard coded. This needs to be
-                # amended for a more heterogeneous system with more than one
-                # device type.
-                self.num_gpus_per_node = \
-                    self.current_partition.devices[0].num_devices
-        elif('gpu' in self.current_partition.features and
-             utils.is_cuda_required_module(self.module_name)):
-            max_avail_gpus_per_node = \
-                    self.current_partition.devices[0].num_devices
-            if(max_avail_gpus_per_node == 1 and
-                    SCALES.get(self.scale).get('num_nodes') == 1):
-                self.skip(msg="There is only 1 device within the node. Skipping collective tests involving only 1 node.")
-            else:
-                if (SCALES.get(self.scale).get('num_nodes') == 1):
-                    if (SCALES.get(self.scale).get('node_part') is not None):
-                        self.num_gpus_per_node = int(max_avail_gpus_per_node /
-                                                     SCALES.get(self.scale).get('node_part'))
-                        self.skip_if(self.num_gpus_per_node <= 1,
-                                     msg="There are not enough GPU cards to be divided")
-                    elif (SCALES.get(self.scale).get('num_cpus_per_node') is not None):
-                        if(SCALES.get(self.scale).get('num_cpus_per_node') >=
-                           max_avail_gpus_per_node):
-                            self.num_gpus_per_node =\
-                                    max_avail_gpus_per_node
-                        else:
-                            self.num_gpus_per_node = \
-                                    SCALES.get(self.scale).get('num_cpus_per_node')
-
-                else:
-                    self.num_gpus_per_node = max_avail_gpus_per_node
