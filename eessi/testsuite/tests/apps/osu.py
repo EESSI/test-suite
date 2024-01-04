@@ -269,10 +269,13 @@ class osu_coll(osu_benchmark):
             elif(SCALES.get(self.scale).get('node_part', 0)):
                 pass_num_per = int(max_avail_cpus_per_node /
                         SCALES.get(self.scale).get('node_part', 0))
-                hooks.assign_tasks_per_compute_unit(self,
+                if(pass_num_per > 1):
+                    hooks.assign_tasks_per_compute_unit(self,
                                                     COMPUTE_UNIT.get(NODE,
                                                                      'node'),
                                                     pass_num_per)
+                else:
+                    self.skip(msg="Too few cores available for a collective operation.")
 
             if('gpu' in self.current_partition.features):
                 # Setting number of GPU for a cpu test on a GPU node.
