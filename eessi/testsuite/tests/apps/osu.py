@@ -1,21 +1,20 @@
 """
-This module tests the binary 'osu' in available modules containing substring
-'OSU-Micro-Benchmarks'. The basic application class is taken from the
-hpctestlib to which extra features are added.
+This module tests the binary 'osu' in available modules containing substring 'OSU-Micro-Benchmarks'. The basic
+application class is taken from the hpctestlib to which extra features are added.
 
-Note: OSU-Micro-Benchmarks CUDA module binaries must be linked to stubs so that
-it at the least finds libcuda.so.1 on non-GPU nodes. Otherwise those tests will
-FAIL.
+Note: OSU-Micro-Benchmarks CUDA module binaries must be linked to stubs so that it at the least finds libcuda.so.1 on
+non-GPU nodes. Otherwise those tests will FAIL.
 """
 import reframe as rfm
 from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
+from reframe.utility import reframe
 
 from eessi.testsuite import hooks, utils
 from eessi.testsuite.constants import *
 from eessi.testsuite.utils import find_modules, log
 
 
-def my_filtering_function():
+def filter_scales_pt2pt():
     """
     Filtering function for filtering scales for the pt2pt OSU test
     """
@@ -27,7 +26,7 @@ def my_filtering_function():
     ]
 
 
-def my_filtering_function_coll():
+def filter_scales_coll():
     """
     Filtering function for filtering scales for collective the OSU test
     """
@@ -41,61 +40,53 @@ def my_filtering_function_coll():
 @rfm.simple_test
 class osu_pt_2_pt(osu_benchmark):
     ''' Run-only OSU test '''
-    scale = parameter(my_filtering_function())
+    scale = parameter(filter_scales_pt2pt())
     valid_prog_environs = ['default']
     valid_systems = []
     time_limit = '30m'
     module_name = parameter(find_modules('OSU-Micro-Benchmarks'))
-    # Device type for non-cuda OSU-Micro-Benchmarks should run on hosts of both
-    # node types. To do this the default device type is set to GPU.
+    # Device type for non-cuda OSU-Micro-Benchmarks should run on hosts of both node types. To do this the default
+    # device type is set to GPU.
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
     # unset num_tasks_per_node from the hpctestlib.
     num_tasks_per_node = None
+    # Note: device_buffers variable is inherited from the hpctestlib class and adds options to the launcher
+    # commands based on what device is set.
+    device_buffers = 'cpu'
 
     @run_after('init')
     def run_after_init(self):
         """hooks to run after init phase"""
-        hooks.filter_valid_systems_by_device_type(
-               self,
-               required_device_type=self.device_type)
+        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
         is_cuda_module = utils.is_cuda_required_module(self.module_name)
-        # This part of the hook is meant to be for the OSU cpu tests. This is
-        # required since the non CUDA module should be able to run in the GPU
-        # partition as well. This is specific for this test and not covered by
-        # the function above.
-        # if not is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
-        #     self.valid_systems = [f'+{FEATURES[GPU]} %{GPU_VENDOR}={GPU_VENDORS[NVIDIA]}']
-        #     self.device_buffers = 'cpu'
-        # elif is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
-        #     # Currently the device buffer is hard coded to be cuda. More
-        #     # options need to be introduced based on vendor and device type.
-        #     self.device_buffers = 'cuda'
+        # This part of the hook is meant to be for the OSU cpu tests. This is required since the non CUDA module should
+        # be able to run in the GPU partition as well. This is specific for this test and not covered by the function
+        # above.
         if is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
-            # Currently the device buffer is hard coded to be cuda. More
-            # options need to be introduced based on vendor and device type.
+            # Sets to cuda as device buffer only if the module is compiled with CUDA.
             self.device_buffers = 'cuda'
-        elif is_cuda_module and self.device_type == DEVICE_TYPES[CPU]:
-            # This if condition had to be added since the CUDA compiled osu
-            # tests do not run on cpu partitions. The binaries need
-            # libcuda.so.1 during runtime which can only be found in a
-            # partition with CUDA drivers.
-            self.valid_systems = [f'+{FEATURES[CPU]} +{FEATURES[GPU]} %{GPU_VENDOR}={GPU_VENDORS[NVIDIA]}']
 
         # If the device_type is CPU then device buffer should always be CPU.
         if self.device_type == DEVICE_TYPES[CPU]:
             self.device_buffers = 'cpu'
 
-        # This part of the code removes the collective communication calls out
-        # of the run list since this test is only meant for pt2pt.
+        # This part of the code removes the collective communication calls out of the run list since this test is only
+        # meant for pt2pt.
         if not self.benchmark_info[0].startswith('mpi.pt2pt'):
             self.valid_systems = []
         hooks.set_modules(self)
 
+    @run_after('setup')
+    def adjust_executable_opts(self):
+        """The option "D D" is only meant for Devices if and not for CPU tests. This option is added by hpctestlib to
+        all pt2pt tests which is not required."""
+        if(self.device_type == DEVICE_TYPES[CPU]):
+            self.executable_opts = [ele for ele in self.executable_opts if ele != 'D']
+
     @run_after('init')
     def set_tag_ci(self):
         """ Setting tests under CI tag. """
-        if (self.benchmark_info[0] in ['mpi.pt2pt.osu_latency',
-                                       'mpi.pt2pt.osu_bw']):
+        if (self.benchmark_info[0] in ['mpi.pt2pt.osu_latency', 'mpi.pt2pt.osu_bw']):
             self.tags.add('CI')
             log(f'tags set to {self.tags}')
 
@@ -107,11 +98,12 @@ class osu_pt_2_pt(osu_benchmark):
 
     @run_after('init')
     def set_mem(self):
-        """ Setting an extra job option of memory. This test has only 4
-        possibilities: 1_node, 2_nodes, 2_cores and 1_cpn_2_nodes. Only the
-        last 2 require the memory to be set. """
-        if(SCALES.get(self.scale).get('node_part', 0) == 0):
-            self.extra_resources = {'memory': {'size': '32GB'}}
+        """ Setting an extra job option of memory. This test has only 4 possibilities: 1_node, 2_nodes, 2_cores and
+        1_cpn_2_nodes. This is implemented for all cases including full node cases. The requested memory may seem large
+        and the test requires at least 4.5 GB per core at the minimum for the full test when run with validation (-c
+        option for osu_bw or osu_latency). We run till message size 8 (-m 8) which significantly reduces memory
+        requirement."""
+        self.extra_resources = {'memory': {'size': '16GB'}}
 
     @run_after('init')
     def set_num_tasks(self):
@@ -119,113 +111,76 @@ class osu_pt_2_pt(osu_benchmark):
         hooks.set_tag_scale(self)
 
     @run_after('setup')
+    def set_environment(self):
+        """ Setting environment variable for CUDA module tests that run on pure cpu nodes."""
+        is_cuda_module = utils.is_cuda_required_module(self.module_name)
+        if (is_cuda_module and self.device_type == DEVICE_TYPES[CPU] and
+                (not FEATURES[GPU] in self.current_partition.features)):
+            self.env_vars = {'LD_LIBRARY_PATH': '$EBROOTCUDA/stubs/lib64:$LD_LIBRARY_PATH'}
+
+    @run_after('setup')
     def set_num_tasks_per_node(self):
-        """ Setting number of tasks per node and cpus per task in this function.
-        This function sets num_cpus_per_task for 1 node and 2 node options where
-        the request is for full nodes."""
+        """ Setting number of tasks per node and cpus per task in this function. This function sets num_cpus_per_task
+        for 1 node and 2 node options where the request is for full nodes."""
         if(SCALES.get(self.scale).get('num_nodes') == 1):
-            hooks.assign_tasks_per_compute_unit(self,
-                                                   COMPUTE_UNIT.get(NODE,
-                                                                    'node'), 2)
+            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(NODE, 'node'), 2)
         else:
-            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(NODE,
-                                                                       'node'))
+            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(NODE, 'node'))
 
     @run_after('setup')
     def set_num_gpus_per_node(self):
         """
-        This test does not require gpus and is for host to host within GPU
-        nodes. But some systems do require a GPU allocation for to perform any
-        activity in the GPU nodes.
+        This test does not require gpus and is for host to host within GPU nodes. But some systems do require a GPU
+        allocation for to perform any activity in the GPU nodes.
         """
-        if('gpu' in self.current_partition.features and
-           not utils.is_cuda_required_module(self.module_name)):
+        if(FEATURES[GPU] in self.current_partition.features and not utils.is_cuda_required_module(self.module_name)):
+            max_avail_gpus_per_node = utils.get_max_avail_gpus_per_node(self)
+            # Here for the 2_node test we assign max_avail_gpus_per_node but some systems cannot allocate 1_cpn_2_nodes
+            # for GPUs but need all gpus allocated within the 2 nodes for this work which. The test may fail under such
+            # conditions for the scale 1_cpn_2_nodes because it is simply not allowed.
+            self.num_gpus_per_node = self.default_num_gpus_per_node or max_avail_gpus_per_node
+        elif(FEATURES[GPU] in self.current_partition.features and utils.is_cuda_required_module(self.module_name)):
+            max_avail_gpus_per_node = utils.get_max_avail_gpus_per_node(self)
             if(SCALES.get(self.scale).get('num_nodes') == 1):
-                self.num_gpus_per_node = 1
-            else:
-                # The devices section is sort of hard coded. This needs to be
-                # amended for a more heterogeneous system with more than one
-                # device type.
-
-                # Even for 1_cpn_2_nodes, the gpus requested are for the full
-                # nodes. On Snellius 1 GPU card cannot be reserved on 2
-                # different nodes which can be different on different systems.
-                self.num_gpus_per_node = \
-                    self.current_partition.devices[0].num_devices
-        elif('gpu' in self.current_partition.features and
-             utils.is_cuda_required_module(self.module_name)):
-            max_avail_gpus_per_node = \
-                    self.current_partition.devices[0].num_devices
-            if(SCALES.get(self.scale).get('num_nodes') == 1):
-                # Skip the single node test if there is only 1 device in the
-                # node.
+                # Skip the single node test if there is only 1 device in the node.
                 if(max_avail_gpus_per_node == 1):
                     self.skip(msg="There is only 1 device within the node. Skipping tests involving only 1 node.")
                 else:
                     self.num_gpus_per_node = 2
             else:
-                # The devices section is sort of hard coded. This needs to be
-                # amended for a more heterogeneous system with more than one
-                # device type.
-
-                # Note these settings are for 1_cpn_2_nodes. In that case we
-                # want to test for only 1 GPU per node since we have not
-                # requested for full nodes.
-                if(SCALES.get(self.scale).get('num_gpus_per_node', 0)):
-                    self.num_gpus_per_node = \
-                        SCALES.get(self.scale).get('num_gpus_per_node', 0)
-                else:
-                    self.num_gpus_per_node = \
-                        self.current_partition.devices[0].num_devices
+                # Note these settings are for 1_cpn_2_nodes. In that case we want to test for only 1 GPU per node since
+                # we have not requested for full nodes.
+                self.num_gpus_per_node = self.default_num_gpus_per_node or max_avail_gpus_per_node
 
 
 @rfm.simple_test
 class osu_coll(osu_benchmark):
     ''' Run-only OSU test '''
-    scale = parameter(my_filtering_function_coll())
-    #scale = parameter(SCALES.keys())
+    scale = parameter(filter_scales_coll())
     valid_prog_environs = ['default']
     valid_systems = []
     time_limit = '30m'
     module_name = parameter(utils.find_modules('OSU-Micro-Benchmarks'))
-    # Device type for non-cuda OSU-Micro-Benchmarks should run on hosts of both
-    # node types. To do this the default device type is set to GPU.
+    # Device type for non-cuda OSU-Micro-Benchmarks should run on hosts of both node types. To do this the default
+    # device type is set to GPU.
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
-    # unset num_tasks_per_node from hpctestlib
+    # Unset num_tasks_per_node from hpctestlib
     num_tasks_per_node = None
 
 
     @run_after('init')
     def run_after_init(self):
         """hooks to run after init phase"""
-        hooks.filter_valid_systems_by_device_type(
-               self,
-               required_device_type=self.device_type)
+        hooks.filter_valid_systems_by_device_type( self, required_device_type=self.device_type)
         is_cuda_module = utils.is_cuda_required_module(self.module_name)
-        # This part of the hook is meant to be for the OSU cpu tests.
-#        if not is_cuda_module and self.device_type == DEVICE_TYPES['GPU']:
-#            self.valid_systems = ['*']
-#            self.device_buffers = 'cpu'
-#       elif is_cuda_module and self.device_type == DEVICE_TYPES['GPU']:
-#           # Currently the device buffer is hard coded to be cuda. More
-#           # options need to be introduced based on vendor and device type.
-#           self.device_buffers = 'cuda'
         if is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
-            # Currently the device buffer is hard coded to be cuda. More
-            # options need to be introduced based on vendor and device type.
             self.device_buffers = 'cuda'
-        elif is_cuda_module and self.device_type == DEVICE_TYPES[CPU]:
-            # This if condition had to be added since the CUDA compiled osu
-            # tests do not run on cpu partitions. The binaries need
-            # libcuda.so.1 during runtime which can only be found in a
-            # partition with CUDA drivers.
-            self.valid_systems = [f'+{FEATURES[CPU]} +{FEATURES[GPU]} %{GPU_VENDOR}={GPU_VENDORS[NVIDIA]}']
 
         # If the device_type is CPU then device buffer should always be CPU.
         if self.device_type == DEVICE_TYPES[CPU]:
             self.device_buffers = 'cpu'
-        # This part of the code removes the collective communication calls out
-        # of the run list since this test is only meant for collective.
+        # This part of the code removes the collective communication calls out of the run list since this test is only
+        # meant for collective.
         if not self.benchmark_info[0].startswith('mpi.collective'):
             self.valid_systems = []
         hooks.set_modules(self)
@@ -254,61 +209,63 @@ class osu_coll(osu_benchmark):
         hooks.set_tag_scale(self)
 
     @run_after('setup')
+    def set_environment(self):
+        """ Setting environment variable for CUDA module tests that run on pure cpu nodes."""
+        is_cuda_module = utils.is_cuda_required_module(self.module_name)
+        if (is_cuda_module and self.device_type == DEVICE_TYPES[CPU] and
+                (not FEATURES[GPU] in self.current_partition.features)):
+            self.env_vars = {'LD_LIBRARY_PATH': '$EBROOTCUDA/stubs/lib64:$LD_LIBRARY_PATH'}
+
+    @run_after('setup')
     def set_num_tasks_per_node(self):
-        """ Setting number of tasks per node, cpus per task and gpus per node
-        in this function. This function sets num_cpus_per_task for 1 node and 2
-        node options where the request is for full nodes."""
+        """ Setting number of tasks per node, cpus per task and gpus per node in this function. This function sets
+        num_cpus_per_task for 1 node and 2 node options where the request is for full nodes."""
         max_avail_cpus_per_node = self.current_partition.processor.num_cpus
         if(self.device_buffers == 'cpu'):
             # Setting num_tasks and num_tasks_per_node for the CPU tests
             if(SCALES.get(self.scale).get('num_cpus_per_node', 0)):
-                hooks.assign_tasks_per_compute_unit(self,
-                                                    COMPUTE_UNIT.get(NODE,
-                                                                     'node'),
+                hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(NODE, 'node'),
                                                     self.default_num_cpus_per_node)
             elif(SCALES.get(self.scale).get('node_part', 0)):
-                pass_num_per = int(max_avail_cpus_per_node /
-                        SCALES.get(self.scale).get('node_part', 0))
+                pass_num_per = int(max_avail_cpus_per_node / SCALES.get(self.scale).get('node_part', 0))
                 if(pass_num_per > 1):
-                    hooks.assign_tasks_per_compute_unit(self,
-                                                    COMPUTE_UNIT.get(NODE,
-                                                                     'node'),
-                                                    pass_num_per)
+                    hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(NODE, 'node'), pass_num_per)
                 else:
                     self.skip(msg="Too few cores available for a collective operation.")
 
-            if('gpu' in self.current_partition.features):
+            if(FEATURES[GPU] in self.current_partition.features):
+                max_avail_gpus_per_node = utils.get_max_avail_gpus_per_node(self)
                 # Setting number of GPU for a cpu test on a GPU node.
                 if(SCALES.get(self.scale).get('num_nodes') == 1):
                     self.num_gpus_per_node = 1
                 else:
-                    # The devices section is sort of hard coded. This needs to be
-                    # amended for a more heterogeneous system with more than one
-                    # device type.
-                    self.num_gpus_per_node = \
-                        self.current_partition.devices[0].num_devices
+                    self.num_gpus_per_node = max_avail_gpus_per_node
         elif(self.device_buffers == 'cuda'):
+            max_avail_gpus_per_node = utils.get_max_avail_gpus_per_node(self)
             # Setting num_tasks and num_tasks_per_node for the GPU tests
-            max_avail_gpus_per_node = \
-                    self.current_partition.devices[0].num_devices
             if(max_avail_gpus_per_node == 1 and
                     SCALES.get(self.scale).get('num_nodes') == 1):
                 self.skip(msg="There is only 1 device within the node. Skipping collective tests involving only 1 node.")
             else:
-                if(SCALES.get(self.scale).get('num_gpus_per_node', 0) *
-                   SCALES.get(self.scale).get('num_nodes', 0) > 1):
-                    hooks.assign_tasks_per_compute_unit(self,
-                                                        COMPUTE_UNIT.get(GPU,
-                                                                         'gpu'))
+                if(SCALES.get(self.scale).get('num_gpus_per_node', 0) * SCALES.get(self.scale).get('num_nodes', 0) > 1):
+                    hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(GPU, FEATURES[GPU]))
                 elif(SCALES.get(self.scale).get('node_part', 0)):
-                    pass_num_per = int(max_avail_gpus_per_node /
-                            SCALES.get(self.scale).get('node_part', 0))
+                    pass_num_per = int(max_avail_gpus_per_node / SCALES.get(self.scale).get('node_part', 0))
                     if(pass_num_per > 1):
-                        hooks.assign_tasks_per_compute_unit(self,
-                                                        COMPUTE_UNIT.get(GPU,
-                                                                         'gpu'))
+                        hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(GPU, FEATURES[GPU]))
                     else:
                         self.skip(msg="Total GPUs (max_avail_gpus_per_node / node_part) is 1 less.")
                 else:
                     self.skip(msg="Total GPUs (num_nodes * num_gpus_per_node) = 1")
 
+# Note: This is code to setup launcher options if needed later to pass LD_LIBRARY_PATH to mpirun for the stubs solution.
+# Currently this is experimental therefore commented out and moved here.
+#    @run_after('setup')
+#    def launcher_options(self):
+#        """ Setting launcher options for CUDA module tests that run on pure cpu nodes. Note this way of setting
+#        environment variable only works for OpenMPI."""
+#        is_cuda_module = utils.is_cuda_required_module(self.module_name)
+#        if (is_cuda_module and self.device_type == DEVICE_TYPES[CPU] and
+#                isinstance(self.job.launcher, rfm.core.backends.getlauncher('mpirun')().__class__) and
+#                (not FEATURES[GPU] in self.current_partition.features)):
+#            self.job.launcher.options = ["-x LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$EBROOTCUDA/stubs/lib64/libcuda.so.1"]
