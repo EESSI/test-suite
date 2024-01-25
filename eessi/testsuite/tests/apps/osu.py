@@ -200,9 +200,11 @@ class osu_coll(osu_benchmark):
 
     @run_after('init')
     def set_mem(self):
-        """ Setting an extra job option of memory."""
-        if(SCALES.get(self.scale).get('node_part', 0) != 1):
-            self.extra_resources = {'memory': {'size': '64GB'}}
+        """ Setting an extra job option of memory. The alltoall operation takes maximum memory of 0.1 GB per core for a
+        message size of 8 and almost 0.5 GB per core for the maximum message size the test allows. But we limit the
+        message sizes to 8 and for a safety net we take 64 GB assuming dense nodes works for all the tests and node
+        types."""
+        self.extra_resources = {'memory': {'size': '64GB'}}
 
     @run_after('init')
     def set_num_tasks(self):
@@ -257,15 +259,3 @@ class osu_coll(osu_benchmark):
                         self.skip(msg="Total GPUs (max_avail_gpus_per_node / node_part) is 1 less.")
                 else:
                     self.skip(msg="Total GPUs (num_nodes * num_gpus_per_node) = 1")
-
-# Note: This is code to setup launcher options if needed later to pass LD_LIBRARY_PATH to mpirun for the stubs solution.
-# Currently this is experimental therefore commented out and moved here.
-#    @run_after('setup')
-#    def launcher_options(self):
-#        """ Setting launcher options for CUDA module tests that run on pure cpu nodes. Note this way of setting
-#        environment variable only works for OpenMPI."""
-#        is_cuda_module = utils.is_cuda_required_module(self.module_name)
-#        if (is_cuda_module and self.device_type == DEVICE_TYPES[CPU] and
-#                isinstance(self.job.launcher, rfm.core.backends.getlauncher('mpirun')().__class__) and
-#                (not FEATURES[GPU] in self.current_partition.features)):
-#            self.job.launcher.options = ["-x LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$EBROOTCUDA/stubs/lib64/libcuda.so.1"]
