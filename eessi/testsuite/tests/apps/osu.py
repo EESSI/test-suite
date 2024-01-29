@@ -103,7 +103,7 @@ class osu_pt_2_pt(osu_benchmark):
         and the test requires at least 4.5 GB per core at the minimum for the full test when run with validation (-c
         option for osu_bw or osu_latency). We run till message size 8 (-m 8) which significantly reduces memory
         requirement."""
-        self.extra_resources = {'memory': {'size': '16GB'}}
+        self.extra_resources = {'memory': {'size': '12GB'}}
 
     @run_after('init')
     def set_num_tasks(self):
@@ -123,9 +123,9 @@ class osu_pt_2_pt(osu_benchmark):
         """ Setting number of tasks per node and cpus per task in this function. This function sets num_cpus_per_task
         for 1 node and 2 node options where the request is for full nodes."""
         if(SCALES.get(self.scale).get('num_nodes') == 1):
-            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(NODE, 'node'), 2)
+            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE], 2)
         else:
-            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(NODE, 'node'))
+            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE])
 
     @run_after('setup')
     def set_num_gpus_per_node(self):
@@ -226,12 +226,12 @@ class osu_coll(osu_benchmark):
         if(self.device_buffers == 'cpu'):
             # Setting num_tasks and num_tasks_per_node for the CPU tests
             if(SCALES.get(self.scale).get('num_cpus_per_node', 0)):
-                hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(NODE, 'node'),
+                hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE],
                                                     self.default_num_cpus_per_node)
             elif(SCALES.get(self.scale).get('node_part', 0)):
                 pass_num_per = int(max_avail_cpus_per_node / SCALES.get(self.scale).get('node_part', 0))
                 if(pass_num_per > 1):
-                    hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(NODE, 'node'), pass_num_per)
+                    hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE], pass_num_per)
                 else:
                     self.skip(msg="Too few cores available for a collective operation.")
 
