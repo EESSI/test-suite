@@ -17,9 +17,11 @@ jobs:
             persist-credentials: false
 
         - name: Mount EESSI CernVM-FS pilot repository
-          uses: eessi/github-action-eessi@e1f8f20638ea417a18d23ab29443ee34794ff900  # v3.1.0
+          uses: cvmfs-contrib/github-action-cvmfs@55899ca74cf78ab874bdf47f5a804e47c198743c # v4.0
           with:
-            eessi_stack_version: ${{matrix.EESSI_VERSION}}
+              cvmfs_config_package: https://github.com/EESSI/filesystem-layer/releases/download/latest/cvmfs-config-eessi_latest_all.deb
+              cvmfs_http_proxy: DIRECT
+              cvmfs_repositories: pilot.eessi-hpc.org
 
         - name: Run test suite
           run: |
