@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         EESSI_VERSION:
-        - "2021.12"
+        - "2023.06"
     steps:
         - name: Check out software-layer repository
           uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
@@ -31,11 +31,11 @@ jobs:
             export EASYBUILD_PREFIX=$HOME/easybuild
             # need to force module generation with --module-only --force because 'pip check' fails
             # in EESSI pilot 2021.12, see https://github.com/EESSI/compatibility-layer/issues/152
-            eb ReFrame-4.2.0.eb || eb ReFrame-4.2.0.eb --module-only --force
+            eb ReFrame-4.3.3.eb || eb ReFrame-4.3.3.eb --module-only --force
 
             # load ReFrame
             module use $HOME/easybuild/modules/all
-            module load ReFrame/4.2.0
+            module load ReFrame/4.3.3
             reframe --version
 
             # configure ReFrame (cfr. https://reframe-hpc.readthedocs.io/en/stable/manpage.html#environment)
