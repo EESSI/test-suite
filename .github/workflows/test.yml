@@ -25,6 +25,8 @@ jobs:
 
         - name: Run test suite
           run: |
+            source /cvmfs/pilot.eessi-hpc.org/versions/${{matrix.EESSI_VERSION}}/init/bash
+
             # install latest version of EasyBuild, to install ReFrame with it,
             # since that includes the ReFrame test library (hpctestlib) that we rely on
             python3 -m venv venv
