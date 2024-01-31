@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         EESSI_VERSION:
-        - "2023.06"
+        - "2021.12"
     steps:
         - name: Check out software-layer repository
           uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
