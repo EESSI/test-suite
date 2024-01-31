@@ -9,33 +9,25 @@ jobs:
       fail-fast: false
       matrix:
         EESSI_VERSION:
-        - "2021.12"
+        - "2023.06"
     steps:
         - name: Check out software-layer repository
-          uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v3.1.0
+          uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
           with:
             persist-credentials: false
 
         - name: Mount EESSI CernVM-FS pilot repository
-          uses: eessi/github-action-eessi@58b50fd2eead2162c2b9ac258d4fb60cc9f30503  # v2.0.13
+          uses: cvmfs-contrib/github-action-cvmfs@55899ca74cf78ab874bdf47f5a804e47c198743c # v4.0
           with:
-            eessi_stack_version: ${{matrix.EESSI_VERSION}}
+              cvmfs_config_package: https://github.com/EESSI/filesystem-layer/releases/download/latest/cvmfs-config-eessi_latest_all.deb
+              cvmfs_http_proxy: DIRECT
+              cvmfs_repositories: pilot.eessi-hpc.org
 
         - name: Run test suite
           run: |
-            # install latest version of EasyBuild, to install ReFrame with it,
-            # since that includes the ReFrame test library (hpctestlib) that we rely on
-            pip3 install --user easybuild
-            export PATH=$HOME/.local/bin:$PATH
-            eb --version
-            export EASYBUILD_PREFIX=$HOME/easybuild
-            # need to force module generation with --module-only --force because 'pip check' fails
-            # in EESSI pilot 2021.12, see https://github.com/EESSI/compatibility-layer/issues/152
-            eb ReFrame-4.2.0.eb || eb ReFrame-4.2.0.eb --module-only --force
+            source /cvmfs/pilot.eessi-hpc.org/versions/${{matrix.EESSI_VERSION}}/init/bash
 
-            # load ReFrame
-            module use $HOME/easybuild/modules/all
-            module load ReFrame/4.2.0
+            module load ReFrame/4.3.3
             reframe --version
 
             # configure ReFrame (cfr. https://reframe-hpc.readthedocs.io/en/stable/manpage.html#environment)
