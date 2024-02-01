@@ -50,13 +50,13 @@ class osu_pt_2_pt(osu_benchmark):
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
     # unset num_tasks_per_node from the hpctestlib.
     num_tasks_per_node = None
-    # Note: device_buffers variable is inherited from the hpctestlib class and adds options to the launcher
-    # commands based on what device is set.
-    device_buffers = 'cpu'
 
     @run_after('init')
     def run_after_init(self):
         """hooks to run after init phase"""
+        # Note: device_buffers variable is inherited from the hpctestlib class and adds options to the launcher
+        # commands based on what device is set.
+        self.device_buffers = 'cpu'
         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
         is_cuda_module = utils.is_cuda_required_module(self.module_name)
         # This part of the hook is meant to be for the OSU cpu tests. This is required since the non CUDA module should
@@ -111,14 +111,6 @@ class osu_pt_2_pt(osu_benchmark):
         hooks.set_tag_scale(self)
 
     @run_after('setup')
-    def set_environment(self):
-        """ Setting environment variable for CUDA module tests that run on pure cpu nodes."""
-        is_cuda_module = utils.is_cuda_required_module(self.module_name)
-        if (is_cuda_module and self.device_type == DEVICE_TYPES[CPU] and
-                (not FEATURES[GPU] in self.current_partition.features)):
-            self.env_vars = {'LD_LIBRARY_PATH': '$EBROOTCUDA/stubs/lib64:$LD_LIBRARY_PATH'}
-
-    @run_after('setup')
     def set_num_tasks_per_node(self):
         """ Setting number of tasks per node and cpus per task in this function. This function sets num_cpus_per_task
         for 1 node and 2 node options where the request is for full nodes."""
@@ -171,6 +163,9 @@ class osu_coll(osu_benchmark):
     @run_after('init')
     def run_after_init(self):
         """hooks to run after init phase"""
+        # Note: device_buffers variable is inherited from the hpctestlib class and adds options to the launcher
+        # commands based on what device is set.
+        self.device_buffers = 'cpu'
         hooks.filter_valid_systems_by_device_type( self, required_device_type=self.device_type)
         is_cuda_module = utils.is_cuda_required_module(self.module_name)
         if is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
@@ -209,14 +204,6 @@ class osu_coll(osu_benchmark):
     @run_after('init')
     def set_num_tasks(self):
         hooks.set_tag_scale(self)
-
-    @run_after('setup')
-    def set_environment(self):
-        """ Setting environment variable for CUDA module tests that run on pure cpu nodes."""
-        is_cuda_module = utils.is_cuda_required_module(self.module_name)
-        if (is_cuda_module and self.device_type == DEVICE_TYPES[CPU] and
-                (not FEATURES[GPU] in self.current_partition.features)):
-            self.env_vars = {'LD_LIBRARY_PATH': '$EBROOTCUDA/stubs/lib64:$LD_LIBRARY_PATH'}
 
     @run_after('setup')
     def set_num_tasks_per_node(self):

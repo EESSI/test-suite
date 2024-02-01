@@ -299,10 +299,14 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
         # GPU_VENDOR=GPU_VENDORS[NVIDIA] extras
         valid_systems = f'+{FEATURES[GPU]} %{GPU_VENDOR}={GPU_VENDORS[NVIDIA]}'
 
-    elif required_device_type == DEVICE_TYPES[CPU]:
+    elif not is_cuda_module and required_device_type == DEVICE_TYPES[CPU]:
         # Using the CPU requires partitions with FEATURES[CPU] feature
         # Note: making FEATURES[CPU] an explicit feature allows e.g. skipping CPU-based tests on GPU partitions
         valid_systems = f'+{FEATURES[CPU]}'
+
+    elif is_cuda_module and required_device_type == DEVICE_TYPES[CPU]:
+        # Note: This applies for CUDA module tests that want to test only on cpus on gpu partitions.
+        valid_systems = f'+{FEATURES[CPU]} +{FEATURES[GPU]} %{GPU_VENDOR}={GPU_VENDORS[NVIDIA]}'
 
     elif not is_cuda_module and required_device_type == DEVICE_TYPES[GPU]:
         # Invalid combination: a module without GPU support cannot use a GPU
