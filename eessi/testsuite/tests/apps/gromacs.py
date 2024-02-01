@@ -39,7 +39,7 @@ from eessi.testsuite.utils import find_modules, log
 
 
 @rfm.simple_test
-class GROMACS_EESSI(gromacs_check):
+class EESSI_GROMACS(gromacs_check):
     scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
     valid_systems = []

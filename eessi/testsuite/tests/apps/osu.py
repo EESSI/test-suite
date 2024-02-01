@@ -38,7 +38,7 @@ def filter_scales_coll():
 
 
 @rfm.simple_test
-class osu_pt_2_pt(osu_benchmark):
+class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
     ''' Run-only OSU test '''
     scale = parameter(filter_scales_pt2pt())
     valid_prog_environs = ['default']
@@ -154,7 +154,7 @@ class osu_pt_2_pt(osu_benchmark):
 
 
 @rfm.simple_test
-class osu_coll(osu_benchmark):
+class EESSI_OSU_Micro_Benchmarks_coll(osu_benchmark):
     ''' Run-only OSU test '''
     scale = parameter(filter_scales_coll())
     valid_prog_environs = ['default']
