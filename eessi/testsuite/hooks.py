@@ -283,15 +283,25 @@ def _assign_one_task_per_gpu(test: rfm.RegressionTest):
     log(f'num_tasks set to {test.num_tasks}')
 
 
+def filter_valid_test_scales(test: rfm.RegressionTest):
+    """
+    Request the test scale as feature. That we the test will not be generate for partitions that don't support this test scale.
+    """
+    valid_systems = f'+{test.scale}'
+    # test.valid_systems wasn't set yet, so set it
+    if len(test.valid_systems) == 0:
+        test.valid_systems = [valid_systems]
+    # test.valid_systems likely contains requested features and extras set in another hook, so append
+    elif len(test.valid_systems) == 1:
+        test.valid_systems[0] = f'{test.valid_systems[0]} {valid_systems}'
+
+    log(f'valid_systems set to {test.valid_systems}')
+
 def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_device_type: str):
     """
     Filter valid_systems by required device type and by whether the module supports CUDA,
     unless valid_systems is specified with --setvar valid_systems=<comma-separated-list>.
     """
-    if test.valid_systems:
-        # valid_systems is specified, so don't filter
-        return
-
     is_cuda_module = is_cuda_required_module(test.module_name)
 
     if is_cuda_module and required_device_type == DEVICE_TYPES[GPU]:
@@ -309,7 +319,15 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
         valid_systems = ''
 
     if valid_systems:
-        test.valid_systems = [valid_systems]
+        # test.valid_systems wasn't set yet, so set it
+        if len(test.valid_systems) == 0:
+            test.valid_systems = [valid_systems]
+        elif len(test.valid_systems) == 1:
+            test.valid_systems[0] = f'{test.valid_systems[0]} {valid_systems}'
+    # Explicitely set to empty because of invalid combination of module type and device type
+    # (even if other filters such as filter_valid_test_scales have already set it)
+    else:
+        test.valid_systems = []
 
     log(f'valid_systems set to {test.valid_systems}')
 
