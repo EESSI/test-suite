@@ -13,7 +13,7 @@
 import os
 
 from eessi.testsuite.common_config import common_logging_config, common_eessi_init
-from eessi.testsuite.constants import FEATURES
+from eessi.testsuite.constants import FEATURES, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
 # Override with RFM_PREFIX environment variable
@@ -97,7 +97,7 @@ partition_defaults = {
     'environs': ['default'],
     'features': [
         FEATURES['CPU']
-    ],
+    ] + list(SCALES.keys()),
     'prepare_cmds': [
         'source %s' % common_eessi_init(),
         # Required when using srun as launcher with --export=NONE in partition access, in order to ensure job

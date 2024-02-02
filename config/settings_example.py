@@ -56,7 +56,9 @@ site_configuration = {
                             'options': ['--mem={size}'],
                         }
                     ],
-                    'features': [FEATURES[CPU]],
+                    # list(SCALES.keys()) adds all the scales from eessi.testsuite.constants as valid for thi partition
+                    # Can be modified if not all scales can run on this partition, see e.g. the surf_snellius.py config
+                    'features': [FEATURES[CPU]] + list(SCALES.keys()),
                 },
                 {
                     'name': 'gpu_partition',
@@ -94,7 +96,7 @@ site_configuration = {
                     'features': [
                         FEATURES[CPU],
                         FEATURES[GPU],
-                    ],
+                    ] + list(SCALES.keys()),
                     'extras': {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },
