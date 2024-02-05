@@ -42,7 +42,7 @@ from eessi.testsuite.utils import find_modules, log
 class GROMACS_EESSI(gromacs_check):
     scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
-    valid_systems = []
+    valid_systems = ['*']
     time_limit = '30m'
     module_name = parameter(find_modules('GROMACS'))
 

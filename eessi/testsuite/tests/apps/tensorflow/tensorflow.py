@@ -16,7 +16,7 @@ class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
     # This test can run at any scale, so parameterize over all known SCALES
     scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
-    valid_systems = []
+    valid_systems = ['*']
 
     # Parameterize over all modules that start with TensorFlow
     module_name = parameter(utils.find_modules('TensorFlow'))
