@@ -57,6 +57,9 @@ class osu_pt_2_pt(osu_benchmark):
     @run_after('init')
     def run_after_init(self):
         """hooks to run after init phase"""
+        # Filter on which scales are supported by the partitions defined in the ReFrame configuration
+        hooks.filter_supported_scales(self)
+
         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
         is_cuda_module = utils.is_cuda_required_module(self.module_name)
         # This part of the hook is meant to be for the OSU cpu tests. This is required since the non CUDA module should
