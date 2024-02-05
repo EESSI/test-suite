@@ -333,7 +333,7 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     # so this test should never be generated.
     # Note that this does (and should) overwrite any test.valid_systems that was potentially set before
     else:
-        test.valid_systems = [eessi.testsuite.constants.INVALID_SYSTEM]
+        test.valid_systems = [INVALID_SYSTEM]
 
     log(f'valid_systems set to {test.valid_systems}')
 
