@@ -291,7 +291,7 @@ def filter_supported_scales(test: rfm.RegressionTest):
     # test.valid_systems wasn't set yet, so set it
     if len(test.valid_systems) == 0:
         test.valid_systems = [valid_systems]
-    # test.valid_systems likely contains requested features and extras set in another hook, so append
+    # test.valid_systems was already set. Append the current valid_systems
     elif len(test.valid_systems) == 1:
         test.valid_systems[0] = f'{test.valid_systems[0]} {valid_systems}'
 
@@ -301,6 +301,10 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     """
     Filter valid_systems by required device type and by whether the module supports CUDA,
     unless valid_systems is specified with --setvar valid_systems=<comma-separated-list>.
+
+    Any invalid combination (e.g. a non-CUDA module with a required_device_type GPU) will
+    cause the valid_systems to be set to an empty string, and consequently the
+    test.valid_systems to an invalid system name (eessi.testsuite.constants.INVALID_SYSTEM).
     """
     is_cuda_module = is_cuda_required_module(test.module_name)
 
@@ -322,12 +326,14 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
         # test.valid_systems wasn't set yet, so set it
         if len(test.valid_systems) == 0:
             test.valid_systems = [valid_systems]
+        # test.valid_systems was already set. Append the current valid_systems
         elif len(test.valid_systems) == 1:
             test.valid_systems[0] = f'{test.valid_systems[0]} {valid_systems}'
-    # Explicitely set to empty because of invalid combination of module type and device type
-    # (even if other filters such as filter_valid_test_scales have already set it)
+    # Explicitely set to an invalid system name. The combination of module type and device type is invalid,
+    # so this test should never be generated.
+    # Note that this does (and should) overwrite any test.valid_systems that was potentially set before
     else:
-        test.valid_systems = []
+        test.valid_systems = [eessi.testsuite.constants.INVALID_SYSTEM]
 
     log(f'valid_systems set to {test.valid_systems}')
 
