@@ -282,18 +282,38 @@ def _assign_one_task_per_gpu(test: rfm.RegressionTest):
     log(f'num_cpus_per_task set to {test.num_cpus_per_task}')
     log(f'num_tasks set to {test.num_tasks}')
 
+def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
+    """
+    Sets test.valid_systems based on the valid_systems argument.
+    - When valid_systems is an empty string, test.valid_systems will be set equal to eessi.testsuite.constants.INVALID_SYSTEM
+    - When no test.valid_system was set yet, or it was at the default value ['*'], it will be overwritten by [valid_system]
+    - When a test.valid_system was already set, valid_system will be appended to it. This allows adding requests for multiple partition features by different hooks.
+    """
+
+    # This indicates an invalid test that always has to be filtered
+    if valid_systems == '':
+        test.valid_systems = [INVALID_SYSTEM]
+        return
+
+    # test.valid_systems wasn't set yet, so set it
+    if len(test.valid_systems) == 0:
+        test.valid_systems = [valid_systems]
+    # test.valid_systems still at default value, so overwrite
+    elif len(test.valid_systems) == 1 and test.valid_systems[0] == '*':  
+        test.valid_systems = [valid_systems]
+    # test.valid_systems was set before, so append
+    elif len(test.valid_systems) == 1:
+        test.valid_systems[0] = f'{test.valid_systems[0]} {valid_systems}'
+
 
 def filter_supported_scales(test: rfm.RegressionTest):
     """
     Filter tests scales based on which scales are supported by each partition in the ReFrame configuration. Filtering is done using features. I.e. the current test scale is requested as a feature. Any partition that does not include this feature in the ReFrame configuration file will effectively be filtered out.
     """
     valid_systems = f'+{test.scale}'
-    # test.valid_systems wasn't set yet, so set it
-    if len(test.valid_systems) == 0:
-        test.valid_systems = [valid_systems]
-    # test.valid_systems was already set. Append the current valid_systems
-    elif len(test.valid_systems) == 1:
-        test.valid_systems[0] = f'{test.valid_systems[0]} {valid_systems}'
+
+    # Change test.valid_systems accordingly:
+    _set_or_append_valid_systems(test, valid_systems)
 
     log(f'valid_systems set to {test.valid_systems}')
 
@@ -322,18 +342,8 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
         # Invalid combination: a module without GPU support cannot use a GPU
         valid_systems = ''
 
-    if valid_systems:
-        # test.valid_systems wasn't set yet, so set it
-        if len(test.valid_systems) == 0:
-            test.valid_systems = [valid_systems]
-        # test.valid_systems was already set. Append the current valid_systems
-        elif len(test.valid_systems) == 1:
-            test.valid_systems[0] = f'{test.valid_systems[0]} {valid_systems}'
-    # Explicitely set to an invalid system name. The combination of module type and device type is invalid,
-    # so this test should never be generated.
-    # Note that this does (and should) overwrite any test.valid_systems that was potentially set before
-    else:
-        test.valid_systems = [INVALID_SYSTEM]
+    # Change test.valid_systems accordingly:
+    _set_or_append_valid_systems(test, valid_systems)
 
     log(f'valid_systems set to {test.valid_systems}')
 
