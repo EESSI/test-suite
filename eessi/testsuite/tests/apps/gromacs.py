@@ -50,8 +50,8 @@ class GROMACS_EESSI(gromacs_check):
     def run_after_init(self):
         """Hooks to run after the init phase"""
 
-        # Filter invalid sizes
-        hooks.filter_valid_test_scales(self)
+        # Filter on which scales are supported by the partitions defined in the ReFrame configuration
+        hooks.filter_supported_scales(self)
 
         # Make sure that GPU tests run in partitions that support running on a GPU,
         # and that CPU-only tests run in partitions that support running CPU-only.

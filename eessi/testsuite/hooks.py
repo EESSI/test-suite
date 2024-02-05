@@ -283,9 +283,9 @@ def _assign_one_task_per_gpu(test: rfm.RegressionTest):
     log(f'num_tasks set to {test.num_tasks}')
 
 
-def filter_valid_test_scales(test: rfm.RegressionTest):
+def filter_supported_scales(test: rfm.RegressionTest):
     """
-    Request the test scale as feature. That we the test will not be generate for partitions that don't support this test scale.
+    Filter tests scales based on which scales are supported by each partition in the ReFrame configuration. Filtering is done using features. I.e. the current test scale is requested as a feature. Any partition that does not include this feature in the ReFrame configuration file will effectively be filtered out.
     """
     valid_systems = f'+{test.scale}'
     # test.valid_systems wasn't set yet, so set it
