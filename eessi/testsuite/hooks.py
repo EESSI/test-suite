@@ -105,10 +105,12 @@ def _assign_num_tasks_per_node(test: rfm.RegressionTest, num_per: int = 1):
     - num_tasks_per_node = num_per
     - num_cpus_per_task = test.default_num_cpus_per_node / num_tasks_per_node
     """
+
     # neither num_tasks_per_node nor num_cpus_per_task are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
         test.num_tasks_per_node = num_per
         test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
+
 
     # num_tasks_per_node is not set, but num_cpus_per_task is
     elif not test.num_tasks_per_node:
