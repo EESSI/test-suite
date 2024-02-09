@@ -304,6 +304,10 @@ def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
     # test.valid_systems was set before, so append
     elif len(test.valid_systems) == 1:
         test.valid_systems[0] = f'{test.valid_systems[0]} {valid_systems}'
+    else
+        error_msg=f"test.valid_systems ({test.valid_systems}) is expected to contain one element."
+        error_msg+=f" Instead, it contained {len(test.valid_systems)}."
+        raise ValueError(error_msg)
 
 
 def filter_supported_scales(test: rfm.RegressionTest):
