@@ -85,7 +85,7 @@ def common_eessi_init(eessi_version=None):
         if eessi_version == None:
             # Try also EESSI_VERSION for backwards compatibility with previous common_eessi_init implementation
             eessi_version = os.getenv('EESSI_PILOT_VERSION', os.getenv('EESSI_VERSION', 'latest'))
-    else
+    else:
     # software.eessi.io, or another where we assume the same variable names to be used
         if eessi_version == None:
             eessi_version = os.getenv('EESSI_VERSION', None)
@@ -98,5 +98,5 @@ def common_eessi_init(eessi_version=None):
    
     if eessi_cvmfs_repo == '/cvmfs/pilot.eessi-hpc.org' and eessi_version == 'latest':
         return '/cvmfs/pilot.eessi-hpc.org/latest/init/bash'
-    else
+    else:
         return '%s/versions/%s/init/bash' % (eessi_cvmfs_repo, eessi_version)
