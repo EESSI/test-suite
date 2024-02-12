@@ -89,6 +89,8 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
     else:
         raise ValueError(f'compute unit {compute_unit} is currently not supported')
 
+    check_always_request_gpus(test)
+
 
 def _assign_num_tasks_per_node(test: rfm.RegressionTest, num_per: int = 1):
     """
@@ -110,7 +112,6 @@ def _assign_num_tasks_per_node(test: rfm.RegressionTest, num_per: int = 1):
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
         test.num_tasks_per_node = num_per
         test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
-
 
     # num_tasks_per_node is not set, but num_cpus_per_task is
     elif not test.num_tasks_per_node:
@@ -405,3 +406,12 @@ def set_compact_thread_binding(test: rfm.RegressionTest):
     log(f'Set environment variable OMP_PLACES to {test.env_vars["OMP_PLACES"]}')
     log(f'Set environment variable OMP_PROC_BIND to {test.env_vars["OMP_PROC_BIND"]}')
     log(f'Set environment variable KMP_AFFINITY to {test.env_vars["KMP_AFFINITY"]}')
+
+
+def check_always_request_gpus(test: rfm.RegressionTest):
+    """
+    Make sure we always request enough GPUs if required for the current GPU partition (cluster-specific policy)
+    """
+    if FEATURES[ALWAYS_REQUEST_GPUS] in test.current_partition.features:
+        test.num_gpus_per_node = test.default_num_gpus_per_node or get_max_avail_gpus_per_node(test)
+        log(f'Set num_gpus_per_node for partition {test.current_partition.name} to {test.num_gpus_per_node}')

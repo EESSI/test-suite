@@ -119,27 +119,12 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
             self.env_vars = {'LD_LIBRARY_PATH': '$EBROOTCUDA/stubs/lib64:$LD_LIBRARY_PATH'}
 
     @run_after('setup')
-    def set_num_tasks_per_node(self):
-        """ Setting number of tasks per node and cpus per task in this function. This function sets num_cpus_per_task
-        for 1 node and 2 node options where the request is for full nodes."""
-        if(SCALES.get(self.scale).get('num_nodes') == 1):
-            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE], 2)
-        else:
-            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE])
-
-    @run_after('setup')
     def set_num_gpus_per_node(self):
         """
         This test does not require gpus and is for host to host within GPU nodes. But some systems do require a GPU
         allocation for to perform any activity in the GPU nodes.
         """
-        if(FEATURES[GPU] in self.current_partition.features and not utils.is_cuda_required_module(self.module_name)):
-            max_avail_gpus_per_node = utils.get_max_avail_gpus_per_node(self)
-            # Here for the 2_node test we assign max_avail_gpus_per_node but some systems cannot allocate 1_cpn_2_nodes
-            # for GPUs but need all gpus allocated within the 2 nodes for this work which. The test may fail under such
-            # conditions for the scale 1_cpn_2_nodes because it is simply not allowed.
-            self.num_gpus_per_node = self.default_num_gpus_per_node or max_avail_gpus_per_node
-        elif(FEATURES[GPU] in self.current_partition.features and utils.is_cuda_required_module(self.module_name)):
+        if(FEATURES[GPU] in self.current_partition.features and utils.is_cuda_required_module(self.module_name)):
             max_avail_gpus_per_node = utils.get_max_avail_gpus_per_node(self)
             if(SCALES.get(self.scale).get('num_nodes') == 1):
                 # Skip the single node test if there is only 1 device in the node.
@@ -151,6 +136,15 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
                 # Note these settings are for 1_cpn_2_nodes. In that case we want to test for only 1 GPU per node since
                 # we have not requested for full nodes.
                 self.num_gpus_per_node = self.default_num_gpus_per_node or max_avail_gpus_per_node
+
+    @run_after('setup')
+    def set_num_tasks_per_node(self):
+        """ Setting number of tasks per node and cpus per task in this function. This function sets num_cpus_per_task
+        for 1 node and 2 node options where the request is for full nodes."""
+        if(SCALES.get(self.scale).get('num_nodes') == 1):
+            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE], 2)
+        else:
+            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE])
 
 
 @rfm.simple_test
