@@ -3,6 +3,7 @@ Hooks for adding tags, filtering and setting job resources in ReFrame tests
 """
 import math
 import shlex
+import warnings
 
 import reframe as rfm
 
@@ -283,15 +284,64 @@ def _assign_one_task_per_gpu(test: rfm.RegressionTest):
     log(f'num_tasks set to {test.num_tasks}')
 
 
+def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
+    """
+    Sets test.valid_systems based on the valid_systems argument.
+    - If valid_systems is an empty string, test.valid_systems is set equal to eessi.testsuite.constants.INVALID_SYSTEM
+    - If test.valid_systems was an empty list, leave it as is (test should not be run)
+    - If test.valid_systems was at the default value ['*'], it is overwritten by [valid_system]
+    - If test.valid_systems was already set and is a list of one element, valid_system is appended to it,
+    which allows adding requests for multiple partition features by different hooks.
+    - If test.valid_systems was already set and is a list of multiple elements, we warn that the use has to take
+    care of filtering him/herself. This is typically the case when someone overrides the valid_systems on command line.
+    In this scenario, this function leaves test.valid_systems as it is.
+    """
+
+    # This indicates an invalid test that always has to be filtered
+    if valid_systems == '':
+        test.valid_systems = [INVALID_SYSTEM]
+        return
+
+    # test.valid_systems wasn't set yet, so set it
+    if len(test.valid_systems) == 0:
+        # test.valid_systems is empty, meaning all tests are filtered out. This hook shouldn't change that
+        return
+    # test.valid_systems still at default value, so overwrite
+    elif len(test.valid_systems) == 1 and test.valid_systems[0] == '*':
+        test.valid_systems = [valid_systems]
+    # test.valid_systems was set before, so append
+    elif len(test.valid_systems) == 1:
+        test.valid_systems[0] = f'{test.valid_systems[0]} {valid_systems}'
+    else:
+        warn_msg = f"valid_systems has multiple ({len(test.valid_systems)}) items,"
+        warn_msg += f" which is not supported by this hook."
+        warn_msg += f" Make sure to handle filtering yourself."
+        warnings.warn(warn_msg)
+        return
+
+
+def filter_supported_scales(test: rfm.RegressionTest):
+    """
+    Filter tests scales based on which scales are supported by each partition in the ReFrame configuration.
+    Filtering is done using features, i.e. the current test scale is requested as a feature.
+    Any partition that does not include this feature in the ReFrame configuration file will effectively be filtered out.
+    """
+    valid_systems = f'+{test.scale}'
+
+    # Change test.valid_systems accordingly:
+    _set_or_append_valid_systems(test, valid_systems)
+
+    log(f'valid_systems set to {test.valid_systems}')
+
 def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_device_type: str):
     """
     Filter valid_systems by required device type and by whether the module supports CUDA,
     unless valid_systems is specified with --setvar valid_systems=<comma-separated-list>.
-    """
-    if test.valid_systems:
-        # valid_systems is specified, so don't filter
-        return
 
+    Any invalid combination (e.g. a non-CUDA module with a required_device_type GPU) will
+    cause the valid_systems to be set to an empty string, and consequently the
+    test.valid_systems to an invalid system name (eessi.testsuite.constants.INVALID_SYSTEM).
+    """
     is_cuda_module = is_cuda_required_module(test.module_name)
 
     if is_cuda_module and required_device_type == DEVICE_TYPES[GPU]:
@@ -308,8 +358,8 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
         # Invalid combination: a module without GPU support cannot use a GPU
         valid_systems = ''
 
-    if valid_systems:
-        test.valid_systems = [valid_systems]
+    # Change test.valid_systems accordingly:
+    _set_or_append_valid_systems(test, valid_systems)
 
     log(f'valid_systems set to {test.valid_systems}')
 

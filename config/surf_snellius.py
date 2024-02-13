@@ -22,6 +22,9 @@ from eessi.testsuite.constants import *  # noqa: F403
 # Override with RFM_PREFIX environment variable
 reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 
+# Jobs that partially fill multiple nodes are not allowed on the GPU partition
+valid_scales_snellius_gpu = [s for s in SCALES if s not in ['1_cpn_2_nodes', '1_cpn_4_nodes']]
+
 # This is an example configuration file
 site_configuration = {
     'systems': [
@@ -49,7 +52,7 @@ site_configuration = {
                     ],
                     'features': [
                         FEATURES[CPU],
-                    ],
+                    ] + list(SCALES.keys()),
                     'descr': 'AMD Rome CPU partition with native EESSI stack'
                 },
                 {
@@ -68,7 +71,7 @@ site_configuration = {
                     ],
                     'features': [
                         FEATURES[CPU],
-                    ],
+                    ] + list(SCALES.keys()),
                     'descr': 'AMD Genoa CPU partition with native EESSI stack'
                 },
 
@@ -98,7 +101,7 @@ site_configuration = {
                     ],
                     'features': [
                         FEATURES[GPU],
-                    ],
+                    ] + valid_scales_snellius_gpu,
                     'extras': {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },

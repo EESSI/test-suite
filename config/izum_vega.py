@@ -58,7 +58,7 @@ site_configuration = {
                     ],
                     'features': [
                         FEATURES[CPU],
-                    ],
+                    ] + list(SCALES.keys()),
                     'descr': 'CPU partition Standard, see https://en-doc.vega.izum.si/architecture/'
                 },
                 {
@@ -97,7 +97,7 @@ site_configuration = {
                     ],
                     'features': [
                         FEATURES[GPU],
-                    ],
+                    ] + list(SCALES.keys()),
                     'descr': 'GPU partition, see https://en-doc.vega.izum.si/architecture/'
                 },
             ]
