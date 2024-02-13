@@ -119,32 +119,29 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
             self.env_vars = {'LD_LIBRARY_PATH': '$EBROOTCUDA/stubs/lib64:$LD_LIBRARY_PATH'}
 
     @run_after('setup')
+    def set_num_tasks_per_node(self):
+        """ Setting number of tasks per node and cpus per task in this function. This function sets num_cpus_per_task
+        for 1 node and 2 node options where the request is for full nodes."""
+        if SCALES.get(self.scale).get('num_nodes') == 1:
+            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE], 2)
+        else:
+            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE])
+
+    @run_after('setup')
     def set_num_gpus_per_node(self):
         """
         This test does not require gpus and is for host to host within GPU nodes. But some systems do require a GPU
         allocation for to perform any activity in the GPU nodes.
         """
-        if(FEATURES[GPU] in self.current_partition.features and utils.is_cuda_required_module(self.module_name)):
-            max_avail_gpus_per_node = utils.get_max_avail_gpus_per_node(self)
-            if(SCALES.get(self.scale).get('num_nodes') == 1):
-                # Skip the single node test if there is only 1 device in the node.
-                if(max_avail_gpus_per_node == 1):
-                    self.skip(msg="There is only 1 device within the node. Skipping tests involving only 1 node.")
-                else:
-                    self.num_gpus_per_node = 2
-            else:
-                # Note these settings are for 1_cpn_2_nodes. In that case we want to test for only 1 GPU per node since
-                # we have not requested for full nodes.
-                self.num_gpus_per_node = self.default_num_gpus_per_node or max_avail_gpus_per_node
-
-    @run_after('setup')
-    def set_num_tasks_per_node(self):
-        """ Setting number of tasks per node and cpus per task in this function. This function sets num_cpus_per_task
-        for 1 node and 2 node options where the request is for full nodes."""
-        if(SCALES.get(self.scale).get('num_nodes') == 1):
-            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE], 2)
-        else:
-            hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE])
+        # if FEATURES[GPU] in self.current_partition.features and utils.is_cuda_required_module(self.module_name):
+        if self.device_type == DEVICE_TYPES[GPU]:
+            self.num_gpus_per_node = self.default_num_gpus_per_node
+            # Skip the single node test if there is only 1 device in the node.
+            self.skip_if(
+                SCALES[self.scale]['num_nodes'] == 1 and self.default_num_gpus_per_node == 1,
+                f"There is only 1 GPU device in this scale ({self.scale}). "
+                f"Skipping tests with device_type={DEVICE_TYPES[GPU]} involving only 1 GPU."
+            )
 
 
 @rfm.simple_test

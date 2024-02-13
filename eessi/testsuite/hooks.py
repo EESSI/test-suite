@@ -6,7 +6,7 @@ import shlex
 
 import reframe as rfm
 
-from eessi.testsuite.constants import *  # noqa
+from eessi.testsuite.constants import *
 from eessi.testsuite.utils import (get_max_avail_gpus_per_node, is_cuda_required_module, log,
                                    check_proc_attribute_defined)
 
@@ -31,6 +31,27 @@ def assign_default_num_cpus_per_node(test: rfm.RegressionTest):
         test.default_num_cpus_per_node = int(test.max_avail_cpus_per_node / test.node_part)
 
     log(f'default_num_cpus_per_node set to {test.default_num_cpus_per_node}')
+
+
+def assign_default_num_gpus_per_node(test: rfm.RegressionTest):
+    """
+    Check if the default number of gpus per node is already defined in the test
+    (e.g. by earlier hooks like set_tag_scale).
+    If so, check if it doesn't exceed the maximum available.
+    If not, set default_num_gpus_per_node based on the maximum available gpus and node_part
+    """
+
+    test.max_avail_gpus_per_node = get_max_avail_gpus_per_node(test)
+    if test.default_num_gpus_per_node:
+        # may skip if not enough GPUs
+        test.skip_if(
+            test.default_num_gpus_per_node > test.max_avail_gpus_per_node,
+            f'Number of GPUs per node in selected scale ({test.default_num_gpus_per_node}) is higher than max available'
+            f' ({test.max_avail_gpus_per_node}) in current partition ({test.current_partition.name}).'
+        )
+    else:
+        # no default set yet, so setting one
+        test.default_num_gpus_per_node = math.ceil(test.max_avail_gpus_per_node / test.node_part)
 
 
 def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, num_per: int = 1):
@@ -68,8 +89,8 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
 
     # Check if either node_part, or default_num_cpus_per_node and default_num_gpus_per_node are set correctly
     if not (
-        type(test.node_part) == int or
-        (type(test.default_num_cpus_per_node) == int and type(test.default_num_gpus_per_node) == int)
+        type(test.node_part) == int
+        or (type(test.default_num_cpus_per_node) == int and type(test.default_num_gpus_per_node) == int)
     ):
         raise ValueError(
             f'Either node_part ({test.node_part}), or default_num_cpus_per_node ({test.default_num_cpus_per_node}) and'
@@ -77,6 +98,9 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
         )
 
     assign_default_num_cpus_per_node(test)
+
+    if FEATURES[GPU] in test.current_partition.features:
+        assign_default_num_gpus_per_node(test)
 
     if compute_unit == COMPUTE_UNIT[GPU]:
         _assign_one_task_per_gpu(test)
@@ -222,11 +246,6 @@ def _assign_one_task_per_gpu(test: rfm.RegressionTest):
     --setvar num_cpus_per_task=<y> and/or
     --setvar num_gpus_per_node=<z>.
 
-    Variables:
-    - max_avail_gpus_per_node: maximum available number of GPUs per node
-    - default_num_gpus_per_node: default number of GPUs per node as defined in the test
-    (e.g. by earlier hooks like set_tag_scale)
-
     Default resources requested:
     - num_gpus_per_node = default_num_gpus_per_node
     - num_tasks_per_node = num_gpus_per_node
@@ -235,22 +254,6 @@ def _assign_one_task_per_gpu(test: rfm.RegressionTest):
     If num_tasks_per_node is set, set num_gpus_per_node equal to either num_tasks_per_node or default_num_gpus_per_node
     (whichever is smallest), unless num_gpus_per_node is also set.
     """
-    max_avail_gpus_per_node = get_max_avail_gpus_per_node(test)
-
-    # Check if the default number of gpus per node is already defined in the test
-    # (e.g. by earlier hooks like set_tag_scale).
-    # If so, check if it doesn't exceed the maximum available.
-    # If not, set default_num_gpus_per_node based on the maximum available gpus and node_part
-    if test.default_num_gpus_per_node:
-        # may skip if not enough GPUs
-        test.skip_if(
-            test.default_num_gpus_per_node > max_avail_gpus_per_node,
-            f'Requested GPUs per node ({test.default_num_gpus_per_node}) is higher than max available'
-            f' ({max_avail_gpus_per_node}) in current partition ({test.current_partition.name}).'
-        )
-    else:
-        # no default set yet, so setting one
-        test.default_num_gpus_per_node = math.ceil(max_avail_gpus_per_node / test.node_part)
 
     # neither num_tasks_per_node nor num_gpus_per_node are set
     if not test.num_tasks_per_node and not test.num_gpus_per_node:
@@ -273,7 +276,7 @@ def _assign_one_task_per_gpu(test: rfm.RegressionTest):
         # limit num_cpus_per_task to the maximum available cpus per gpu
         test.num_cpus_per_task = min(
             int(test.default_num_cpus_per_node / test.num_tasks_per_node),
-            int(test.max_avail_cpus_per_node / max_avail_gpus_per_node)
+            int(test.max_avail_cpus_per_node / test.max_avail_gpus_per_node)
         )
 
     test.num_tasks = test.num_nodes * test.num_tasks_per_node
@@ -412,6 +415,6 @@ def check_always_request_gpus(test: rfm.RegressionTest):
     """
     Make sure we always request enough GPUs if required for the current GPU partition (cluster-specific policy)
     """
-    if FEATURES[ALWAYS_REQUEST_GPUS] in test.current_partition.features:
-        test.num_gpus_per_node = test.default_num_gpus_per_node or get_max_avail_gpus_per_node(test)
+    if FEATURES[ALWAYS_REQUEST_GPUS] in test.current_partition.features and not test.num_gpus_per_node:
+        test.num_gpus_per_node = test.default_num_gpus_per_node
         log(f'Set num_gpus_per_node for partition {test.current_partition.name} to {test.num_gpus_per_node}')
