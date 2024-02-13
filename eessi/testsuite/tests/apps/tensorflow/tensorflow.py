@@ -11,7 +11,7 @@ from eessi.testsuite import hooks, utils
 from eessi.testsuite.constants import *  # noqa
 
 @rfm.simple_test
-class TENSORFLOW_EESSI(rfm.RunOnlyRegressionTest):
+class EESSI_TensorFlow(rfm.RunOnlyRegressionTest):
 
     # This test can run at any scale, so parameterize over all known SCALES
     scale = parameter(SCALES.keys())
