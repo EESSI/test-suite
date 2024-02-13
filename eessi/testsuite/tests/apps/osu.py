@@ -136,7 +136,6 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
         This test does not require gpus and is for host to host within GPU nodes. But some systems do require a GPU
         allocation for to perform any activity in the GPU nodes.
         """
-        # if FEATURES[GPU] in self.current_partition.features and utils.is_cuda_required_module(self.module_name):
         if self.device_type == DEVICE_TYPES[GPU]:
             self.num_gpus_per_node = self.default_num_gpus_per_node
             # Skip the single node test if there is only 1 device in the node.
