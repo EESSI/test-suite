@@ -286,9 +286,10 @@ def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
     """
     Sets test.valid_systems based on the valid_systems argument.
     - If valid_systems is an empty string, test.valid_systems is set equal to eessi.testsuite.constants.INVALID_SYSTEM
-    - If no test.valid_system was set yet, or it was at the default value ['*'], it is overwritten by [valid_system]
-    - If a test.valid_system was already set, valid_system is appended to it, which allows adding requests for multiple
-    partition features by different hooks.
+    - If test.valid_systems was an empty list, leave it as is (test should not be run)
+    - If test.valid_system was at the default value ['*'], it is overwritten by [valid_system]
+    - If a test.valid_system was already set and is a list of one element, valid_system is appended to it,
+    which allows adding requests for multiple partition features by different hooks.
     """
 
     # This indicates an invalid test that always has to be filtered
