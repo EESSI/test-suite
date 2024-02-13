@@ -316,7 +316,7 @@ def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
         warn_msg = f"valid_systems has multiple ({len(test.valid_systems)}) items,"
         warn_msg += f" which is not supported by this hook."
         warn_msg += f" Make sure to handle filtering yourself."
-        warning.warn(warn_msg)
+        warnings.warn(warn_msg)
         return
 
 
