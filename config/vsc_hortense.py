@@ -53,7 +53,7 @@ site_configuration = {
                     ],
                     'features': [
                         FEATURES[CPU],
-                    ],
+                    ] + list(SCALES.keys()),
                 },
                 {
                     'name': 'cpu_rome_512gb',
@@ -80,7 +80,7 @@ site_configuration = {
                     ],
                     'features': [
                         FEATURES[CPU],
-                    ],
+                    ] + list(SCALES.keys()),
                 },
                 {
                     'name': 'cpu_milan',
@@ -107,7 +107,7 @@ site_configuration = {
                     ],
                     'features': [
                         FEATURES[CPU],
-                    ],
+                    ] + list(SCALES.keys()),
                 },
                 {
                     'name': 'gpu_rome_a100_40gb',
@@ -128,7 +128,7 @@ site_configuration = {
                     },
                     'features': [
                         FEATURES[GPU],
-                    ],
+                    ] + list(SCALES.keys()),
                     'extras': {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },
@@ -169,7 +169,7 @@ site_configuration = {
                     },
                     'features': [
                         FEATURES[GPU],
-                    ],
+                    ] + list(SCALES.keys()),
                     'extras': {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },

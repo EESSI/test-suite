@@ -16,7 +16,7 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest):
     # This test can run at any scale, so parameterize over all known SCALES
     scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
-    valid_systems = []
+    valid_systems = ['*']
 
     # Parameterize over all modules that start with TensorFlow
     module_name = parameter(utils.find_modules('TensorFlow'))
@@ -70,6 +70,9 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest):
     @run_after('init')
     def run_after_init(self):
         """hooks to run after the init phase"""
+        # Filter on which scales are supported by the partitions defined in the ReFrame configuration
+        hooks.filter_supported_scales(self)
+
         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
         hooks.set_modules(self)
         hooks.set_tag_scale(self)
