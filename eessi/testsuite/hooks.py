@@ -285,9 +285,10 @@ def _assign_one_task_per_gpu(test: rfm.RegressionTest):
 def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
     """
     Sets test.valid_systems based on the valid_systems argument.
-    - When valid_systems is an empty string, test.valid_systems will be set equal to eessi.testsuite.constants.INVALID_SYSTEM
-    - When no test.valid_system was set yet, or it was at the default value ['*'], it will be overwritten by [valid_system]
-    - When a test.valid_system was already set, valid_system will be appended to it. This allows adding requests for multiple partition features by different hooks.
+    - If valid_systems is an empty string, test.valid_systems is set equal to eessi.testsuite.constants.INVALID_SYSTEM
+    - If no test.valid_system was set yet, or it was at the default value ['*'], it is overwritten by [valid_system]
+    - If a test.valid_system was already set, valid_system is appended to it, which allows adding requests for multiple
+    partition features by different hooks.
     """
 
     # This indicates an invalid test that always has to be filtered
@@ -305,14 +306,16 @@ def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
     elif len(test.valid_systems) == 1:
         test.valid_systems[0] = f'{test.valid_systems[0]} {valid_systems}'
     else:
-        error_msg=f"test.valid_systems ({test.valid_systems}) is expected to contain one element."
-        error_msg+=f" Instead, it contained {len(test.valid_systems)}."
+        error_msg = f"test.valid_systems ({test.valid_systems}) is expected to contain one element."
+        error_msg += f" Instead, it contained {len(test.valid_systems)}."
         raise ValueError(error_msg)
 
 
 def filter_supported_scales(test: rfm.RegressionTest):
     """
-    Filter tests scales based on which scales are supported by each partition in the ReFrame configuration. Filtering is done using features. I.e. the current test scale is requested as a feature. Any partition that does not include this feature in the ReFrame configuration file will effectively be filtered out.
+    Filter tests scales based on which scales are supported by each partition in the ReFrame configuration.
+    Filtering is done using features, i.e. the current test scale is requested as a feature.
+    Any partition that does not include this feature in the ReFrame configuration file will effectively be filtered out.
     """
     valid_systems = f'+{test.scale}'
 

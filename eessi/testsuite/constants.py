@@ -62,4 +62,4 @@ SCALES = {
 }
 
 # When tests are filtered by the hooks, the valid_systems is set to this system name:
-INVALID_SYSTEM="INVALID_SYSTEM"
+INVALID_SYSTEM = "INVALID_SYSTEM"
