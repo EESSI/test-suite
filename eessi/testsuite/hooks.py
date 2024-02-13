@@ -307,7 +307,7 @@ def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
         return
 
     # test.valid_systems wasn't set yet, so set it
-    if len(test.valid_systems) == 0:
+    if len(test.valid_systems) == 0 or test.valid_systems == [INVALID_SYSTEM]:
         # test.valid_systems is empty, meaning all tests are filtered out. This hook shouldn't change that
         return
     # test.valid_systems still at default value, so overwrite
@@ -318,8 +318,8 @@ def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
         test.valid_systems[0] = f'{test.valid_systems[0]} {valid_systems}'
     else:
         warn_msg = f"valid_systems has multiple ({len(test.valid_systems)}) items,"
-        warn_msg += f" which is not supported by this hook."
-        warn_msg += f" Make sure to handle filtering yourself."
+        warn_msg += " which is not supported by this hook."
+        warn_msg += " Make sure to handle filtering yourself."
         warnings.warn(warn_msg)
         return
 
@@ -336,6 +336,7 @@ def filter_supported_scales(test: rfm.RegressionTest):
     _set_or_append_valid_systems(test, valid_systems)
 
     log(f'valid_systems set to {test.valid_systems}')
+
 
 def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_device_type: str):
     """
