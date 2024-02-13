@@ -3,6 +3,7 @@ Hooks for adding tags, filtering and setting job resources in ReFrame tests
 """
 import math
 import shlex
+import warnings
 
 import reframe as rfm
 
@@ -282,14 +283,18 @@ def _assign_one_task_per_gpu(test: rfm.RegressionTest):
     log(f'num_cpus_per_task set to {test.num_cpus_per_task}')
     log(f'num_tasks set to {test.num_tasks}')
 
+
 def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
     """
     Sets test.valid_systems based on the valid_systems argument.
     - If valid_systems is an empty string, test.valid_systems is set equal to eessi.testsuite.constants.INVALID_SYSTEM
     - If test.valid_systems was an empty list, leave it as is (test should not be run)
-    - If test.valid_system was at the default value ['*'], it is overwritten by [valid_system]
-    - If a test.valid_system was already set and is a list of one element, valid_system is appended to it,
+    - If test.valid_systems was at the default value ['*'], it is overwritten by [valid_system]
+    - If test.valid_systems was already set and is a list of one element, valid_system is appended to it,
     which allows adding requests for multiple partition features by different hooks.
+    - If test.valid_systems was already set and is a list of multiple elements, we warn that the use has to take
+    care of filtering him/herself. This is typically the case when someone overrides the valid_systems on command line.
+    In this scenario, this function leaves test.valid_systems as it is.
     """
 
     # This indicates an invalid test that always has to be filtered
@@ -300,7 +305,7 @@ def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
     # test.valid_systems wasn't set yet, so set it
     if len(test.valid_systems) == 0:
         # test.valid_systems is empty, meaning all tests are filtered out. This hook shouldn't change that
-        pass
+        return
     # test.valid_systems still at default value, so overwrite
     elif len(test.valid_systems) == 1 and test.valid_systems[0] == '*':
         test.valid_systems = [valid_systems]
@@ -308,9 +313,11 @@ def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
     elif len(test.valid_systems) == 1:
         test.valid_systems[0] = f'{test.valid_systems[0]} {valid_systems}'
     else:
-        error_msg = f"test.valid_systems ({test.valid_systems}) is expected to contain one element."
-        error_msg += f" Instead, it contained {len(test.valid_systems)}."
-        raise ValueError(error_msg)
+        warn_msg = f"valid_systems has multiple ({len(test.valid_systems)}) items,"
+        warn_msg += f" which is not supported by this hook."
+        warn_msg += f" Make sure to handle filtering yourself."
+        warning.warn(warn_msg)
+        return
 
 
 def filter_supported_scales(test: rfm.RegressionTest):
