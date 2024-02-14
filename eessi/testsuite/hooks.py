@@ -468,4 +468,4 @@ def check_always_request_gpus(test: rfm.RegressionTest):
     """
     if FEATURES[ALWAYS_REQUEST_GPUS] in test.current_partition.features and not test.num_gpus_per_node:
         test.num_gpus_per_node = test.default_num_gpus_per_node
-        log(f'Set num_gpus_per_node for partition {test.current_partition.name} to {test.num_gpus_per_node}')
+        log(f'num_gpus_per_node set to {test.num_gpus_per_node} for partition {test.current_partition.name}')

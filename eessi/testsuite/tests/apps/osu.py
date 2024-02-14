@@ -137,13 +137,15 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
         allocation for to perform any activity in the GPU nodes.
         """
         if self.device_type == DEVICE_TYPES[GPU]:
-            self.num_gpus_per_node = self.default_num_gpus_per_node
-            # Skip the single node test if there is only 1 device in the node.
+            # Skip scales with only 1 GPU device and single-node tests with only 1 GPU device in the node
             self.skip_if(
                 SCALES[self.scale]['num_nodes'] == 1 and self.default_num_gpus_per_node == 1,
-                f"There is only 1 GPU device in this scale ({self.scale})."
+                f"There is only 1 GPU device for scale={self.scale} or present in the node."
                 f" Skipping tests with device_type={DEVICE_TYPES[GPU]} involving only 1 GPU."
             )
+            if not self.num_gpus_per_node:
+                self.num_gpus_per_node = self.default_num_gpus_per_node
+                log(f'num_gpus_per_node set to {self.num_gpus_per_node} for partition {self.current_partition.name}')
 
 
 @rfm.simple_test
