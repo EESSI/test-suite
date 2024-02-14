@@ -308,7 +308,7 @@ def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
 
     # test.valid_systems wasn't set yet, so set it
     if len(test.valid_systems) == 0 or test.valid_systems == [INVALID_SYSTEM]:
-        # test.valid_systems is empty, meaning all tests are filtered out. This hook shouldn't change that
+        # test.valid_systems is empty or invalid, meaning all tests are filtered out. This hook shouldn't change that
         return
     # test.valid_systems still at default value, so overwrite
     elif len(test.valid_systems) == 1 and test.valid_systems[0] == '*':
