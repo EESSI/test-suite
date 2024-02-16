@@ -60,3 +60,6 @@ SCALES = {
     '8_nodes': {'num_nodes': 8, 'node_part': 1},
     '16_nodes': {'num_nodes': 16, 'node_part': 1},
 }
+
+# When tests are filtered by the hooks, the valid_systems is set to this system name:
+INVALID_SYSTEM = "INVALID_SYSTEM"
