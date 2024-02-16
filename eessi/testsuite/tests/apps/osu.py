@@ -55,7 +55,7 @@ class osu_pt_2_pt(osu_benchmark):
     def run_after_init(self):
         """hooks to run after init phase"""
         # Note: device_buffers variable is inherited from the hpctestlib class and adds options to the launcher
-        # commands based on what device is set.
+        # commands (before setup) if not equal to 'cpu'. We set it to 'cpu' initially and change it later in this hook depending on the test.
         self.device_buffers = 'cpu'
         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
         is_cuda_module = utils.is_cuda_required_module(self.module_name)
