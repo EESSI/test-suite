@@ -12,7 +12,7 @@ from eessi.testsuite.utils import (get_max_avail_gpus_per_node, is_cuda_required
                                    check_proc_attribute_defined)
 
 
-def assign_default_num_cpus_per_node(test: rfm.RegressionTest):
+def _assign_default_num_cpus_per_node(test: rfm.RegressionTest):
     """
     Check if the default number of cpus per node is already defined in the test
     (e.g. by earlier hooks like set_tag_scale).
@@ -34,7 +34,7 @@ def assign_default_num_cpus_per_node(test: rfm.RegressionTest):
     log(f'default_num_cpus_per_node set to {test.default_num_cpus_per_node}')
 
 
-def assign_default_num_gpus_per_node(test: rfm.RegressionTest):
+def _assign_default_num_gpus_per_node(test: rfm.RegressionTest):
     """
     Check if the default number of gpus per node is already defined in the test
     (e.g. by earlier hooks like set_tag_scale).
@@ -98,10 +98,10 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
             f' default num_gpus_per_node ({test.default_num_gpus_per_node}) must be defined and have integer values.'
         )
 
-    assign_default_num_cpus_per_node(test)
+    _assign_default_num_cpus_per_node(test)
 
     if FEATURES[GPU] in test.current_partition.features:
-        assign_default_num_gpus_per_node(test)
+        _assign_default_num_gpus_per_node(test)
 
     if compute_unit == COMPUTE_UNIT[GPU]:
         _assign_one_task_per_gpu(test)
