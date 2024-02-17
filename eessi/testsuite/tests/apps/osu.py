@@ -153,7 +153,7 @@ class EESSI_OSU_Micro_Benchmarks_coll(osu_benchmark):
     ''' Run-only OSU test '''
     scale = parameter(filter_scales_coll())
     valid_prog_environs = ['default']
-    valid_systems = []
+    valid_systems = ['*']
     time_limit = '30m'
     module_name = parameter(utils.find_modules('OSU-Micro-Benchmarks'))
     # Device type for non-cuda OSU-Micro-Benchmarks should run on hosts of both node types. To do this the default
