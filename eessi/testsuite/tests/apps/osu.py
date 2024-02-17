@@ -52,38 +52,55 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
     num_tasks_per_node = None
 
     @run_after('init')
+    def filter_scales_2gpus(self):
+        """Filter out scales with < 2 GPUs if running on GPUs"""
+        if (
+            self.device_type == DEVICE_TYPES[GPU]
+            and SCALES[self.scale]['num_nodes'] == 1
+            and SCALES[self.scale].get('num_gpus_per_node', 2) < 2
+        ):
+            self.valid_systems = [INVALID_SYSTEM]
+            log(f'valid_systems set to {self.valid_systems} for scale {self.scale} and device_type {self.device_type}')
+
+    @run_after('init')
+    def filter_benchmark_pt2pt(self):
+        """ Filter out all non-mpi.pt2pt benchmarks """
+        if not self.benchmark_info[0].startswith('mpi.pt2pt'):
+            self.valid_systems = [INVALID_SYSTEM]
+
+    @run_after('init')
     def run_after_init(self):
         """hooks to run after init phase"""
-        # Note: device_buffers variable is inherited from the hpctestlib class and adds options to the launcher
-        # commands (before setup) if not equal to 'cpu'. We set it to 'cpu' initially and change it later in this hook depending on the test.
-        self.device_buffers = 'cpu'
+
         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
         hooks.filter_supported_scales(self)
 
         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
-        is_cuda_module = utils.is_cuda_required_module(self.module_name)
-        # This part of the hook is meant to be for the OSU cpu tests. This is required since the non CUDA module should
-        # be able to run in the GPU partition as well. This is specific for this test and not covered by the function
-        # above.
-        if is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
-            # Sets to cuda as device buffer only if the module is compiled with CUDA.
-            self.device_buffers = 'cuda'
 
-        # If the device_type is CPU then device buffer should always be CPU.
-        if self.device_type == DEVICE_TYPES[CPU]:
-            self.device_buffers = 'cpu'
-
-        # This part of the code removes the collective communication calls out of the run list since this test is only
-        # meant for pt2pt.
-        if not self.benchmark_info[0].startswith('mpi.pt2pt'):
-            self.valid_systems = []
         hooks.set_modules(self)
 
-    @run_after('setup')
+        # Set scales as tags
+        hooks.set_tag_scale(self)
+
+    @run_after('init')
+    def set_device_buffers(self):
+        """
+        device_buffers is inherited from the hpctestlib class and adds options to the launcher
+        commands in a @run_before('setup') hook if not equal to 'cpu'.
+        Therefore, we must set device_buffers *before* the @run_before('setup') hooks.
+        """
+        if self.device_type == DEVICE_TYPES[GPU]:
+            self.device_buffers = 'cuda'
+
+        else:
+            # If the device_type is CPU then device_buffers should always be CPU.
+            self.device_buffers = 'cpu'
+
+    @run_after('init')
     def adjust_executable_opts(self):
         """The option "D D" is only meant for Devices if and not for CPU tests. This option is added by hpctestlib to
         all pt2pt tests which is not required."""
-        if(self.device_type == DEVICE_TYPES[CPU]):
+        if self.device_type == DEVICE_TYPES[CPU]:
             self.executable_opts = [ele for ele in self.executable_opts if ele != 'D']
 
     @run_after('init')
@@ -108,11 +125,6 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
         requirement."""
         self.extra_resources = {'memory': {'size': '12GB'}}
 
-    @run_after('init')
-    def set_num_tasks(self):
-        """ Setting scales as tags. """
-        hooks.set_tag_scale(self)
-
     @run_after('setup')
     def set_num_tasks_per_node(self):
         """ Setting number of tasks per node and cpus per task in this function. This function sets num_cpus_per_task
@@ -129,11 +141,11 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
         allocation for to perform any activity in the GPU nodes.
         """
         if self.device_type == DEVICE_TYPES[GPU]:
-            # Skip scales with only 1 GPU device and single-node tests with only 1 GPU device in the node
+            # Skip single-node tests with less than 2 GPU devices in the node
             self.skip_if(
-                SCALES[self.scale]['num_nodes'] == 1 and self.default_num_gpus_per_node == 1,
-                f"There is only 1 GPU device for scale={self.scale} or present in the node."
-                f" Skipping tests with device_type={DEVICE_TYPES[GPU]} involving only 1 GPU."
+                SCALES[self.scale]['num_nodes'] == 1 and self.default_num_gpus_per_node < 2,
+                "There are < 2 GPU devices present in the node."
+                f" Skipping tests with device_type={DEVICE_TYPES[GPU]} involving < 2 GPUs and 1 node."
             )
             if not self.num_gpus_per_node:
                 self.num_gpus_per_node = self.default_num_gpus_per_node
