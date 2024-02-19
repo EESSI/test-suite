@@ -169,6 +169,8 @@ class EESSI_OSU_Micro_Benchmarks_coll(osu_benchmark):
         # Note: device_buffers variable is inherited from the hpctestlib class and adds options to the launcher
         # commands based on what device is set.
         self.device_buffers = 'cpu'
+        # Filter on which scales are supported by the partitions defined in the ReFrame configuration
+        hooks.filter_supported_scales(self)
         hooks.filter_valid_systems_by_device_type( self, required_device_type=self.device_type)
         is_cuda_module = utils.is_cuda_required_module(self.module_name)
         if is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
