@@ -97,13 +97,6 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
             self.device_buffers = 'cpu'
 
     @run_after('init')
-    def adjust_executable_opts(self):
-        """The option "D D" is only meant for Devices if and not for CPU tests. This option is added by hpctestlib to
-        all pt2pt tests which is not required."""
-        if self.device_type == DEVICE_TYPES[CPU]:
-            self.executable_opts = [ele for ele in self.executable_opts if ele != 'D']
-
-    @run_after('init')
     def set_tag_ci(self):
         """ Setting tests under CI tag. """
         if (self.benchmark_info[0] in ['mpi.pt2pt.osu_latency', 'mpi.pt2pt.osu_bw']):
@@ -124,6 +117,16 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
         option for osu_bw or osu_latency). We run till message size 8 (-m 8) which significantly reduces memory
         requirement."""
         self.extra_resources = {'memory': {'size': '12GB'}}
+
+    @run_after('setup')
+    def adjust_executable_opts(self):
+        """The option "D D" is only meant for Devices if and not for CPU tests.
+        This option is added by hpctestlib in a @run_before('setup') to all pt2pt tests which is not required.
+        Therefore we must override it *after* the 'setup' phase
+        """
+        if self.device_type == DEVICE_TYPES[CPU]:
+            self.executable_opts = [ele for ele in self.executable_opts if ele != 'D']
+
 
     @run_after('setup')
     def set_num_tasks_per_node(self):
