@@ -140,8 +140,7 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
     @run_after('setup')
     def set_num_gpus_per_node(self):
         """
-        This test does not require gpus and is for host to host within GPU nodes. But some systems do require a GPU
-        allocation for to perform any activity in the GPU nodes.
+        Set number of GPUs per node for GPU-to-GPU tests
         """
         if self.device_type == DEVICE_TYPES[GPU]:
             # Skip single-node tests with less than 2 GPU devices in the node
