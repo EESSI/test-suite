@@ -42,13 +42,16 @@ from eessi.testsuite.utils import find_modules, log
 class EESSI_GROMACS(gromacs_check):
     scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
-    valid_systems = []
+    valid_systems = ['*']
     time_limit = '30m'
     module_name = parameter(find_modules('GROMACS'))
 
     @run_after('init')
     def run_after_init(self):
         """Hooks to run after the init phase"""
+
+        # Filter on which scales are supported by the partitions defined in the ReFrame configuration
+        hooks.filter_supported_scales(self)
 
         # Make sure that GPU tests run in partitions that support running on a GPU,
         # and that CPU-only tests run in partitions that support running CPU-only.

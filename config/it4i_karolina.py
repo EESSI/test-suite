@@ -52,7 +52,7 @@ site_configuration = {
                     'max_jobs': 120,
                     'features': [
                         FEATURES[CPU],
-                    ],
+                    ] + list(SCALES.keys()),
                     'descr': 'CPU Universal Compute Nodes, see https://docs.it4i.cz/karolina/hardware-overview/'
                 },
 # We don't have GPU budget on Karolina at this time
@@ -88,7 +88,7 @@ site_configuration = {
 #                     ],
 #                     'features': [
 #                         FEATURES[GPU],
-#                     ],
+#                     ] + list(SCALES.keys()),
 #                     'descr': 'GPU partition with accelerated nodes, see https://docs.it4i.cz/karolina/hardware-overview/'
 #                 },
             ]
