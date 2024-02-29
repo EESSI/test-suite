@@ -101,6 +101,7 @@ site_configuration = {
                     ],
                     'features': [
                         FEATURES[GPU],
+                        FEATURES[ALWAYS_REQUEST_GPUS],
                     ] + valid_scales_snellius_gpu,
                     'extras': {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
