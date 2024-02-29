@@ -69,6 +69,19 @@ def common_logging_config(prefix=None):
         ],
     }]
 
+def common_general_config(prefix=None):
+    """
+    return common configuration for the 'general' section of the ReFrame configuration file
+    :param: prefix: prefix for the report_file
+    """
+    prefix = os.getenv('RFM_PREFIX', prefix if prefix else '.')
+    reportdir = os.path.join(prefix, 'report_files')
+    os.makedirs(reportdir)
+
+    return [{
+        'report_file': os.path.join(reportdir, 'run-report-{sessionid}.json'
+    }]
+
 def common_eessi_init(eessi_version=None):
     """
     Returns the full path that should be sourced to initialize the EESSI environment for a given version of EESSI.

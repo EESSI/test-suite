@@ -19,7 +19,7 @@ Example configuration file
 """
 import os
 
-from eessi.testsuite.common_config import common_logging_config, format_perfvars, perflog_format
+from eessi.testsuite.common_config import common_logging_config, common_general_config, format_perfvars, perflog_format
 from eessi.testsuite.constants import *  # noqa: F403
 
 
@@ -118,7 +118,7 @@ site_configuration = {
             # Enable automatic detection of CPU architecture for each partition
             # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
             'remote_detect': True,
-        }
+        }.update(common_general_config(reframe_prefix))
     ],
 }
 

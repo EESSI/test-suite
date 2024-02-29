@@ -12,7 +12,7 @@
 
 import os
 
-from eessi.testsuite.common_config import common_logging_config, common_eessi_init
+from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
 from eessi.testsuite.constants import FEATURES, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
@@ -86,7 +86,7 @@ site_configuration = {
             # Enable automatic detection of CPU architecture for each partition
             # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
             'remote_detect': True,
-        }
+        }.update(common_general_config(reframe_prefix))
     ],
 }
 
