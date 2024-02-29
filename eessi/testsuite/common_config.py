@@ -79,7 +79,7 @@ def common_general_config(prefix=None):
     os.makedirs(reportdir)
 
     return [{
-        'report_file': os.path.join(reportdir, 'run-report-{sessionid}.json'
+        'report_file': os.path.join(reportdir, 'run-report-{sessionid}.json')
     }]
 
 def common_eessi_init(eessi_version=None):
