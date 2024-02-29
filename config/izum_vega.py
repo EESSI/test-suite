@@ -47,7 +47,7 @@ site_configuration = {
                     ],
                     'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
-                    'access':  ['-p cpu', '--export=None'],
+                    'access': ['-p cpu', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
                     'resources': [
@@ -76,7 +76,7 @@ site_configuration = {
                     ],
                     'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
-                    'access':  ['-p gpu', '--export=None'],
+                    'access': ['-p gpu', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 60,
                     'devices': [

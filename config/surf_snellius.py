@@ -41,7 +41,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': ['source %s' % common_eessi_init()],
                     'launcher': 'mpirun',
-                    'access':  ['-p rome', '--export=None'],
+                    'access': ['-p rome', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
                     'resources': [
@@ -60,7 +60,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': ['source %s' % common_eessi_init()],
                     'launcher': 'mpirun',
-                    'access':  ['-p genoa', '--export=None'],
+                    'access': ['-p genoa', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
                     'resources': [
@@ -80,7 +80,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': ['source %s' % common_eessi_init()],
                     'launcher': 'mpirun',
-                    'access':  ['-p gpu', '--export=None'],
+                    'access': ['-p gpu', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 60,
                     'devices': [
