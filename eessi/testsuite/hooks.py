@@ -114,7 +114,7 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
     else:
         raise ValueError(f'compute unit {compute_unit} is currently not supported')
 
-    check_always_request_gpus(test)
+    _check_always_request_gpus(test)
 
 
 def _assign_num_tasks_per_node(test: rfm.RegressionTest, num_per: int = 1):
@@ -466,7 +466,7 @@ def set_compact_thread_binding(test: rfm.RegressionTest):
     log(f'Set environment variable KMP_AFFINITY to {test.env_vars["KMP_AFFINITY"]}')
 
 
-def check_always_request_gpus(test: rfm.RegressionTest):
+def _check_always_request_gpus(test: rfm.RegressionTest):
     """
     Make sure we always request enough GPUs if required for the current GPU partition (cluster-specific policy)
     """
