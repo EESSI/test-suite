@@ -69,6 +69,7 @@ def common_logging_config(prefix=None):
         ],
     }]
 
+
 def common_general_config(prefix=None):
     """
     return common configuration for the 'general' section of the ReFrame configuration file
@@ -81,6 +82,7 @@ def common_general_config(prefix=None):
     return [{
         'report_file': os.path.join(reportdir, 'run-report-{sessionid}.json')
     }]
+
 
 def common_eessi_init(eessi_version=None):
     """
