@@ -125,6 +125,8 @@ site_configuration = {
             # Enable automatic detection of CPU architecture for each partition
             # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
             'remote_detect': True,
-        }.update(common_general_config(reframe_prefix))
+            **common_general_config(reframe_prefix)
+        }
     ],
 }
+
