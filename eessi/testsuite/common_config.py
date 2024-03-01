@@ -77,7 +77,7 @@ def common_general_config(prefix=None):
     """
     prefix = os.getenv('RFM_PREFIX', prefix if prefix else '.')
     reportdir = os.path.join(prefix, 'report_files')
-    os.makedirs(reportdir)
+    os.makedirs(reportdir, exist_ok=True)
 
     return {
         'report_file': os.path.join(reportdir, 'run-report-{sessionid}.json')
