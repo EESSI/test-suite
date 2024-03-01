@@ -90,8 +90,8 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
 
     # Check if either node_part, or default_num_cpus_per_node and default_num_gpus_per_node are set correctly
     if not (
-        type(test.node_part) == int
-        or (type(test.default_num_cpus_per_node) == int and type(test.default_num_gpus_per_node) == int)
+        isinstance(test.node_part, int)
+        or (isinstance(test.default_num_cpus_per_node, int) and isinstance(test.default_num_gpus_per_node, int))
     ):
         raise ValueError(
             f'Either node_part ({test.node_part}), or default_num_cpus_per_node ({test.default_num_cpus_per_node}) and'

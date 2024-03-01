@@ -85,30 +85,31 @@ def common_general_config(prefix=None):
 def common_eessi_init(eessi_version=None):
     """
     Returns the full path that should be sourced to initialize the EESSI environment for a given version of EESSI.
-    If no eessi_version is passed, the EESSI_VERSION environment variable is read. If that is also not defined, default behaviour is to use `latest`.
+    If no eessi_version is passed, the EESSI_VERSION environment variable is read.
+    If that is also not defined, default behaviour is to use `latest`.
     :param eessi_version: version of EESSI that should be sourced (e.g. '2023.06' or 'latest') [optional]
     """
     # Check which EESSI_CVMFS_REPO we are running under
     eessi_cvmfs_repo = os.getenv('EESSI_CVMFS_REPO', None)
     if eessi_cvmfs_repo is None:
-        err_msg = "Environment variable 'EESSI_CVMFS_REPO' was not found. "
-        err_msg += "Did you initialize the EESSI environment before running the test suite?"
+        err_msg = "Environment variable 'EESSI_CVMFS_REPO' was not found."
+        err_msg += " Did you initialize the EESSI environment before running the test suite?"
         raise ValueError(err_msg)
     if eessi_cvmfs_repo == '/cvmfs/pilot.eessi-hpc.org':
-        if eessi_version == None:
+        if eessi_version is None:
             # Try also EESSI_VERSION for backwards compatibility with previous common_eessi_init implementation
             eessi_version = os.getenv('EESSI_PILOT_VERSION', os.getenv('EESSI_VERSION', 'latest'))
     else:
-    # software.eessi.io, or another where we assume the same variable names to be used
-        if eessi_version == None:
+        # software.eessi.io, or another where we assume the same variable names to be used
+        if eessi_version is None:
             eessi_version = os.getenv('EESSI_VERSION', None)
         # Without EESSI_VERSION, we don't know what to do. There is no default/latest version
         # So, report error
-        if eessi_version == None:
-            err_msg = "Environment variable 'EESSI_VERSION' was not found. "
-            err_msg += "Did you initialize the EESSI environment before running the test suite?"
+        if eessi_version is None:
+            err_msg = "Environment variable 'EESSI_VERSION' was not found."
+            err_msg += " Did you initialize the EESSI environment before running the test suite?"
             raise ValueError(err_msg)
-   
+
     if eessi_cvmfs_repo == '/cvmfs/pilot.eessi-hpc.org' and eessi_version == 'latest':
         return '/cvmfs/pilot.eessi-hpc.org/latest/init/bash'
     else:
