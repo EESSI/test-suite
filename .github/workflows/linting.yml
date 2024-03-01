@@ -1,0 +1,25 @@
+name: Static Analysis
+on: [push, pull_request, workflow_dispatch]
+permissions: read-all
+
+jobs:
+  python-linting:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1  # v4.7.0
+        with:
+          python-version: '3.10'
+
+      - name: Install Python packages
+        run: |
+          pip install --upgrade pip
+          pip install --upgrade flake8
+
+      - name: Run flake8 to verify PEP8-compliance of Python code
+        run: flake8

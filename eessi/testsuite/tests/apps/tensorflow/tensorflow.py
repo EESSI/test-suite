@@ -10,6 +10,7 @@ import reframe.utility.sanity as sn
 from eessi.testsuite import hooks, utils
 from eessi.testsuite.constants import *  # noqa
 
+
 @rfm.simple_test
 class EESSI_TensorFlow(rfm.RunOnlyRegressionTest):
 
@@ -50,7 +51,7 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest):
     @deferrable
     def assert_convergence(self):
         '''Assert that the network learned _something_ during training'''
-        accuracy = sn.extractsingle('^Final accuracy: (?P<accuracy>\S+)', self.stdout, 'accuracy', float)
+        accuracy = sn.extractsingle('^Final accuracy: (?P<accuracy>\S+)', self.stdout, 'accuracy', float)  # noqa: W605
         # mnist is a 10-class classification problem, so if accuracy >> 0.2 the network 'learned' something
         return sn.assert_gt(accuracy, 0.2)
 

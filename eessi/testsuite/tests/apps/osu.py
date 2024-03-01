@@ -6,8 +6,10 @@ Note: OSU-Micro-Benchmarks CUDA module binaries must be linked to stubs so that 
 non-GPU nodes. Otherwise those tests will FAIL.
 """
 import reframe as rfm
-from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
+from reframe.core.builtins import parameter, run_after  # added only to make the linter happy
 from reframe.utility import reframe
+
+from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
 
 from eessi.testsuite import hooks, utils
 from eessi.testsuite.constants import *
@@ -127,7 +129,6 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
         if self.device_type == DEVICE_TYPES[CPU]:
             self.executable_opts = [ele for ele in self.executable_opts if ele != 'D']
 
-
     @run_after('setup')
     def set_num_tasks_per_node(self):
         """ Setting number of tasks per node and cpus per task in this function. This function sets num_cpus_per_task
@@ -168,7 +169,6 @@ class EESSI_OSU_Micro_Benchmarks_coll(osu_benchmark):
     # Unset num_tasks_per_node from hpctestlib
     num_tasks_per_node = None
 
-
     @run_after('init')
     def run_after_init(self):
         """hooks to run after init phase"""
@@ -177,7 +177,7 @@ class EESSI_OSU_Micro_Benchmarks_coll(osu_benchmark):
         self.device_buffers = 'cpu'
         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
         hooks.filter_supported_scales(self)
-        hooks.filter_valid_systems_by_device_type( self, required_device_type=self.device_type)
+        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
         is_cuda_module = utils.is_cuda_required_module(self.module_name)
         if is_cuda_module and self.device_type == DEVICE_TYPES[GPU]:
             self.device_buffers = 'cuda'
@@ -191,18 +191,15 @@ class EESSI_OSU_Micro_Benchmarks_coll(osu_benchmark):
             self.valid_systems = []
         hooks.set_modules(self)
 
-
     @run_after('init')
     def set_tag_ci(self):
-        if (self.benchmark_info[0] == 'mpi.collective.osu_allreduce' or
-           self.benchmark_info[0] == 'mpi.collective.osu_alltoall'):
+        if (self.benchmark_info[0] == 'mpi.collective.osu_allreduce'
+           or self.benchmark_info[0] == 'mpi.collective.osu_alltoall'):
             self.tags.add('CI')
         if (self.benchmark_info[0] == 'mpi.collective.osu_allreduce'):
             self.tags.add('osu_allreduce')
-
         if (self.benchmark_info[0] == 'mpi.collective.osu_alltoall'):
             self.tags.add('osu_alltoall')
-
 
     @run_after('init')
     def set_mem(self):
@@ -221,37 +218,36 @@ class EESSI_OSU_Micro_Benchmarks_coll(osu_benchmark):
         """ Setting number of tasks per node, cpus per task and gpus per node in this function. This function sets
         num_cpus_per_task for 1 node and 2 node options where the request is for full nodes."""
         max_avail_cpus_per_node = self.current_partition.processor.num_cpus
-        if(self.device_buffers == 'cpu'):
+        if self.device_buffers == 'cpu':
             # Setting num_tasks and num_tasks_per_node for the CPU tests
-            if(SCALES.get(self.scale).get('num_cpus_per_node', 0)):
+            if SCALES.get(self.scale).get('num_cpus_per_node', 0):
                 hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE],
                                                     self.default_num_cpus_per_node)
-            elif(SCALES.get(self.scale).get('node_part', 0)):
+            elif SCALES.get(self.scale).get('node_part', 0):
                 pass_num_per = int(max_avail_cpus_per_node / SCALES.get(self.scale).get('node_part', 0))
-                if(pass_num_per > 1):
+                if pass_num_per > 1:
                     hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[NODE], pass_num_per)
                 else:
                     self.skip(msg="Too few cores available for a collective operation.")
 
-            if(FEATURES[GPU] in self.current_partition.features):
+            if FEATURES[GPU] in self.current_partition.features:
                 max_avail_gpus_per_node = utils.get_max_avail_gpus_per_node(self)
                 # Setting number of GPU for a cpu test on a GPU node.
-                if(SCALES.get(self.scale).get('num_nodes') == 1):
+                if SCALES.get(self.scale).get('num_nodes') == 1:
                     self.num_gpus_per_node = 1
                 else:
                     self.num_gpus_per_node = max_avail_gpus_per_node
-        elif(self.device_buffers == 'cuda'):
+        elif self.device_buffers == 'cuda':
             max_avail_gpus_per_node = utils.get_max_avail_gpus_per_node(self)
             # Setting num_tasks and num_tasks_per_node for the GPU tests
-            if(max_avail_gpus_per_node == 1 and
-                    SCALES.get(self.scale).get('num_nodes') == 1):
-                self.skip(msg="There is only 1 device within the node. Skipping collective tests involving only 1 node.")
+            if max_avail_gpus_per_node == 1 and SCALES.get(self.scale).get('num_nodes') == 1:
+                self.skip(msg="There is only 1 device in the node. Skipping collective tests involving only 1 node.")
             else:
-                if(SCALES.get(self.scale).get('num_gpus_per_node', 0) * SCALES.get(self.scale).get('num_nodes', 0) > 1):
+                if SCALES.get(self.scale).get('num_gpus_per_node', 0) * SCALES.get(self.scale).get('num_nodes', 0) > 1:
                     hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(GPU, FEATURES[GPU]))
-                elif(SCALES.get(self.scale).get('node_part', 0)):
+                elif SCALES.get(self.scale).get('node_part', 0):
                     pass_num_per = int(max_avail_gpus_per_node / SCALES.get(self.scale).get('node_part', 0))
-                    if(pass_num_per > 1):
+                    if pass_num_per > 1:
                         hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT.get(GPU, FEATURES[GPU]))
                     else:
                         self.skip(msg="Total GPUs (max_avail_gpus_per_node / node_part) is 1 less.")

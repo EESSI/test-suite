@@ -30,6 +30,7 @@ See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 """
 
 import reframe as rfm
+from reframe.core.builtins import parameter, run_after  # added only to make the linter happy
 
 from hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
 

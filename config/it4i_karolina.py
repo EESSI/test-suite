@@ -47,7 +47,7 @@ site_configuration = {
                     ],
                     'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
-                    'access':  ['-p qcpu', '-A DD-23-96', '--export=None'],
+                    'access': ['-p qcpu', '-A DD-23-96', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
                     'features': [
@@ -55,42 +55,42 @@ site_configuration = {
                     ] + list(SCALES.keys()),
                     'descr': 'CPU Universal Compute Nodes, see https://docs.it4i.cz/karolina/hardware-overview/'
                 },
-# We don't have GPU budget on Karolina at this time
-#                 {
-#                     'name': 'qgpu',
-#                     'scheduler': 'slurm',
-#                     'prepare_cmds': [
-#                         'source %s' % common_eessi_init(),
-#                         # Pass job environment variables like $PATH, etc., into job steps
-#                         'export SLURM_EXPORT_ENV=ALL',
-#                         # Needed when using srun launcher
-#                         # 'export SLURM_MPI_TYPE=pmix',  # WARNING: this broke the GROMACS on Vega
-#                         # Avoid https://github.com/EESSI/software-layer/issues/136
-#                         # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
-#                         'export OMPI_MCA_pml=ucx',
-#                     ],
-#                     'launcher': 'mpirun',
-#                     # Use --export=None to avoid that login environment is passed down to submitted jobs
-#                     'access':  ['-p gpu', '-A DD-23-96', '--export=None'],
-#                     'environs': ['default'],
-#                     'max_jobs': 60,
-#                     'devices': [
-#                         {
-#                             'type': DEVICE_TYPES[GPU],
-#                             'num_devices': 8,
-#                         }
-#                     ],
-#                     'resources': [
-#                         {
-#                             'name': '_rfm_gpu',
-#                             'options': ['--gpus-per-node={num_gpus_per_node}'],
-#                         }
-#                     ],
-#                     'features': [
-#                         FEATURES[GPU],
-#                     ] + list(SCALES.keys()),
-#                     'descr': 'GPU partition with accelerated nodes, see https://docs.it4i.cz/karolina/hardware-overview/'
-#                 },
+                # We don't have GPU budget on Karolina at this time
+                # {
+                #     'name': 'qgpu',
+                #     'scheduler': 'slurm',
+                #     'prepare_cmds': [
+                #         'source %s' % common_eessi_init(),
+                #         # Pass job environment variables like $PATH, etc., into job steps
+                #         'export SLURM_EXPORT_ENV=ALL',
+                #         # Needed when using srun launcher
+                #         # 'export SLURM_MPI_TYPE=pmix',  # WARNING: this broke the GROMACS on Vega
+                #         # Avoid https://github.com/EESSI/software-layer/issues/136
+                #         # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
+                #         'export OMPI_MCA_pml=ucx',
+                #     ],
+                #     'launcher': 'mpirun',
+                #     # Use --export=None to avoid that login environment is passed down to submitted jobs
+                #     'access':  ['-p gpu', '-A DD-23-96', '--export=None'],
+                #     'environs': ['default'],
+                #     'max_jobs': 60,
+                #     'devices': [
+                #         {
+                #             'type': DEVICE_TYPES[GPU],
+                #             'num_devices': 8,
+                #         }
+                #     ],
+                #     'resources': [
+                #         {
+                #             'name': '_rfm_gpu',
+                #             'options': ['--gpus-per-node={num_gpus_per_node}'],
+                #         }
+                #     ],
+                #     'features': [
+                #         FEATURES[GPU],
+                #     ] + list(SCALES.keys()),
+                #     'descr': 'GPU partition with accelerated nodes, https://docs.it4i.cz/karolina/hardware-overview/'
+                # },
             ]
         },
     ],

@@ -9,7 +9,6 @@ from typing import Iterator
 import reframe as rfm
 import reframe.core.runtime as rt
 from reframe.frontend.printer import PrettyPrinter
-from reframe.utility import OrderedSet
 
 from eessi.testsuite.constants import *
 
@@ -62,11 +61,11 @@ def find_modules(regex: str, name_only=True) -> Iterator[str]:
     Return all modules matching the regular expression regex. Note that since we use re.search,
     a module matches if the regex matches the module name at any place. I.e. the match does
     not have to be at the start of the smodule name
-    
+
     Arguments:
     - regex: a regular expression
     - name_only: regular expressions will only be matched on the module name, not the version (default: True).
-    
+
     Note: the name_only feature assumes anything after the last forward '/' is the version,
     and strips that before doing a match.
 
@@ -109,14 +108,15 @@ def find_modules(regex: str, name_only=True) -> Iterator[str]:
         # Match the actual regular expression
         log(f"Matching module {mod} with regex {regex}")
         if re.search(regex, mod):
-            log(f"Match!")
+            log("Match!")
             yield orig_mod
+
 
 def check_proc_attribute_defined(test: rfm.RegressionTest, attribute) -> bool:
     """
     Checks if a processor feature is defined (i.e. if test.current_partition.processor.<somefeature> is defined)
-    If not, throws an informative error message. 
-    
+    If not, throws an informative error message.
+
     Arguments:
     - test: the reframe regression test instance for which should be checked if the processor feature is defined
     - attribute: attribute of the processor object, as defined by systems.partitions.processor
@@ -125,7 +125,7 @@ def check_proc_attribute_defined(test: rfm.RegressionTest, attribute) -> bool:
     - True (bool) if the attribute is defined
     - Function does not return (but raises an error) if the attribute is undefined
 
-    Current known attributes in ReFrame are arch, num_cpus, num_cpus_per_core and topology, 
+    Current known attributes in ReFrame are arch, num_cpus, num_cpus_per_core and topology,
     but this may change in the future.
 
     If ReFrame's autodetect feature is used, all of these should be properly defined, so that's what we advice.
@@ -149,4 +149,3 @@ def check_proc_attribute_defined(test: rfm.RegressionTest, attribute) -> bool:
             "This is a programming error, please report this issue."
         )
         raise AttributeError(msg)
-    

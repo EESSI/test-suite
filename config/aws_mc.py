@@ -43,8 +43,8 @@ site_configuration = {
                     'name': 'x86_64-skylake-16c-30gb',
                     'access': ['--partition=x86-64-intel-skylake-node', '--export=NONE'],
                     'descr': 'Skylake, 16 cores, 30 GB',
-               },
-               {
+                },
+                {
                     'name': 'x86_64-zen2-16c-30gb',
                     'access': ['--partition=x86-64-amd-zen2-node', '--export=NONE'],
                     'descr': 'Zen2, 16 cores, 30 GB',
