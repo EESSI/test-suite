@@ -226,7 +226,7 @@ site_configuration = {
         {
             'purge_environment': True,
             'resolve_module_conflicts': False,  # avoid loading the module before submitting the job
-            **common_general_config(reframe_prefix)
+            **common_general_config()
         }
     ],
     'logging': common_logging_config(),
