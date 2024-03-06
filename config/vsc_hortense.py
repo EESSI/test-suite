@@ -6,7 +6,7 @@
 from reframe.core.backends import register_launcher
 from reframe.core.launchers import JobLauncher
 
-from eessi.testsuite.common_config import common_logging_config, common_eessi_init
+from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
 from eessi.testsuite.constants import *  # noqa: F403
 
 account = "my-slurm-account"
@@ -226,6 +226,7 @@ site_configuration = {
         {
             'purge_environment': True,
             'resolve_module_conflicts': False,  # avoid loading the module before submitting the job
+            **common_general_config()
         }
     ],
     'logging': common_logging_config(),
