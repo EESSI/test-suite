@@ -16,7 +16,7 @@ It includes:
 * updates to CI workflow ((#102, #103, #104, #105)
 * Update common_config (#114)
 * Add common config item to redirect the report file to the same directory as e.g. the perflog (#122)
-* Code formatting (#120)
+* Fix code formatting + enforce it in CI workflow  (#120)
 
 Bug fixes:
 
