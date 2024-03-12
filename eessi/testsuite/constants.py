@@ -11,6 +11,7 @@ GPU_VENDOR = 'GPU_VENDOR'
 INTEL = 'INTEL'
 NODE = 'NODE'
 NVIDIA = 'NVIDIA'
+ALWAYS_REQUEST_GPUS = 'ALWAYS_REQUEST_GPUS'
 
 DEVICE_TYPES = {
     CPU: 'cpu',
@@ -31,6 +32,7 @@ TAGS = {
 FEATURES = {
     CPU: 'cpu',
     GPU: 'gpu',
+    ALWAYS_REQUEST_GPUS: 'always_request_gpus',
 }
 
 GPU_VENDORS = {

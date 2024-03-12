@@ -19,8 +19,8 @@ Example configuration file
 """
 import os
 
-from eessi.testsuite.common_config import common_logging_config, format_perfvars, perflog_format
-from eessi.testsuite.constants import *  # noqa: F403
+from eessi.testsuite.common_config import common_logging_config, common_general_config, format_perfvars, perflog_format
+from eessi.testsuite.constants import *
 
 
 site_configuration = {
@@ -35,10 +35,10 @@ site_configuration = {
             'partitions': [
                 {
                     'name': 'cpu_partition',
-                    'descr': 'CPU partition'
+                    'descr': 'CPU partition',
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
-                    'access':  ['-p cpu', '--export=None'],
+                    'access': ['-p cpu', '--export=None'],
                     'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
                     'environs': ['default'],
                     'max_jobs': 4,
@@ -62,20 +62,20 @@ site_configuration = {
                 },
                 {
                     'name': 'gpu_partition',
-                    'descr': 'GPU partition'
+                    'descr': 'GPU partition',
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
-                    'access':  ['-p gpu', '--export=None'],
+                    'access': ['-p gpu', '--export=None'],
                     'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
                     'environs': ['default'],
                     'max_jobs': 4,
                     # We recommend to rely on ReFrame's CPU autodetection,
                     # and only define the 'processor' field if autodetection fails
                     # 'processor': {
-                        # 'num_cpus': 72,
-                        # 'num_sockets': 2,
-                        # 'num_cpus_per_socket': 36,
-                        # 'num_cpus_per_core': 1,
+                    #     'num_cpus': 72,
+                    #     'num_sockets': 2,
+                    #     'num_cpus_per_socket': 36,
+                    #     'num_cpus_per_core': 1,
                     # },
                     'resources': [
                         {
@@ -118,6 +118,7 @@ site_configuration = {
             # Enable automatic detection of CPU architecture for each partition
             # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
             'remote_detect': True,
+            **common_general_config()
         }
     ],
 }

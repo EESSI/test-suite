@@ -15,7 +15,7 @@
 
 import os
 
-from eessi.testsuite.common_config import common_logging_config, common_eessi_init
+from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
 from eessi.testsuite.constants import *  # noqa: F403
 
 # This config will write all staging, output and logging to subdirs under this prefix
@@ -47,7 +47,7 @@ site_configuration = {
                     ],
                     'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
-                    'access':  ['-p cpu', '--export=None'],
+                    'access': ['-p cpu', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
                     'resources': [
@@ -76,7 +76,7 @@ site_configuration = {
                     ],
                     'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
-                    'access':  ['-p gpu', '--export=None'],
+                    'access': ['-p gpu', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 60,
                     'devices': [
@@ -117,6 +117,7 @@ site_configuration = {
             # Enable automatic detection of CPU architecture for each partition
             # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
             'remote_detect': True,
+            **common_general_config(reframe_prefix)
         }
     ],
 }

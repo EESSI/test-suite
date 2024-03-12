@@ -12,7 +12,7 @@
 
 import os
 
-from eessi.testsuite.common_config import common_logging_config, common_eessi_init
+from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
 from eessi.testsuite.constants import FEATURES, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
@@ -43,8 +43,8 @@ site_configuration = {
                     'name': 'x86_64-skylake-16c-30gb',
                     'access': ['--partition=x86-64-intel-skylake-node', '--export=NONE'],
                     'descr': 'Skylake, 16 cores, 30 GB',
-               },
-               {
+                },
+                {
                     'name': 'x86_64-zen2-16c-30gb',
                     'access': ['--partition=x86-64-amd-zen2-node', '--export=NONE'],
                     'descr': 'Zen2, 16 cores, 30 GB',
@@ -86,6 +86,7 @@ site_configuration = {
             # Enable automatic detection of CPU architecture for each partition
             # See https://reframe-hpc.readthedocs.io/en/stable/configure.html#auto-detecting-processor-information
             'remote_detect': True,
+            **common_general_config(reframe_prefix)
         }
     ],
 }
