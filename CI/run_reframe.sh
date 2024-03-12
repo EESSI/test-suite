@@ -23,12 +23,15 @@ fi
 # Set the CI configuration for this system
 source "${CI_CONFIG}"
 
-# Set default configuration
+# Set default configuration, but let anything set by CI_CONFIG take priority
 if [ -z "${TEMPDIR}" ]; then
     TEMPDIR=$(mktemp --directory --tmpdir=/tmp  -t rfm.XXXXXXXXXX)
 fi
 if [ -z "${REFRAME_ARGS}" ]; then
     REFRAME_ARGS="--tag CI --tag 1_node"
+fi
+if [ -z "${REFRAME_VERSION}"]; then
+    REFRAME_VERSION=4.5.1
 fi
 if [ -z "${REFRAME_URL}" ]; then
     REFRAME_URL='https://github.com/reframe-hpc/reframe.git'
@@ -40,7 +43,7 @@ if [ -z "${EESSI_TESTSUITE_URL}" ]; then
     EESSI_TESTSUITE_URL='https://github.com/EESSI/test-suite.git'
 fi
 if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
-    EESSI_TESTSUITE_BRANCH='v0.1.0'
+    EESSI_TESTSUITE_BRANCH='v0.2.0'
 fi
 if [ -z "${EESSI_VERSION}" ]; then
     EESSI_VERSION='latest'
