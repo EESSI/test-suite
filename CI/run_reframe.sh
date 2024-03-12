@@ -63,6 +63,12 @@ fi
 if [ -z "${RFM_PREFIX}" ]; then
     export RFM_PREFIX="${HOME}/reframe_CI_runs"
 fi
+if [ -z "${EESSI_CVMFS_REPO}" ]; then
+    export EESSI_CVMFS_REPO=/cvmfs/software.eessi.io
+fi
+if [ -z "${EESSI_VERSION}" ]; then
+    export EESSI_VERSION=2023.06
+fi
 
 # Create virtualenv for ReFrame using system python
 python3 -m venv "${TEMPDIR}"/reframe_venv
@@ -80,11 +86,7 @@ export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/test-suite/
 
 # Start the EESSI environment
 unset MODULEPATH
-if [ "${EESSI_VERSION}" = 'latest' ]; then
-    eessi_init_path=/cvmfs/pilot.eessi-hpc.org/latest/init/bash
-else
-    eessi_init_path=/cvmfs/pilot.eessi-hpc.org/versions/"${EESSI_VERSION}"/init/bash
-fi
+eessi_init_path="${EESSI_CVMFS_REPO}"/versions/"${EESSI_VERSION}"/init/bash
 source "${eessi_init_path}"
 
 # Needed in order to make sure the reframe from our TEMPDIR is first on the PATH,
