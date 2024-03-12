@@ -4,6 +4,9 @@
 # Setup instructions: make sure you have your github access key configured in your .ssh/config
 # i.e. configure an entry with HostName github.com and IdentityFile pointing to the ssh key registered with Github
 
+# Print on which host this CI is running
+echo "Running CI on host $(hostname)"
+
 # Get directory of the current script
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
