@@ -9,17 +9,19 @@ echo "Running CI on host $(hostname)"
 
 # Get directory of the current script
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-
+echo $SCRIPT_DIR
 # Check if EESSI_CI_SYSTEM_NAME is defined
 if [ -z "${EESSI_CI_SYSTEM_NAME}" ]; then 
     echo "You have to define the EESSI_CI_SYSTEM_NAME environment variable in order to run the EESSI test suite CI" > /dev/stderr
+    echo "Valid EESSI_CI_SYSTEM_NAME's are:"
+    echo "$(find $SCRIPT_DIR -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)"
     exit 1
 fi
 
 # Check if CI_CONFIG file file exists
 CI_CONFIG="${SCRIPT_DIR}/${EESSI_CI_SYSTEM_NAME}/ci_config.sh"
 if [ ! -f "${CI_CONFIG}" ]; then
-    echo "File ${CI_CONFIG} does not exist. Please check your RFM_CI_SYSTEM_NAME (${EESSI_CI_SYSTEM_NAME}) and make sure the directory in which the current script resides (${SCRIPT_DIR}) contains a subdirectory with that name, and a CI configuration file (ci_config.sh) inside". > /dev/stderr
+    echo "File ${CI_CONFIG} does not exist. Please check your EESSI_CI_SYSTEM_NAME (${EESSI_CI_SYSTEM_NAME}) and make sure the directory in which the current script resides (${SCRIPT_DIR}) contains a subdirectory with that name, and a CI configuration file (ci_config.sh) inside". > /dev/stderr
     exit 1
 fi
 
