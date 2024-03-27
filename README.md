@@ -39,6 +39,15 @@ origin  git@github.com:EESSI/test-suite.git (fetch)
 origin  git@github.com:EESSI/test-suite.git (push)
 ```
 
+#### Option 1: Creating a branch from the PR directly
+
+```bash
+git fetch origin pull/ID/head:BRANCH_NAME
+```
+where `ID` is the number of the pull request, and `BRANCH_NAME` is the name of the local branch (you can pick this yourself).
+
+#### Option 2: Creating a branch tracking the feature branch
+
 You can add a fork to your local clone by adding a new remote. Pick a name for
 the remote that you find easy to recognize. E.g. to add the fork
 https://github.com/casparvl/test-suite and give it the (local) name `casparvl`,
