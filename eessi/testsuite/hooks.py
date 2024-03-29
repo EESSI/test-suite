@@ -182,17 +182,12 @@ def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
     """
     # neither num_tasks_per_node nor num_cpus_per_task are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
-        check_proc_attribute_defined(test, 'num_cpus')
-        check_proc_attribute_defined(test, 'num_sockets')
-        num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets
-        test.num_tasks_per_node = math.ceil(test.default_num_cpus_per_node / num_cpus_per_socket)
+        check_proc_attribute_defined(test, 'num_cores_per_socket')
+        test.num_tasks_per_node = math.ceil(test.default_num_cpus_per_node / test.current_partition.processor.num_cores_per_socket)
         test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
 
     # num_tasks_per_node is not set, but num_cpus_per_task is
     elif not test.num_tasks_per_node:
-        check_proc_attribute_defined(test, 'num_cpus')
-        check_proc_attribute_defined(test, 'num_sockets')
-        num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets
         test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.num_cpus_per_task)
 
     # num_cpus_per_task is not set, but num_tasks_per_node is
@@ -236,18 +231,12 @@ def _assign_one_task_per_numa_node(test: rfm.RegressionTest):
     """
     # neither num_tasks_per_node nor num_cpus_per_task are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
-        # Not needed, if num_cores_per_numa_node is really defined by reframe... https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.systems.ProcessorInfo
-        # check_proc_attribute_defined(test, 'num_cpus')
         check_proc_attribute_defined(test, 'num_cores_per_numa_node')
-        # num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets
         test.num_tasks_per_node = math.ceil(test.default_num_cpus_per_node / num_cores_per_numa_node)
         test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
 
     # num_tasks_per_node is not set, but num_cpus_per_task is
     elif not test.num_tasks_per_node:
-        # check_proc_attribute_defined(test, 'num_cpus')
-        check_proc_attribute_defined(test, 'num_cores_per_numa_node')
-        # num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets  # Unused?
         test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.num_cpus_per_task)
 
     # num_cpus_per_task is not set, but num_tasks_per_node is
