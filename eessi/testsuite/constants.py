@@ -6,6 +6,7 @@ AMD = 'AMD'
 CI = 'CI'
 CPU = 'CPU'
 CPU_SOCKET = 'CPU_SOCKET'
+NUMA_NODE = 'NUMA_NODE'
 GPU = 'GPU'
 GPU_VENDOR = 'GPU_VENDOR'
 INTEL = 'INTEL'
@@ -21,6 +22,7 @@ DEVICE_TYPES = {
 COMPUTE_UNIT = {
     CPU: 'cpu',
     CPU_SOCKET: 'cpu_socket',
+    NUMA_NODE: 'numa_node',
     GPU: 'gpu',
     NODE: 'node',
 }
