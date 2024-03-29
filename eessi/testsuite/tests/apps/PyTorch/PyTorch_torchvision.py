@@ -2,7 +2,7 @@ import reframe as rfm
 import reframe.utility.sanity as sn
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import SCALES, TAGS, DEVICE_TYPES, COMPUTE_UNIT, CPU, CPU_SOCKET, GPU
+from eessi.testsuite.constants import SCALES, TAGS, DEVICE_TYPES, COMPUTE_UNIT, CPU, NUMA_NODE, GPU, INVALID_SYSTEM
 from eessi.testsuite.utils import find_modules, log
 
 class PyTorch_torchvision(rfm.RunOnlyRegressionTest):
@@ -66,7 +66,7 @@ class PyTorch_torchvision(rfm.RunOnlyRegressionTest):
         else:
             # Hybrid code, so launch 1 rank per socket.
             # Probably, launching 1 task per NUMA domain is even better, but the current hook doesn't support it
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[CPU_SOCKET])
+            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[NUMA_NODE])
 
         # This is a hybrid test, binding is important for performance
         hooks.set_compact_process_binding(self)
@@ -76,15 +76,10 @@ class PyTorch_torchvision(rfm.RunOnlyRegressionTest):
         # Set environment variables for PyTorch DDP
         ### TODO: THIS WILL ONLY WORK WITH SLURM, WE SHOULD MAKE A SKIP_IF BASED ON THE SCHEDULER
         if self.parallel_strategy == 'ddp':
-            self.prerun_cmds = [
-                'export MASTER_PORT=$(expr 10000 + $(echo -n $SLURM_JOBID | tail -c 4))',
-                'export WORLD_SIZE=%s' % self.num_tasks,
-                'echo "WORLD_SIZE="${WORLD_SIZE}',
-                'master_addr=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)',
-                'export MASTER_ADDR=${master_addr}',
-                'echo "MASTER_ADDR"=${master_addr}',
-            ]
-
+            # Set additional options required by DDP
+            self.executable_opts += ["--master-port $(python python_get_free_socket.py)"]
+            self.executable_opts += ["--master-address $(hostname --fqdn)"]
+            self.executable_opts += ["--world-size %s" % self.num_tasks]
 
     @run_after('setup')
     def filter_invalid_parameter_combinations(self):
@@ -149,5 +144,5 @@ class PyTorch_torchvision_GPU(PyTorch_torchvision):
     def skip_hvd_plus_amp(self):
         '''Skip combination of horovod and AMP, it does not work see https://github.com/horovod/horovod/issues/1417'''
         if self.parallel_strategy == 'horovod' and self.precision == 'mixed':
-            self.valid_systems = []
+            self.valid_systems = [INVALID_SYSTEM]
 

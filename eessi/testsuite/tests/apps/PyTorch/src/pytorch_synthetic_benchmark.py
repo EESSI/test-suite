@@ -1,14 +1,15 @@
-from __future__ import print_function
-
 import argparse
+import timeit
+import os
+import random
+
+import numpy as np
+
 import torch.backends.cudnn as cudnn
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data.distributed
 from torchvision import models
-import timeit
-import numpy as np
-import os
 
 # Benchmark settings
 parser = argparse.ArgumentParser(description='PyTorch Synthetic Benchmark',
@@ -38,6 +39,12 @@ parser.add_argument('--use-ddp', action='store_true', default=False)
 
 parser.add_argument('--use-amp', action='store_true', default=False,
                     help='Use PyTorch Automatic Mixed Precision (AMP)')
+parser.add_argument('--world-size', type=int, default=1,
+                    help='Define the world size for ddp')
+parser.add_argument('--master-port', type=int, default=False,
+                    help='Define a master port for ddp')
+parser.add_argument('--master-address', type=str, default='localhost',
+                    help='Define a master address for ddp')
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
@@ -46,9 +53,15 @@ if args.use_horovod and args.use_ddp:
     print("You can't specify to use both Horovod and Pytorch DDP, exiting...")
     exit(1)
 
+# Set MASTER_ADDR and MASTER_PORT environment variables
+# By doing it as part of this python script, we don't need to have the launchers export them
+# This saves us from having to find a launcher-agnostic way of exporting variables
+os.environ['MASTER_ADDR'] = args.master_address
+os.environ['MASTER_PORT'] = '%s' % args.master_port
+
 # Set a default rank and world size, also for when ddp and horovod are not used
 rank = 0
-world_size=1
+world_size = args.world_size
 if args.use_horovod:
     import horovod.torch as hvd
     hvd.init()
@@ -86,12 +99,17 @@ if args.use_ddp:
         # clean up the distributed environment
         dist.destroy_process_group()
 
-    world_size = int(os.environ["SLURM_NTASKS"])
+    # world_size = int(os.environ["SLURM_NTASKS"])  ## No longer needed now we pass it as argument?
     # If launched with mpirun, get rank from this
     rank = int(os.environ.get("OMPI_COMM_WORLD_RANK", -1))
     if rank == -1:
         # Else it's launched with srun, get rank from this
-        rank = int(os.environ["SLURM_PROCID"])
+        rank = int(os.environ.get("SLURM_PROCID", -1))
+    if rank == -1:
+        err_msg = "ERROR: cannot determine local rank. This test currently only supports OpenMPI"
+        err_msg += " and srun as launchers. If you've configured a different launcher for your system"
+        err_msg += " this test will need to be extended with a method to get it's local rank for that launcher."
+        print(err_msg)
     
     setup(rank, world_size)
     # log(f"Group initialized? {dist.is_initialized()}", rank)
