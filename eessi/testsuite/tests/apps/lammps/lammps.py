@@ -23,42 +23,45 @@ class EESSI_LAMMPS(rfm.RunOnlyRegressionTest):
     executable = 'lmp -in in.lj'
 
     # Set sanity step
-    # TODO adjust for LAMMPS
     @deferrable
-    def assert_tf_config_ranks(self):
-        '''Assert that each rank sets a TF_CONFIG'''
-        n_ranks = sn.count(sn.extractall(
-            '^Rank [0-9]+: Set TF_CONFIG for rank (?P<rank>[0-9]+)', self.stdout, tag='rank'))
-        return sn.assert_eq(n_ranks, self.num_tasks)
+    def assert_lammps_openmp_treads(self):
+        '''Assert that OpenMP thread(s) per MPI task is set'''
+        n_threads = sn.extractsingle(
+            '^  using (?P<threads>[0-9]+) OpenMP thread\(s\) per MPI task', self.stdout, 'threads', int)
+
+        return sn.assert_eq(n_threads, self.num_cpus_per_task)
 
     @deferrable
-    def assert_completion(self):
-        '''Assert that the test ran until completion'''
-        n_fit_completed = sn.count(sn.extractall('^Rank [0-9]+: Keras fit completed', self.stdout))
+    def assert_lammps_processor_grid(self):
+        '''Assert that the processor grid is set correctly'''
+        grid = list(sn.extractall(
+            '^  (?P<x>[0-9]+) by (?P<y>[0-9]+) by (?P<z>[0-9]+) MPI processor grid', self.stdout, tag=['x', 'y', 'z']))
+        n_cpus = int(grid[0][0]) * int(grid[0][1]) * int(grid[0][2])
 
-        return sn.all([
-            sn.assert_eq(n_fit_completed, self.num_tasks),
-        ])
+        return sn.assert_eq(n_cpus, self.num_tasks)
 
     @deferrable
-    def assert_convergence(self):
-        '''Assert that the network learned _something_ during training'''
-        accuracy = sn.extractsingle('^Final accuracy: (?P<accuracy>\S+)', self.stdout, 'accuracy', float)  # noqa: W605
-        # mnist is a 10-class classification problem, so if accuracy >> 0.2 the network 'learned' something
-        return sn.assert_gt(accuracy, 0.2)
+    def assert_total_nr_neigbors(self):
+        '''Assert that the test calulated the right number of neighbours'''
+        n_neighbours = sn.extractsingle(
+            '^Total \# of neighbors \= (?P<neighbours>\S+)', self.stdout, 'neighbours', int)
+        
+        return sn.assert_eq(n_neighbours, 1202833)
+
 
     @sanity_function
     def assert_sanity(self):
         '''Check all sanity criteria'''
         return sn.all([
-            self.assert_tf_config_ranks(),
-            self.assert_completion(),
-            self.assert_convergence(),
+            self.assert_lammps_openmp_treads(),
+            self.assert_lammps_processor_grid(),
+            self.assert_total_nr_neigbors(),
         ])
+
 
     @performance_function('img/s')
     def perf(self):
-        return sn.extractsingle(r'^Performance:\s+(?P<perf>\S+)', self.stdout, 'perf', float)
+        return sn.extractsingle(r'^(?P<perf>[.0-9]+)% CPU use with [0-9]+ MPI tasks x [0-9]+ OpenMP threads', self.stdout, 'perf', float)
 
     @run_after('init')
     def run_after_init(self):
