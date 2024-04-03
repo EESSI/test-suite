@@ -34,7 +34,8 @@ from reframe.core.builtins import (  # added only to make the linter happy
     parameter, run_after)
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import SCALES, TAGS
+from eessi.testsuite.constants import (COMPUTE_UNIT, CPU, DEVICE_TYPES, GPU,
+                                       SCALES, TAGS)
 from eessi.testsuite.utils import find_modules, log
 
 
@@ -45,6 +46,9 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck):
     valid_systems = ['*']
     time_limit = '30m'
     module_name = parameter(find_modules('QuantumESPRESSO'))
+    # For now, QE is being build for CPU targets only
+    # compute_device = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
+    compute_device = parameter([DEVICE_TYPES[CPU], ])
 
     @run_after('init')
     def run_after_init(self):
@@ -56,7 +60,7 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck):
         # Make sure that GPU tests run in partitions that support running on a GPU,
         # and that CPU-only tests run in partitions that support running CPU-only.
         # Also support setting valid_systems on the cmd line.
-        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.nb_impl)
+        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.compute_device)
 
         # Support selecting modules on the cmd line.
         hooks.set_modules(self)
@@ -80,7 +84,10 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck):
         # Calculate default requested resources based on the scale:
         # 1 task per CPU for CPU-only tests, 1 task per GPU for GPU tests.
         # Also support setting the resources on the cmd line.
-        hooks.assign_tasks_per_compute_unit(test=self, compute_unit=self.nb_impl)
+        if self.compute_device == DEVICE_TYPES[GPU]:
+            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[GPU])
+        else:
+            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[CPU])
 
     @run_after('setup')
     def set_omp_num_threads(self):
