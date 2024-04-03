@@ -9,6 +9,7 @@ import reframe.utility.sanity as sn
 from eessi.testsuite import hooks, utils
 from eessi.testsuite.constants import *  # noqa
 
+
 @rfm.simple_test
 class EESSI_LAMMPS(rfm.RunOnlyRegressionTest):
     scale = parameter(SCALES.keys())
@@ -27,7 +28,7 @@ class EESSI_LAMMPS(rfm.RunOnlyRegressionTest):
     def assert_lammps_openmp_treads(self):
         '''Assert that OpenMP thread(s) per MPI task is set'''
         n_threads = sn.extractsingle(
-            '^  using (?P<threads>[0-9]+) OpenMP thread\(s\) per MPI task', self.stdout, 'threads', int)
+            r'^  using (?P<threads>[0-9]+) OpenMP thread\(s\) per MPI task', self.stdout, 'threads', int)
 
         return sn.assert_eq(n_threads, self.num_cpus_per_task)
 
@@ -44,10 +45,9 @@ class EESSI_LAMMPS(rfm.RunOnlyRegressionTest):
     def assert_total_nr_neigbors(self):
         '''Assert that the test calulated the right number of neighbours'''
         n_neighbours = sn.extractsingle(
-            '^Total \# of neighbors \= (?P<neighbours>\S+)', self.stdout, 'neighbours', int)
-        
-        return sn.assert_eq(n_neighbours, 1202833)
+            r'^Total # of neighbors = (?P<neighbours>\S+)', self.stdout, 'neighbours', int)
 
+        return sn.assert_eq(n_neighbours, 1202833)
 
     @sanity_function
     def assert_sanity(self):
@@ -57,7 +57,6 @@ class EESSI_LAMMPS(rfm.RunOnlyRegressionTest):
             self.assert_lammps_processor_grid(),
             self.assert_total_nr_neigbors(),
         ])
-
 
     @performance_function('img/s')
     def perf(self):
