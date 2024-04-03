@@ -86,7 +86,7 @@ class EESSI_LAMMPS(rfm.RunOnlyRegressionTest):
         # as that results in many threads being scheduled to one core.
         # binding may also differ per launcher used. It'll be hard to support a wide range and still get proper binding
         if self.device_type == 'cpu':
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['CPU_SOCKET'])
+            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['CPU'])
         elif self.device_type == 'gpu':
             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['GPU'])
         else:
