@@ -21,7 +21,7 @@ class EESSI_LAMMPS(rfm.RunOnlyRegressionTest):
 
     # Parameterize over all modules that start with LAMMPS
     module_name = parameter(utils.find_modules('LAMMPS'))
-    sourcesdir= 'src/lj'
+    sourcesdir = 'src/lj'
     executable = 'lmp -in in.lj'
 
     # Set sanity step
@@ -81,11 +81,7 @@ class EESSI_LAMMPS(rfm.RunOnlyRegressionTest):
     @run_after('setup')
     def run_after_setup(self):
         """hooks to run after the setup phase"""
-        # TODO: implement
-        # It should bind to socket, but different MPIs may have different arguments to do that...
-        # We should at very least prevent that it binds to single core per process,
-        # as that results in many threads being scheduled to one core.
-        # binding may also differ per launcher used. It'll be hard to support a wide range and still get proper binding
+        # TODO: have not tested with GPUs yet
         if self.device_type == 'cpu':
             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['CPU'])
         elif self.device_type == 'gpu':
@@ -116,7 +112,7 @@ class EESSI_LAMMPS_rhodo(rfm.RunOnlyRegressionTest):
 
     # Parameterize over all modules that start with LAMMPS
     module_name = parameter(utils.find_modules('LAMMPS'))
-    sourcesdir= 'src/rhodo'
+    sourcesdir = 'src/rhodo'
     readonly_files = ["data.rhodo"]
     executable = 'lmp -in in.rhodo'
 
@@ -148,7 +144,6 @@ class EESSI_LAMMPS_rhodo(rfm.RunOnlyRegressionTest):
 
         return sn.assert_eq(n_neighbours, 12028093)
 
-
     @sanity_function
     def assert_sanity(self):
         '''Check all sanity criteria'''
@@ -160,7 +155,8 @@ class EESSI_LAMMPS_rhodo(rfm.RunOnlyRegressionTest):
 
     @performance_function('img/s')
     def perf(self):
-        return sn.extractsingle(r'^(?P<perf>[.0-9]+)% CPU use with [0-9]+ MPI tasks x [0-9]+ OpenMP threads', self.stdout, 'perf', float)
+        return sn.extractsingle(
+                r'^(?P<perf>[.0-9]+)% CPU use with [0-9]+ MPI tasks x [0-9]+ OpenMP threads', self.stdout, 'perf', float)
 
     @run_after('init')
     def run_after_init(self):
