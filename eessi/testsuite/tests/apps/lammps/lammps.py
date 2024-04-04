@@ -156,7 +156,7 @@ class EESSI_LAMMPS_rhodo(rfm.RunOnlyRegressionTest):
     @performance_function('img/s')
     def perf(self):
         return sn.extractsingle(
-                r'^(?P<perf>[.0-9]+)% CPU use with [0-9]+ MPI tasks x [0-9]+ OpenMP threads', self.stdout, 'perf', float)
+            r'^(?P<perf>[.0-9]+)% CPU use with [0-9]+ MPI tasks x [0-9]+ OpenMP threads', self.stdout, 'perf', float)
 
     @run_after('init')
     def run_after_init(self):
