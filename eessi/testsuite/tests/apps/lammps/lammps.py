@@ -81,7 +81,6 @@ class EESSI_LAMMPS_lj(rfm.RunOnlyRegressionTest):
     @run_after('setup')
     def run_after_setup(self):
         """hooks to run after the setup phase"""
-        # TODO: have not tested with GPUs yet
         if self.device_type == 'cpu':
             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['CPU'])
         elif self.device_type == 'gpu':
