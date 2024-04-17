@@ -45,8 +45,8 @@ class EESSI_LAMMPS_lj(rfm.RunOnlyRegressionTest):
     @deferrable
     def assert_run(self):
         '''Assert that the test calulated the right number of neighbours'''
-        n_atoms = sn.extractsingle(
-            r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for 100 steps with (?P<atoms>\S+) atoms', self.stdout, 'atoms', int)
+        regex = r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for 100 steps with (?P<atoms>\S+) atoms'
+        n_atoms = sn.extractsingle(regex, self.stdout, 'atoms', int)
 
         return sn.assert_eq(n_atoms, 32000)
 
@@ -91,12 +91,12 @@ class EESSI_LAMMPS_lj(rfm.RunOnlyRegressionTest):
     @run_after('setup')
     def set_executable_opts(self):
         """Set executable opts based on device_type parameter"""
-        num_default = 0 # If this test already has executable opts, they must have come from the command line
+        num_default = 0  # If this test already has executable opts, they must have come from the command line
         hooks.check_custom_executable_opts(self, num_default=num_default)
         if not self.has_custom_executable_opts:
             # should also check if the lammps is installed with kokkos.
             # Because this exutable opt is only for that case.
-            if self.device_type == "gpu": 
+            if self.device_type == "gpu":
                 self.executable_opts += [f'-k on t {self.num_cpus_per_task} g {self.num_gpus_per_node}', '-sf kk']
                 utils.log(f'executable_opts set to {self.executable_opts}')
 
@@ -149,8 +149,8 @@ class EESSI_LAMMPS_rhodo(rfm.RunOnlyRegressionTest):
     @deferrable
     def assert_run(self):
         '''Assert that the test calulated the right number of neighbours'''
-        n_atoms = sn.extractsingle(
-            r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for 100 steps with (?P<atoms>\S+) atoms', self.stdout, 'atoms', int)
+        regex = r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for 100 steps with (?P<atoms>\S+) atoms'
+        n_atoms = sn.extractsingle(regex, self.stdout, 'atoms', int)
 
         return sn.assert_eq(n_atoms, 32000)
 
@@ -191,17 +191,21 @@ class EESSI_LAMMPS_rhodo(rfm.RunOnlyRegressionTest):
             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['GPU'])
         else:
             raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')
-    
+
     @run_after('setup')
     def set_executable_opts(self):
         """Set executable opts based on device_type parameter"""
-        num_default = 0 # If this test already has executable opts, they must have come from the command line
+        num_default = 0  # If this test already has executable opts, they must have come from the command line
         hooks.check_custom_executable_opts(self, num_default=num_default)
         if not self.has_custom_executable_opts:
             # should also check if the lammps is installed with kokkos.
             # Because this exutable opt is only for that case.
-            if self.device_type == "gpu": 
-                self.executable_opts += [f'-k on t {self.num_cpus_per_task} g {self.num_gpus_per_node}', '-sf kk', '-pk kokkos neigh half']
+            if self.device_type == "gpu":
+                self.executable_opts += [
+                    f'-k on t {self.num_cpus_per_task} g {self.num_gpus_per_node}', 
+                    '-sf kk', 
+                    '-pk kokkos neigh half',
+                ]
                 utils.log(f'executable_opts set to {self.executable_opts}')
 
     @run_after('setup')
