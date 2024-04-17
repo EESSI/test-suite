@@ -147,13 +147,12 @@ class EESSI_LAMMPS_rhodo(rfm.RunOnlyRegressionTest):
         return sn.assert_eq(n_cpus, self.num_tasks)
 
     @deferrable
-    def assert_total_nr_neigbors(self):
+    def assert_run(self):
         '''Assert that the test calulated the right number of neighbours'''
-        neighbours = list(sn.extractall(
-            r'^Total # of neighbors = (?P<neighbours>\S+)', self.stdout, 'neighbours'))
-        n_neighbours = int(neighbours[0])
+        n_atoms = sn.extractsingle(
+            r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for 100 steps with (?P<atoms>\S+) atoms', self.stdout, 'atoms', int)
 
-        return sn.assert_eq(n_neighbours, 12028093)
+        return sn.assert_eq(n_atoms, 32000)
 
     @sanity_function
     def assert_sanity(self):
@@ -161,7 +160,7 @@ class EESSI_LAMMPS_rhodo(rfm.RunOnlyRegressionTest):
         return sn.all([
             self.assert_lammps_openmp_treads(),
             self.assert_lammps_processor_grid(),
-            self.assert_total_nr_neigbors(),
+            self.assert_run(),
         ])
 
     @performance_function('img/s')
@@ -186,13 +185,24 @@ class EESSI_LAMMPS_rhodo(rfm.RunOnlyRegressionTest):
     @run_after('setup')
     def run_after_setup(self):
         """hooks to run after the setup phase"""
-        # TODO: Have not tested with GPUs yet
         if self.device_type == 'cpu':
             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['CPU'])
         elif self.device_type == 'gpu':
             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['GPU'])
         else:
-            raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')
+            raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')^
+    
+    @run_after('setup')
+    def set_executable_opts(self):
+        """Set executable opts based on device_type parameter"""
+        num_default = 0 # If this test already has executable opts, they must have come from the command line
+        hooks.check_custom_executable_opts(self, num_default=num_default)
+        if not self.has_custom_executable_opts:
+            # should also check if the lammps is installed with kokkos.
+            # Because this exutable opt is only for that case.
+            if self.device_type == "gpu": 
+                self.executable_opts += [f'-k on t {self.num_cpus_per_task} g {self.num_gpus_per_node}', '-sf kk']
+                utils.log(f'executable_opts set to {self.executable_opts}')
 
     @run_after('setup')
     def set_omp_num_threads(self):
