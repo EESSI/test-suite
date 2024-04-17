@@ -202,8 +202,8 @@ class EESSI_LAMMPS_rhodo(rfm.RunOnlyRegressionTest):
             # Because this exutable opt is only for that case.
             if self.device_type == "gpu":
                 self.executable_opts += [
-                    f'-k on t {self.num_cpus_per_task} g {self.num_gpus_per_node}', 
-                    '-sf kk', 
+                    f'-k on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
+                    '-sf kk',
                     '-pk kokkos neigh half',
                 ]
                 utils.log(f'executable_opts set to {self.executable_opts}')
