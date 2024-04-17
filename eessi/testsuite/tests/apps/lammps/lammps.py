@@ -190,7 +190,7 @@ class EESSI_LAMMPS_rhodo(rfm.RunOnlyRegressionTest):
         elif self.device_type == 'gpu':
             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['GPU'])
         else:
-            raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')^
+            raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')
     
     @run_after('setup')
     def set_executable_opts(self):
