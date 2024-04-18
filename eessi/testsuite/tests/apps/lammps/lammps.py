@@ -16,7 +16,7 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
     valid_systems = ['*']
     time_limit = '30m'
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
-    
+
     # Parameterize over all modules that start with LAMMPS
     module_name = parameter(utils.find_modules('LAMMPS'))
 
