@@ -115,7 +115,7 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
             # Because this exutable opt is only for that case.
             if self.device_type == "gpu":
                 self.executable_opts += [
-                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}', 
+                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
                     '-suffix kk',
                 ]
                 utils.log(f'executable_opts set to {self.executable_opts}')
