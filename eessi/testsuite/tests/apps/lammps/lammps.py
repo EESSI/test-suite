@@ -114,7 +114,10 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
             # should also check if the lammps is installed with kokkos.
             # Because this exutable opt is only for that case.
             if self.device_type == "gpu":
-                self.executable_opts += [f'-k on t {self.num_cpus_per_task} g {self.num_gpus_per_node}', '-sf kk']
+                self.executable_opts += [
+                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}', 
+                    '-suffix kk',
+                ]
                 utils.log(f'executable_opts set to {self.executable_opts}')
 
 
@@ -134,8 +137,8 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
             # Because this exutable opt is only for that case.
             if self.device_type == "gpu":
                 self.executable_opts += [
-                    f'-k on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
-                    '-sf kk',
-                    '-pk kokkos neigh half',
+                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
+                    '-suffix kk',
+                    '-package kokkos neigh half',
                 ]
                 utils.log(f'executable_opts set to {self.executable_opts}')
