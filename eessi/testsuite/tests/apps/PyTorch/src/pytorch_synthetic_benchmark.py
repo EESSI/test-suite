@@ -109,6 +109,10 @@ if args.use_ddp:
         print("Listing visible devices")
         for i in range(torch.cuda.device_count()):
             print(f"Device {i}: {torch.cuda.device(i)}")
+        # This assumes compact mapping of ranks to available hardware
+        # e.g. rank 0-x to node 1, rank x-y to node 2, etc
+        # Assuming the set_compact_process_binding hook from the EESSI testsuite is called,
+        # this condition should be satisfied
         local_rank = rank - visible_gpus * (rank // visible_gpus)
         torch.cuda.set_device(local_rank)
         print("Listing visible devices after setting one")
