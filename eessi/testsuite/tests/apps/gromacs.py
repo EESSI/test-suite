@@ -113,3 +113,11 @@ class EESSI_GROMACS(gromacs_check):
 
         self.env_vars['OMP_NUM_THREADS'] = omp_num_threads
         log(f'env_vars set to {self.env_vars}')
+
+    @run_after('setup')
+    def set_binding_policy(self):
+        """
+        Default process binding may depend on the launcher used. We've seen some variable performance.
+        Better set it explicitely to make sure process migration cannot cause such variations.
+        """
+        hooks.set_compact_process_binding(self)
