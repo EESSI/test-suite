@@ -18,7 +18,10 @@ site_configuration = {
                     'launcher': 'local',
                     'environs': ['default'],
                     'features': [FEATURES[CPU]] + list(SCALES.keys()),
-                    'processor': {'num_cpus': 2},
+                    'processor': {
+                        'num_cpus': 2,
+                        'num_cpus_per_core': 1,
+                    },
                     'resources': [
                         {
                             'name': 'memory',
