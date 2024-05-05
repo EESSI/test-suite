@@ -18,6 +18,7 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest):
         ('QS/H2O-128', -2202.1791, 1e-4),
         ('QS/H2O-512', -8808.1439, 1e-4),
     ], fmt=lambda x: x[0], loggable=True)
+
     module_name = parameter(find_modules('CP2K'))
     scale = parameter(SCALES.keys())
 
@@ -84,11 +85,5 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest):
         # Also support setting the resources on the cmd line.
         hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[CPU])
 
-    @run_after('setup')
-    def set_omp_num_threads(self):
-        """
-        Set default number of OpenMP threads equal to number of CPUs per task,
-        unless OMP_NUM_THREADS is already set
-        """
-        self.env_vars['OMP_NUM_THREADS'] = os.getenv('OMP_NUM_THREADS', self.num_cpus_per_task)
-        log(f'env_vars set to {self.env_vars}')
+        # Set OMP_NUM_THREADS environment variable
+        hooks.set_omp_num_threads(self)
