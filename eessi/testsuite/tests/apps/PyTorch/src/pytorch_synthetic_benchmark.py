@@ -1,7 +1,6 @@
 import argparse
 import timeit
 import os
-import random
 
 import numpy as np
 
@@ -124,7 +123,6 @@ if args.use_ddp:
     else:
         print(f"host: {gethostname()}, rank: {rank}")
 
-
     def setup(rank, world_size):
 
         # initialize the process group
@@ -132,17 +130,14 @@ if args.use_ddp:
             dist.init_process_group("nccl", rank=rank, world_size=world_size)
         else:
             dist.init_process_group("gloo", rank=rank, world_size=world_size)
-    
+
     def cleanup():
         # clean up the distributed environment
         dist.destroy_process_group()
-    
+
     setup(rank, world_size)
-    # log(f"Group initialized? {dist.is_initialized()}", rank)
-    if rank == 0: print(f"Group initialized? {dist.is_initialized()}", flush=True)
-
-
-
+    if rank == 0:
+        print(f"Group initialized? {dist.is_initialized()}", flush=True)
 
 # This relies on the 'rank' set in the if args.use_horovod or args.use_ddp sections
 def log(s, nl=True):

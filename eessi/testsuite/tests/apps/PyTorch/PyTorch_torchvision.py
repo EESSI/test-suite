@@ -53,7 +53,7 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
     @run_after('init')
     def set_tag_ci(self):
         if self.nn_model == 'resnet50':
-             self.tags.add(TAGS['CI'])
+            self.tags.add(TAGS['CI'])
 
     @run_after('setup')
     def apply_setup_hooks(self):
@@ -80,10 +80,12 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
     def filter_invalid_parameter_combinations(self):
         # We cannot detect this situation before the setup phase, because it requires self.num_tasks.
         # Thus, the core count of the node needs to be known, which is only the case after the setup phase.
-        msg=f"Skipping test: parallel strategy is 'None', but requested process count is larger than one ({self.num_tasks})"
+        msg = f"Skipping test: parallel strategy is 'None',"
+        msg += f" but requested process count is larger than one ({self.num_tasks})."
         self.skip_if(self.num_tasks > 1 and self.parallel_strategy is None, msg)
-        msg=f"Skipping test: parallel strategy is {self.parallel_strategy}, but only one process is requested"
-        self.skip_if(self.num_tasks == 1 and not self.parallel_strategy is None, msg)
+        msg = f"Skipping test: parallel strategy is {self.parallel_strategy},"
+        msg += f" but only one process is requested."
+        self.skip_if(self.num_tasks == 1 and self.parallel_strategy is not None, msg)
 
     @run_after('setup')
     def pass_parallel_strategy(self):
@@ -98,7 +100,7 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
         # the compute threads. It was fixed, but seems to be broken again in Horovod 0.28.1
         # The easiest workaround is to reduce the number of compute threads by 2
         if self.compute_device == DEVICE_TYPES[CPU] and self.parallel_strategy == 'horovod':
-            self.env_vars['OMP_NUM_THREADS'] = max(self.num_cpus_per_task-2, 2)  # Never go below 2 compute threads
+            self.env_vars['OMP_NUM_THREADS'] = max(self.num_cpus_per_task - 2, 2)  # Never go below 2 compute threads
 
     @sanity_function
     def assert_num_ranks(self):
@@ -140,4 +142,3 @@ class EESSI_PyTorch_torchvision_GPU(EESSI_PyTorch_torchvision):
         '''Skip combination of horovod and AMP, it does not work see https://github.com/horovod/horovod/issues/1417'''
         if self.parallel_strategy == 'horovod' and self.precision == 'mixed':
             self.valid_systems = [INVALID_SYSTEM]
-
