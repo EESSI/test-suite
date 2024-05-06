@@ -5,7 +5,7 @@ from eessi.testsuite import hooks
 from eessi.testsuite.constants import SCALES, TAGS, DEVICE_TYPES, COMPUTE_UNIT, CPU, NUMA_NODE, GPU, INVALID_SYSTEM
 from eessi.testsuite.utils import find_modules, log
 
-class PyTorch_torchvision(rfm.RunOnlyRegressionTest):
+class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
     nn_model = parameter(['vgg16', 'resnet50', 'resnet152', 'densenet121', 'mobilenet_v3_large'])
     ### SHOULD BE DETERMINED BY SCALE
     #n_processes = parameter([1, 2, 4, 8, 16])
