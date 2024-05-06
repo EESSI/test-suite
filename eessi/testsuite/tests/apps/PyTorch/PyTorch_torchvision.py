@@ -125,12 +125,12 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
             return sn.extractsingle(r'Img/sec per GPU:\s+(?P<perf_per_gpu>\S+)', self.stdout, 'perf_per_gpu', float)
 
 @rfm.simple_test
-class PyTorch_torchvision_CPU(PyTorch_torchvision):
+class EESSI_PyTorch_torchvision_CPU(EESSI_PyTorch_torchvision):
     compute_device = DEVICE_TYPES[CPU]
 
 
 @rfm.simple_test
-class PyTorch_torchvision_GPU(PyTorch_torchvision):
+class EESSI_PyTorch_torchvision_GPU(EESSI_PyTorch_torchvision):
     compute_device = DEVICE_TYPES[GPU]
     precision = parameter(['default', 'mixed'])
 
