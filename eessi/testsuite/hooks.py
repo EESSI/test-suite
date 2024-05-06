@@ -252,7 +252,6 @@ def _assign_one_task_per_numa_node(test: rfm.RegressionTest):
     log(f'num_tasks set to {test.num_tasks}')
 
 
-
 def _assign_one_task_per_cpu(test: rfm.RegressionTest):
     """
     Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per core,
