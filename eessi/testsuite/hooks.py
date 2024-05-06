@@ -183,7 +183,9 @@ def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
     # neither num_tasks_per_node nor num_cpus_per_task are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
         check_proc_attribute_defined(test, 'num_cores_per_socket')
-        test.num_tasks_per_node = math.ceil(test.default_num_cpus_per_node / test.current_partition.processor.num_cores_per_socket)
+        test.num_tasks_per_node = math.ceil(
+            test.default_num_cpus_per_node / test.current_partition.processor.num_cores_per_socket
+        )
         test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
 
     # num_tasks_per_node is not set, but num_cpus_per_task is
@@ -232,7 +234,9 @@ def _assign_one_task_per_numa_node(test: rfm.RegressionTest):
     # neither num_tasks_per_node nor num_cpus_per_task are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
         check_proc_attribute_defined(test, 'num_cores_per_numa_node')
-        test.num_tasks_per_node = math.ceil(test.default_num_cpus_per_node / test.current_partition.processor.num_cores_per_numa_node)
+        test.num_tasks_per_node = math.ceil(
+            test.default_num_cpus_per_node / test.current_partition.processor.num_cores_per_numa_node
+        )
         test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
 
     # num_tasks_per_node is not set, but num_cpus_per_task is

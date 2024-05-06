@@ -139,20 +139,15 @@ if args.use_ddp:
     if rank == 0:
         print(f"Group initialized? {dist.is_initialized()}", flush=True)
 
+
 # This relies on the 'rank' set in the if args.use_horovod or args.use_ddp sections
 def log(s, nl=True):
     if (args.use_horovod or args.use_ddp) and rank != 0:
         return
     print(s, end='\n' if nl else '', flush=True)
 
-log(f"World size: {world_size}")
 
-# Used to be needed, but now seems that different SLURM tasks run within their own cgroup
-# Each cgroup only contains a single GPU, which has GPU ID 0. So no longer needed to set 
-# one of the ranks to GPU 0 and one to GPU 1
-#if args.cuda and args.use_horovod:
-#    # Horovod: pin GPU to local rank.
-#    torch.cuda.set_device(hvd.local_rank())
+log(f"World size: {world_size}")
 
 torch.set_num_threads(int(os.environ['OMP_NUM_THREADS']))
 torch.set_num_interop_threads(2)
@@ -204,9 +199,10 @@ scaler = torch.cuda.amp.GradScaler(enabled=args.use_amp)
 
 # Set device_type for AMP
 if args.cuda:
-    device_type="cuda"
+    device_type = "cuda"
 else:
-    device_type="cpu"
+    device_type = "cpu"
+
 
 def benchmark_step():
     optimizer.zero_grad()
@@ -216,6 +212,7 @@ def benchmark_step():
     scaler.scale(loss).backward()
     scaler.step(optimizer)
     scaler.update()
+
 
 log('Model: %s' % args.model)
 log('Batch size: %d' % args.batch_size)
