@@ -1,21 +1,19 @@
 import reframe as rfm
 import reframe.utility.sanity as sn
+from reframe.core.builtins import parameter, run_after  # added only to make the linter happy
 
 from eessi.testsuite import hooks
 from eessi.testsuite.constants import SCALES, TAGS, DEVICE_TYPES, COMPUTE_UNIT, CPU, NUMA_NODE, GPU, INVALID_SYSTEM
-from eessi.testsuite.utils import find_modules, log
+from eessi.testsuite.utils import find_modules
+
 
 class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
     nn_model = parameter(['vgg16', 'resnet50', 'resnet152', 'densenet121', 'mobilenet_v3_large'])
-    ### SHOULD BE DETERMINED BY SCALE
-    #n_processes = parameter([1, 2, 4, 8, 16])
     scale = parameter(SCALES.keys())
-    # Not sure how we would ensure the horovod module is _also_ loaded...
-    # parallel_strategy = parameter([None, 'horovod', 'ddp'])
     parallel_strategy = parameter([None, 'ddp'])
     compute_device = variable(str)
-    # module_name = parameter(find_modules('PyTorch-bundle'))
-    module_name = parameter(find_modules('torchvision'))
+    # Both torchvision and PyTorch-bundle modules have everything needed to run this test
+    module_name = parameter(find_modules('torchvision') + find_modules('PyTorch-bundle'))
 
     descr = 'Benchmark that runs a selected torchvision model on synthetic data'
 
@@ -35,8 +33,6 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
         # If not a GPU run, disable CUDA
         if self.compute_device != DEVICE_TYPES[GPU]:
             self.executable_opts += ['--no-cuda']
-
-
 
     @run_after('init')
     def apply_init_hooks(self):
@@ -74,7 +70,6 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
     @run_after('setup')
     def set_ddp_env_vars(self):
         # Set environment variables for PyTorch DDP
-        ### TODO: THIS WILL ONLY WORK WITH SLURM, WE SHOULD MAKE A SKIP_IF BASED ON THE SCHEDULER
         if self.parallel_strategy == 'ddp':
             # Set additional options required by DDP
             self.executable_opts += ["--master-port $(python python_get_free_socket.py)"]
@@ -109,7 +104,6 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
     def assert_num_ranks(self):
         '''Assert that the number of reported CPUs/GPUs used is correct'''
         return sn.assert_found(r'Total img/sec on %s .PU\(s\):.*' % self.num_tasks, self.stdout)
-            
 
     @performance_function('img/sec')
     def total_throughput(self):
@@ -123,6 +117,7 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
             return sn.extractsingle(r'Img/sec per CPU:\s+(?P<perf_per_cpu>\S+)', self.stdout, 'perf_per_cpu', float)
         else:
             return sn.extractsingle(r'Img/sec per GPU:\s+(?P<perf_per_gpu>\S+)', self.stdout, 'perf_per_gpu', float)
+
 
 @rfm.simple_test
 class EESSI_PyTorch_torchvision_CPU(EESSI_PyTorch_torchvision):
