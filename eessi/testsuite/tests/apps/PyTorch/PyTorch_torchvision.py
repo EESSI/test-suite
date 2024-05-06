@@ -1,6 +1,6 @@
 import reframe as rfm
 import reframe.utility.sanity as sn
-from reframe.core.builtins import parameter, run_after  # added only to make the linter happy
+from reframe.core.builtins import parameter, variable, run_after, sanity_function, performance_function  # added only to make the linter happy
 
 from eessi.testsuite import hooks
 from eessi.testsuite.constants import SCALES, TAGS, DEVICE_TYPES, COMPUTE_UNIT, CPU, NUMA_NODE, GPU, INVALID_SYSTEM
