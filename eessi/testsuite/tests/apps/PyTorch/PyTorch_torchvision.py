@@ -1,6 +1,7 @@
 import reframe as rfm
 import reframe.utility.sanity as sn
-from reframe.core.builtins import parameter, variable, run_after, sanity_function, performance_function  # added only to make the linter happy
+# Added only to make the linter happy
+from reframe.core.builtins import parameter, variable, run_after, sanity_function, performance_function
 
 from eessi.testsuite import hooks
 from eessi.testsuite.constants import SCALES, TAGS, DEVICE_TYPES, COMPUTE_UNIT, CPU, NUMA_NODE, GPU, INVALID_SYSTEM
@@ -57,7 +58,7 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
 
     @run_after('setup')
     def apply_setup_hooks(self):
-        if self.compute_device==DEVICE_TYPES[GPU]:
+        if self.compute_device == DEVICE_TYPES[GPU]:
             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[GPU])
         else:
             # Hybrid code, so launch 1 rank per socket.
@@ -80,11 +81,11 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
     def filter_invalid_parameter_combinations(self):
         # We cannot detect this situation before the setup phase, because it requires self.num_tasks.
         # Thus, the core count of the node needs to be known, which is only the case after the setup phase.
-        msg = f"Skipping test: parallel strategy is 'None',"
+        msg = "Skipping test: parallel strategy is 'None',"
         msg += f" but requested process count is larger than one ({self.num_tasks})."
         self.skip_if(self.num_tasks > 1 and self.parallel_strategy is None, msg)
         msg = f"Skipping test: parallel strategy is {self.parallel_strategy},"
-        msg += f" but only one process is requested."
+        msg += " but only one process is requested."
         self.skip_if(self.num_tasks == 1 and self.parallel_strategy is not None, msg)
 
     @run_after('setup')
