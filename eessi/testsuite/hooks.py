@@ -6,6 +6,7 @@ import shlex
 import warnings
 
 import reframe as rfm
+import reframe.core.logging as rflog
 
 from eessi.testsuite.constants import *
 from eessi.testsuite.utils import (get_max_avail_gpus_per_node, is_cuda_required_module, log,
@@ -432,20 +433,31 @@ def set_compact_process_binding(test: rfm.RegressionTest):
     num_cpus_per_core = test.current_partition.processor.num_cpus_per_core
     physical_cpus_per_task = int(test.num_cpus_per_task / num_cpus_per_core)
 
-    # Do binding for intel and OpenMPI's mpirun, and srun
-    # Other launchers may or may not do the correct binding
-    test.env_vars['I_MPI_PIN_CELL'] = 'core'  # Don't bind to hyperthreads, only to physcial cores
-    test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % physical_cpus_per_task
-    test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'slot:PE=%s' % physical_cpus_per_task
-    if test.current_partition.launcher_type().registered_name == 'srun':
+    if test.current_partition.launcher_type().registered_name == 'mpirun':
+        # Do binding for intel and OpenMPI's mpirun, and srun
+        test.env_vars['I_MPI_PIN_CELL'] = 'core'  # Don't bind to hyperthreads, only to physcial cores
+        test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % physical_cpus_per_task
+        test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'slot:PE=%s' % physical_cpus_per_task
+        log(f'Set environment variable I_MPI_PIN_CELL to {test.env_vars["I_MPI_PIN_CELL"]}')
+        log(f'Set environment variable I_MPI_PIN_DOMAIN to {test.env_vars["I_MPI_PIN_DOMAIN"]}')
+        log('Set environment variable OMPI_MCA_rmaps_base_mapping_policy to '
+        f'{test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
+    elif test.current_partition.launcher_type().registered_name == 'srun':
         # Set compact binding for SLURM. Only effective if the task/affinity plugin is enabled
         # and when number of tasks times cpus per task equals either socket, core or thread count
         test.env_vars['SLURM_DISTRIBUTION'] = 'block:block'
         test.env_vars['SLURM_CPU_BIND'] = 'verbose'
-    log(f'Set environment variable I_MPI_PIN_DOMAIN to {test.env_vars["I_MPI_PIN_DOMAIN"]}')
-    log('Set environment variable OMPI_MCA_rmaps_base_mapping_policy to '
-        f'{test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
-    log(f'Set environment variable SLURM_CPU_BIND to {test.env_vars["SLURM_CPU_BIND"]}')
+        log(f'Set environment variable SLURM_DISTRIBUTION to {test.env_vars["SLURM_DISTRIBUTION"]}')
+        log(f'Set environment variable SLURM_CPU_BIND to {test.env_vars["SLURM_CPU_BIND"]}')
+    else:
+        logger = rflog.getlogger()
+        msg = "hooks.set_compact_process_binding does not support the current launcher"
+        msg += f" ({test.current_partition.launcher_type().registered_name})."
+        msg += " The test will run, but using the default binding strategy of your parallel launcher."
+        msg += " This may lead to suboptimal performance."
+        msg += " Please expand the functionality of hooks.set_compact_process_binding for your parallel launcher."
+        # Warnings will, at default loglevel, be printed on stdout when executing the ReFrame command
+        logger.warning(msg)
 
 
 def set_compact_thread_binding(test: rfm.RegressionTest):
