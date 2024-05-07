@@ -148,4 +148,4 @@ def check_proc_attribute_defined(test: rfm.RegressionTest, attribute) -> bool:
             "The function utils.proc_attribute_defined should only be called after the setup() phase of ReFrame."
             "This is a programming error, please report this issue."
         )
-        raise AttributeError(msg)
+    raise AttributeError(msg)
