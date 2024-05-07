@@ -437,9 +437,11 @@ def set_compact_process_binding(test: rfm.RegressionTest):
     test.env_vars['I_MPI_PIN_CELL'] = 'core'  # Don't bind to hyperthreads, only to physcial cores
     test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % physical_cpus_per_task
     test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'slot:PE=%s' % physical_cpus_per_task
-    # Default binding for SLURM. Only effective if the task/affinity plugin is enabled
-    # and when number of tasks times cpus per task equals either socket, core or thread count
-    test.env_vars['SLURM_CPU_BIND'] = 'verbose'
+    if test.current_partition.launcher_type().registered_name == 'srun':
+        # Set compact binding for SLURM. Only effective if the task/affinity plugin is enabled
+        # and when number of tasks times cpus per task equals either socket, core or thread count
+        test.env_vars['SLURM_DISTRIBUTION'] = 'block:block'
+        test.env_vars['SLURM_CPU_BIND'] = 'verbose'
     log(f'Set environment variable I_MPI_PIN_DOMAIN to {test.env_vars["I_MPI_PIN_DOMAIN"]}')
     log('Set environment variable OMPI_MCA_rmaps_base_mapping_policy to '
         f'{test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
