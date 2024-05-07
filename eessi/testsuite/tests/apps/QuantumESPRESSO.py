@@ -77,6 +77,14 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck):
             self.tags.add(TAGS['CI'])
             log(f'tags set to {self.tags}')
 
+    @run_after('init')
+    def set_increased_walltime(self):
+        """Increase the amount of time for the largest benchmark, so it can complete successfully."""
+        max_ecut = max(QEspressoPWCheck.ecut.values)
+        max_nbnd = max(QEspressoPWCheck.nbnd.values)
+        if self.ecut == max_ecut and self.nbnd == max_nbnd:
+            self.time_limit = '60m'
+
     @run_after('setup')
     def run_after_setup(self):
         """Hooks to run after the setup phase"""
