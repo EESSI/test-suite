@@ -1,3 +1,5 @@
+from itertools import chain
+
 import reframe as rfm
 import reframe.utility.sanity as sn
 # Added only to make the linter happy
@@ -14,7 +16,7 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
     parallel_strategy = parameter([None, 'ddp'])
     compute_device = variable(str)
     # Both torchvision and PyTorch-bundle modules have everything needed to run this test
-    module_name = parameter(find_modules('torchvision') + find_modules('PyTorch-bundle'))
+    module_name = parameter(chain(find_modules('torchvision'), find_modules('PyTorch-bundle')))
 
     descr = 'Benchmark that runs a selected torchvision model on synthetic data'
 
