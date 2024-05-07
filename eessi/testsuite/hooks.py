@@ -441,7 +441,7 @@ def set_compact_process_binding(test: rfm.RegressionTest):
         log(f'Set environment variable I_MPI_PIN_CELL to {test.env_vars["I_MPI_PIN_CELL"]}')
         log(f'Set environment variable I_MPI_PIN_DOMAIN to {test.env_vars["I_MPI_PIN_DOMAIN"]}')
         log('Set environment variable OMPI_MCA_rmaps_base_mapping_policy to '
-           f'{test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
+            f'{test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
     elif test.current_partition.launcher_type().registered_name == 'srun':
         # Set compact binding for SLURM. Only effective if the task/affinity plugin is enabled
         # and when number of tasks times cpus per task equals either socket, core or thread count
