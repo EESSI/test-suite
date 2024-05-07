@@ -116,6 +116,15 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
 
     _check_always_request_gpus(test)
 
+    if test.current_partition.launcher_type().registered_name == 'srun':
+        # Make sure srun inherits --cpus-per-task from the job environment for Slurm versions >= 22.05 < 23.11,
+        # ensuring the same task binding across all Slurm versions.
+        # https://bugs.schedmd.com/show_bug.cgi?id=13351
+        # https://bugs.schedmd.com/show_bug.cgi?id=11275
+        # https://bugs.schedmd.com/show_bug.cgi?id=15632#c43
+        test.env_vars['SRUN_CPUS_PER_TASK'] = test.num_cpus_per_task
+        log(f'Set environment variable SRUN_CPUS_PER_TASK to {test.env_vars["SRUN_CPUS_PER_TASK"]}')
+
 
 def _assign_num_tasks_per_node(test: rfm.RegressionTest, num_per: int = 1):
     """
