@@ -46,8 +46,9 @@ site_configuration = {
                         'export OMPI_MCA_pml=ucx',
                         # Work around "Failed to modify UD QP to INIT on mlx5_0: Operation not permitted" issue
                         # until we can resolve this through an LMOD hook in host_injections.
+                        # (then these OMPI_MCA_btl & mtl can be removed again)
                         # See https://github.com/EESSI/software-layer/issues/456#issuecomment-2107755266
-                        'export OMPI_MCA_mtl="^ofi"', 
+                        'export OMPI_MCA_mtl="^ofi"',
                         'export OMPI_MCA_btl="^ofi"',
                     ],
                     'launcher': 'mpirun',
