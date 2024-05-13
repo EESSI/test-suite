@@ -44,6 +44,11 @@ site_configuration = {
                         # Avoid https://github.com/EESSI/software-layer/issues/136
                         # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
                         'export OMPI_MCA_pml=ucx',
+                        # Work around "Failed to modify UD QP to INIT on mlx5_0: Operation not permitted" issue
+                        # until we can resolve this through an LMOD hook in host_injections.
+                        # See https://github.com/EESSI/software-layer/issues/456#issuecomment-2107755266
+                        'export OMPI_MCA_mtl="^ofi"', 
+                        'export OMPI_MCA_btl="^ofi"',
                     ],
                     'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
