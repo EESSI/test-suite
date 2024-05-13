@@ -53,6 +53,11 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
     # unset num_tasks_per_node from the hpctestlib.
     num_tasks_per_node = None
 
+    # Set num_warmup_iters to 5 to reduce execution time, especially on slower interconnects
+    num_warmup_iters = 5
+    # Set num_iters to 10 to reduce execution time, especially on slower interconnects
+    num_iters = 10
+
     @run_after('init')
     def filter_scales_2gpus(self):
         """Filter out scales with < 2 GPUs if running on GPUs"""
@@ -168,6 +173,11 @@ class EESSI_OSU_Micro_Benchmarks_coll(osu_benchmark):
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
     # Unset num_tasks_per_node from hpctestlib
     num_tasks_per_node = None
+
+    # Set num_warmup_iters to 5 to reduce execution time, especially on slower interconnects
+    num_warmup_iters = 5
+    # Set num_iters to 10 to reduce execution time, especially on slower interconnects
+    num_iters = 10
 
     @run_after('init')
     def run_after_init(self):
