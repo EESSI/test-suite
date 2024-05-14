@@ -93,27 +93,46 @@ if (espressomd.version.major(), espressomd.version.minor()) == (4, 2):
 else:
     system.electrostatics.solver = solver
 
+
+print("Algorithm executed. \n")
+
+atol_energy = atol_pressure = 1e-12
+atol_forces = 1e-5
+atol_abs_forces = 2e-6
+
+rtol_energy = 5e-6
+rtol_pressure = 2e-5
+rtol_forces = 0.
+rtol_abs_forces = 0.
 # run checks
 forces = np.copy(system.part.all().f)
 energy, p_scalar, p_tensor = get_normalized_values_per_ion(system)
 ref_energy, ref_pressure = get_reference_values_per_ion(base_vector)
-np.testing.assert_allclose(energy, ref_energy, atol=1e-12, rtol=5e-6)
+np.testing.assert_allclose(energy, ref_energy, atol=atol_energy, rtol=rtol_energy)
 np.testing.assert_allclose(p_scalar, np.trace(ref_pressure) / 3.,
-                           atol=1e-12, rtol=2e-5)
-np.testing.assert_allclose(p_tensor, ref_pressure, atol=1e-12, rtol=2e-5)
-np.testing.assert_allclose(forces, 0., atol=1e-5, rtol=0.)
-np.testing.assert_allclose(np.median(np.abs(forces)), 0., atol=2e-6, rtol=0.)
+                           atol=atol_pressure, rtol=rtol_pressure)
+np.testing.assert_allclose(p_tensor, ref_pressure, atol=atol_pressure, rtol=rtol_pressure)
+np.testing.assert_allclose(forces, 0., atol=atol_forces, rtol=rtol_forces)
+np.testing.assert_allclose(np.median(np.abs(forces)), 0., atol=atol_abs_forces, rtol=rtol_abs_forces)
 
 
-print("Executing sanity ...\n")
-print (np.all([np.allclose(energy, ref_energy, atol=1e-12, rtol=5e-6),
+print("Executing sanity checks...\n")
+if (np.all([np.allclose(energy, ref_energy, atol=atol_energy, rtol=rtol_energy),
         np.allclose(p_scalar, np.trace(ref_pressure) / 3.,
-                           atol=1e-12, rtol=2e-5),
-        np.allclose(p_tensor, ref_pressure, atol=1e-12, rtol=2e-5),
-        np.allclose(forces, 0., atol=1e-5, rtol=0.),
-        np.allclose(np.median(np.abs(forces)), 0., atol=2e-6, rtol=0.)]))
+                           atol=atol_pressure, rtol=rtol_pressure),
+        np.allclose(p_tensor, ref_pressure, atol=atol_pressure, rtol=rtol_pressure),
+        np.allclose(forces, 0., atol=atol_forces, rtol=rtol_forces),
+            np.allclose(np.median(np.abs(forces)), 0., atol=atol_abs_forces, rtol=rtol_abs_forces)])):
+    print("Final convergence met with tolerances: \n\
+            energy: ", atol_energy, "\n\
+            p_scalar: ", atol_pressure, "\n\
+            p_tensor: ", atol_pressure, "\n\
+            forces: ", atol_forces, "\n\
+            abs_forces: ", atol_abs_forces, "\n")
+else:
+    print("At least one parameter did not meet the tolerance, see the log above.\n")
 
-print("Sanity checking ...\n")
+print("Sampling runtime...\n")
 # sample runtime
 n_steps = 10
 timings = []
@@ -126,6 +145,7 @@ for _ in range(10):
 # write results to file
 header = '"mode","cores","mpi.x","mpi.y","mpi.z","particles","mean","std"\n'
 report = f'"{"weak scaling" if args.weak_scaling else "strong scaling"}",{n_cores},{node_grid[0]},{node_grid[1]},{node_grid[2]},{len(system.part)},{np.mean(timings):.3e},{np.std(timings, ddof=1):.3e}\n'
+print(report)
 if pathlib.Path(args.output).is_file():
     header = ""
 with open(args.output, "a") as f:

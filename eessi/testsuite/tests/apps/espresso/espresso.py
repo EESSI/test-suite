@@ -9,6 +9,8 @@ number of cores or kept constant.
 """
 
 import reframe as rfm
+import reframe.utility.sanity as sn
+
 from reframe.core.builtins import parameter, run_after  # added only to make the linter happy
 from reframe.utility import reframe
 
@@ -36,7 +38,7 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
     default_weak_scaling_system_size = 6
 
     benchmark_info = parameter([
-        ('mpi.ionic_crystals.p3m'),
+        ('mpi.ionic_crystals.p3m', 'p3m'),
     ], fmt=lambda x: x[0], loggable=True)
 
 
@@ -78,7 +80,7 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
         if not self.has_custom_executable_opts:
             # By default we run weak scaling since the strong scaling sizes need to change based on max node size and a
             # corresponding min node size has to be chozen.
-            self.executable_opts += ['--size', self.default_weak_scaling_system_size, '--weak-scaling']
+            self.executable_opts += ['--size', str(self.default_weak_scaling_system_size), '--weak-scaling']
             utils.log(f'executable_opts set to {self.executable_opts}')
 
     @run_after('setup')
@@ -86,6 +88,19 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
         """ Setting number of tasks per node and cpus per task in this function. This function sets num_cpus_per_task
         for 1 node and 2 node options where the request is for full nodes."""
         hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[CPU])
+
+    @deferrable
+    def assert_completion(self):
+        '''Check completion'''
+        cao = sn.extractsingle(r'^resulting parameters:.*cao: (?P<cao>\S+),', self.stdout, 'cao', int)
+        return (sn.assert_found(r'^Algorithm executed.', self.stdout) and cao)
+
+    @deferrable
+    def assert_convergence(self):
+        '''Check convergence'''
+        check_string = sn.assert_found(r'Final convergence met with tolerances:', self.stdout)
+        energy = sn.extractsingle(r'^\s+energy:\s+(?P<energy>\S+)', self.stdout, 'energy', float)
+        return (check_string and (energy != 0.0))
 
     @sanity_function
     def assert_sanity(self):
