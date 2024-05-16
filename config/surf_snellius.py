@@ -72,6 +72,9 @@ site_configuration = {
                     'features': [
                         FEATURES[CPU],
                     ] + list(SCALES.keys()),
+                    'extras': {
+                        'mem_per_node': 336
+                    },
                     'descr': 'AMD Genoa CPU partition with native EESSI stack'
                 },
 
