@@ -9,7 +9,7 @@ import reframe as rfm
 
 from eessi.testsuite.constants import *
 from eessi.testsuite.utils import (get_max_avail_gpus_per_node, is_cuda_required_module, log,
-                                   check_proc_attribute_defined)
+                                   check_proc_attribute_defined, check_extras_key_defined)
 
 
 def _assign_default_num_cpus_per_node(test: rfm.RegressionTest):
@@ -372,6 +372,79 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
 
     log(f'valid_systems set to {test.valid_systems}')
 
+
+## TODO: function should take everything in MB, as schedulers (at least slurm) does not except asking for fractional memory
+## ie --mem=7.0G is invalid. This should be done as --mem=7168M.
+## It's probably better if this function does everything in MB, and the ReFrame config also specifies available mem per node in MB.
+## Then, we should make sure the numbers are integers by rounding up for app_mem_req (1 MB more should never really be an issue)
+## and probably down for the default_mem (as to not ask for more than the equivalent share of a core)
+def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
+    """
+    This hook will request a specific amount of memory per node to the batch scheduler.
+    First, it computes which fraction of CPUs is requested from a node, and how much the corresponding (proportional)
+    amount of memory would be.
+    Then, the hook compares this to how much memory the application claims to need per node (app_mem_req).
+    It then passes the maximum of these two numbers to the batch scheduler as a memory request.
+
+    Note: using this hook requires that the ReFrame configuration defines system.partition.extras['mem_per_node']
+
+    Arguments:
+    - test: the ReFrame test to which this hook should apply
+    - app_mem_req: the amount of memory this application needs (per node) in gigabytes
+
+    Example 1:
+    - A system with 128 cores per node, 64 GB mem per node is used.
+    - The test is launched on 64 cores
+    - The app_mem_req is 40 (GB)
+    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 32 GB.
+    The app_mem_req is higher. Thus, 40GB (per node) is requested from the batch scheduler.
+
+    Example 2:
+    - A system with 128 cores per node, 128 GB mem per node is used.
+    - The test is launched on 64 cores
+    - the app_mem_req is 40 (GB)
+    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 64 GB.
+    This is higher than the app_mem_req. Thus, 64 GB (per node) is requested from the batch scheduler.
+    """
+    # Check that the systems.partitions.extra dict in the ReFrame config contains mem_per_node
+    check_extras_key_defined(test, 'mem_per_node')
+    
+    # Skip if the current partition doesn't have sufficient memory to run the application
+    msg = f"Skipping test: nodes in this partition only have {test.current_partition.extras['mem_per_node']} GB"
+    msg += " memory available (per node) accodring to the current ReFrame configuration,"
+    msg += f" but {app_mem_req} GB is needed"
+    test.skip_if(test.current_partition.extras['mem_per_node'] < app_mem_req, msg)
+
+    # Compute what is higher: the requested memory, or the memory available proportional to requested CPUs
+    # Fraction of CPU cores requested
+    check_proc_attribute_defined(test, 'num_cpus')
+    cpu_fraction = test.num_tasks_per_node * test.num_cpus_per_task / test.current_partition.processor.num_cpus
+    default_mem = cpu_fraction * test.current_partition.extras['mem_per_node']
+
+    # Request the maximum of the default_mem, and app_mem_req to the scheduler
+    req_mem_per_node = max(default_mem, app_mem_req)
+    if test.current_partition.scheduler.registered_name == 'slurm' or test.current_partition.scheduler.registered_name == 'squeue':
+        # SLURMs --mem defines memory per node, see https://slurm.schedmd.com/sbatch.html
+        test.extra_resources = {'memory': {'size': '%sG' % req_mem_per_node }}
+        log(f"Requested {req_mem_per_node}GB per node from the SLURM batch scheduler")
+    elif test.current_partition.scheduler.registered_name == 'torque':
+        # Torque/moab requires asking for --pmem (--mem only works single node and thus doesnt generalize)
+        # See https://docs.adaptivecomputing.com/10-0-1/Torque/torque.htm#topics/torque/3-jobs/3.1.3-requestingRes.htm
+        req_mem_per_task = req_mem_per_node / test.num_tasks_per_node
+        # We assume here the reframe config defines the extra resource memory as asking for pmem
+        # i.e. 'options': ['--pmem={size}']
+        test.extra_resources = {'memory': {'size': '%sgb' % req_mem_per_task }}
+        log(f"Requested {req_mem_per_task}GB per task from the torque batch scheduler")
+    else:
+        logger = rflog.getlogger()
+        msg = "hooks.req_memory_per_node does not support the scheduler you configured"
+        msg += f" ({test.current_partition.scheduler.registered_name})."
+        msg += " The test will run, but since it doesn't request the required amount of memory explicitely,"
+        msg += " it may result in an out-of-memory error."
+        msg += " Please expand the functionality of hooks.req_memory_per_node for your scheduler."
+        # Warnings will, at default loglevel, be printed on stdout when executing the ReFrame command
+        logger.warning(msg)
+    
 
 def set_modules(test: rfm.RegressionTest):
     """
