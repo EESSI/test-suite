@@ -59,6 +59,11 @@ site_configuration = {
                     'features': [
                         FEATURES[CPU],
                     ] + list(SCALES.keys()),
+                    'extras': {
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 238.418  # in GiB
+                    },
                     'descr': 'CPU partition Standard, see https://en-doc.vega.izum.si/architecture/'
                 },
                 {

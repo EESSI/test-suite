@@ -387,32 +387,33 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
     It then passes the maximum of these two numbers to the batch scheduler as a memory request.
 
     Note: using this hook requires that the ReFrame configuration defines system.partition.extras['mem_per_node']
+    That field should be defined in GiB
 
     Arguments:
     - test: the ReFrame test to which this hook should apply
-    - app_mem_req: the amount of memory this application needs (per node) in megabytes
+    - app_mem_req: the amount of memory this application needs (per node) in GiB
 
     Example 1:
-    - A system with 128 cores and 64 GB per node.
+    - A system with 128 cores and 64 GiB per node.
     - The test is launched on 64 cores
-    - The app_mem_req is 40 (GB)
-    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 32 GB.
-    The app_mem_req is higher. Thus, 40GB (per node) is requested from the batch scheduler.
+    - The app_mem_req is 40 (GiB)
+    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 32 GiB.
+    The app_mem_req is higher. Thus, 40GiB (per node) is requested from the batch scheduler.
 
     Example 2:
-    - A system with 128 cores per node, 128 GB mem per node is used.
+    - A system with 128 cores per node, 128 GiB mem per node is used.
     - The test is launched on 64 cores
-    - the app_mem_req is 40 (GB)
-    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 64 GB.
-    This is higher than the app_mem_req. Thus, 64 GB (per node) is requested from the batch scheduler.
+    - the app_mem_req is 40 (GiB)
+    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 64 GiB.
+    This is higher than the app_mem_req. Thus, 64 GiB (per node) is requested from the batch scheduler.
     """
     # Check that the systems.partitions.extra dict in the ReFrame config contains mem_per_node
     check_extras_key_defined(test, 'mem_per_node')
     
     # Skip if the current partition doesn't have sufficient memory to run the application
-    msg = f"Skipping test: nodes in this partition only have {test.current_partition.extras['mem_per_node']} GB"
+    msg = f"Skipping test: nodes in this partition only have {test.current_partition.extras['mem_per_node']} GiB"
     msg += " memory available (per node) accodring to the current ReFrame configuration,"
-    msg += f" but {app_mem_req} GB is needed"
+    msg += f" but {app_mem_req} GiB is needed"
     test.skip_if(test.current_partition.extras['mem_per_node'] < app_mem_req, msg)
 
     # Compute what is higher: the requested memory, or the memory available proportional to requested CPUs
@@ -421,27 +422,37 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
     cpu_fraction = test.num_tasks_per_node * test.num_cpus_per_task / test.current_partition.processor.num_cpus
     proportional_mem = cpu_fraction * test.current_partition.extras['mem_per_node']
 
-    # First convert to MB and round - schedulers typically don't allow fractional numbers
-    # (and we want to reduce roundoff error, hence MB)
-    # Round up for app_mem_req to be on the save side:
-    app_mem_req = math.ceil(1024 * app_mem_req)
-    # Round down for proportional_mem, so we don't ask more than what is available per node
-    proportional_mem = math.floor(1024 * proportional_mem)
-
-    # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
-    req_mem_per_node = max(proportional_mem, app_mem_req)
     if test.current_partition.scheduler.registered_name == 'slurm' or test.current_partition.scheduler.registered_name == 'squeue':
         # SLURMs --mem defines memory per node, see https://slurm.schedmd.com/sbatch.html
+        # SLURM uses megabytes and gigabytes, i.e. base-10, so conversion is 1000, not 1024
+        # Thus, we convert from GiB (gibibytes) to MB (megabytes) (1024 * 1024 * 1024 / (1000 * 1000) = 1073.741824)
+        app_mem_req = math.ceil(1073.741824 * app_mem_req)
+        log(f"Memory requested by application: {app_mem_req} MB")
+        proportional_mem = math.floor(1073.741824 * proportional_mem)
+        log(f"Memory proportional to the core count: {proportional_mem} MB")
+
+        # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
+        req_mem_per_node = max(proportional_mem, app_mem_req)
+
         test.extra_resources = {'memory': {'size': '%sM' % req_mem_per_node }}
-        log(f"Requested {req_mem_per_node}MB per node from the SLURM batch scheduler")
+        log(f"Requested {req_mem_per_node} MB per node from the SLURM batch scheduler")
+
     elif test.current_partition.scheduler.registered_name == 'torque':
         # Torque/moab requires asking for --pmem (--mem only works single node and thus doesnt generalize)
         # See https://docs.adaptivecomputing.com/10-0-1/Torque/torque.htm#topics/torque/3-jobs/3.1.3-requestingRes.htm
-        req_mem_per_task = req_mem_per_node / test.num_tasks_per_node
+        # Units are MiB according to the documentation, thus, we simply multiply with 1024
+        # We immediately divide by num_tasks_per_node (before rounding), since -pmem specifies memroy _per process_
+        app_mem_req_task = math.ceil(1024 * app_mem_req / test.num_tasks_per_node)
+        proportional_mem_task = math.floor(1024 * proportional_mem / test.num_tasks_per_node)
+
+        # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
+        req_mem_per_task = max(proportional_mem_task, app_mem_req_task)
+
         # We assume here the reframe config defines the extra resource memory as asking for pmem
         # i.e. 'options': ['--pmem={size}']
         test.extra_resources = {'memory': {'size': '%smb' % req_mem_per_task }}
-        log(f"Requested {req_mem_per_task}MB per task from the torque batch scheduler")
+        log(f"Requested {req_mem_per_task} MiB per task from the torque batch scheduler")
+
     else:
         logger = rflog.getlogger()
         msg = "hooks.req_memory_per_node does not support the scheduler you configured"
