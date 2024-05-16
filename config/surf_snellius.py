@@ -53,6 +53,11 @@ site_configuration = {
                     'features': [
                         FEATURES[CPU],
                     ] + list(SCALES.keys()),
+                    'extras': {
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 213.623  # in GiB
+                    },
                     'descr': 'AMD Rome CPU partition with native EESSI stack'
                 },
                 {
@@ -73,7 +78,9 @@ site_configuration = {
                         FEATURES[CPU],
                     ] + list(SCALES.keys()),
                     'extras': {
-                        'mem_per_node': 336
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 320.434  # in GiB
                     },
                     'descr': 'AMD Genoa CPU partition with native EESSI stack'
                 },
@@ -108,6 +115,9 @@ site_configuration = {
                     ] + valid_scales_snellius_gpu,
                     'extras': {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 457.763  # in GiB
                     },
                     'descr': 'Nvidia A100 GPU partition with native EESSI stack'
                 },
