@@ -377,7 +377,7 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
 ## ie --mem=7.0G is invalid. This should be done as --mem=7168M.
 ## It's probably better if this function does everything in MB, and the ReFrame config also specifies available mem per node in MB.
 ## Then, we should make sure the numbers are integers by rounding up for app_mem_req (1 MB more should never really be an issue)
-## and probably down for the default_mem (as to not ask for more than the equivalent share of a core)
+## and probably down for the proportional_mem (as to not ask for more than the equivalent share of a core)
 def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
     """
     This hook will request a specific amount of memory per node to the batch scheduler.
@@ -390,10 +390,10 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
 
     Arguments:
     - test: the ReFrame test to which this hook should apply
-    - app_mem_req: the amount of memory this application needs (per node) in gigabytes
+    - app_mem_req: the amount of memory this application needs (per node) in megabytes
 
     Example 1:
-    - A system with 128 cores per node, 64 GB mem per node is used.
+    - A system with 128 cores and 64 GB per node.
     - The test is launched on 64 cores
     - The app_mem_req is 40 (GB)
     In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 32 GB.
@@ -419,22 +419,29 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
     # Fraction of CPU cores requested
     check_proc_attribute_defined(test, 'num_cpus')
     cpu_fraction = test.num_tasks_per_node * test.num_cpus_per_task / test.current_partition.processor.num_cpus
-    default_mem = cpu_fraction * test.current_partition.extras['mem_per_node']
+    proportional_mem = cpu_fraction * test.current_partition.extras['mem_per_node']
 
-    # Request the maximum of the default_mem, and app_mem_req to the scheduler
-    req_mem_per_node = max(default_mem, app_mem_req)
+    # First convert to MB and round - schedulers typically don't allow fractional numbers
+    # (and we want to reduce roundoff error, hence MB)
+    # Round up for app_mem_req to be on the save side:
+    app_mem_req = math.ceil(1024 * app_mem_req)
+    # Round down for proportional_mem, so we don't ask more than what is available per node
+    proportional_mem = math.floor(1024 * proportional_mem)
+
+    # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
+    req_mem_per_node = max(proportional_mem, app_mem_req)
     if test.current_partition.scheduler.registered_name == 'slurm' or test.current_partition.scheduler.registered_name == 'squeue':
         # SLURMs --mem defines memory per node, see https://slurm.schedmd.com/sbatch.html
-        test.extra_resources = {'memory': {'size': '%sG' % req_mem_per_node }}
-        log(f"Requested {req_mem_per_node}GB per node from the SLURM batch scheduler")
+        test.extra_resources = {'memory': {'size': '%sM' % req_mem_per_node }}
+        log(f"Requested {req_mem_per_node}MB per node from the SLURM batch scheduler")
     elif test.current_partition.scheduler.registered_name == 'torque':
         # Torque/moab requires asking for --pmem (--mem only works single node and thus doesnt generalize)
         # See https://docs.adaptivecomputing.com/10-0-1/Torque/torque.htm#topics/torque/3-jobs/3.1.3-requestingRes.htm
         req_mem_per_task = req_mem_per_node / test.num_tasks_per_node
         # We assume here the reframe config defines the extra resource memory as asking for pmem
         # i.e. 'options': ['--pmem={size}']
-        test.extra_resources = {'memory': {'size': '%sgb' % req_mem_per_task }}
-        log(f"Requested {req_mem_per_task}GB per task from the torque batch scheduler")
+        test.extra_resources = {'memory': {'size': '%smb' % req_mem_per_task }}
+        log(f"Requested {req_mem_per_task}MB per task from the torque batch scheduler")
     else:
         logger = rflog.getlogger()
         msg = "hooks.req_memory_per_node does not support the scheduler you configured"
