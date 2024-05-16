@@ -99,7 +99,7 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck):
 
     @run_after('setup')
     def request_mem(self):
-        memory_required = self.num_tasks_per_node * 1 + 2
+        memory_required = self.num_tasks_per_node * 0.9 + 4
         hooks.req_memory_per_node(test=self, app_mem_req=memory_required)
 
     @run_after('setup')
