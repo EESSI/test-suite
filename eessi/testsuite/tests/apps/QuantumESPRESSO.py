@@ -98,6 +98,11 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck):
             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[CPU])
 
     @run_after('setup')
+    def request_mem(self):
+        memory_required = self.num_tasks_per_node * 0.9 + 4
+        hooks.req_memory_per_node(test=self, app_mem_req=memory_required)
+
+    @run_after('setup')
     def set_omp_num_threads(self):
         """
         Set number of OpenMP threads via OMP_NUM_THREADS.
