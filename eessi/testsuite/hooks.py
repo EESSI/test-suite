@@ -409,7 +409,6 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
     """
     # Check that the systems.partitions.extra dict in the ReFrame config contains mem_per_node
     check_extras_key_defined(test, 'mem_per_node')
-    
     # Skip if the current partition doesn't have sufficient memory to run the application
     msg = f"Skipping test: nodes in this partition only have {test.current_partition.extras['mem_per_node']} GiB"
     msg += " memory available (per node) accodring to the current ReFrame configuration,"
@@ -422,7 +421,8 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
     cpu_fraction = test.num_tasks_per_node * test.num_cpus_per_task / test.current_partition.processor.num_cpus
     proportional_mem = cpu_fraction * test.current_partition.extras['mem_per_node']
 
-    if test.current_partition.scheduler.registered_name == 'slurm' or test.current_partition.scheduler.registered_name == 'squeue':
+    scheduler_name = test.current_partition.scheduler.registered_name
+    if scheduler_name == 'slurm' or scheduler_name == 'squeue':
         # SLURMs --mem defines memory per node, see https://slurm.schedmd.com/sbatch.html
         # SLURM uses megabytes and gigabytes, i.e. base-10, so conversion is 1000, not 1024
         # Thus, we convert from GiB (gibibytes) to MB (megabytes) (1024 * 1024 * 1024 / (1000 * 1000) = 1073.741824)
@@ -434,10 +434,10 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
         # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
         req_mem_per_node = max(proportional_mem, app_mem_req)
 
-        test.extra_resources = {'memory': {'size': '%sM' % req_mem_per_node }}
+        test.extra_resources = {'memory': {'size': f'{req_mem_per_node}M' }}
         log(f"Requested {req_mem_per_node} MB per node from the SLURM batch scheduler")
 
-    elif test.current_partition.scheduler.registered_name == 'torque':
+    elif scheduler_name == 'torque':
         # Torque/moab requires asking for --pmem (--mem only works single node and thus doesnt generalize)
         # See https://docs.adaptivecomputing.com/10-0-1/Torque/torque.htm#topics/torque/3-jobs/3.1.3-requestingRes.htm
         # Units are MiB according to the documentation, thus, we simply multiply with 1024
@@ -450,7 +450,7 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
 
         # We assume here the reframe config defines the extra resource memory as asking for pmem
         # i.e. 'options': ['--pmem={size}']
-        test.extra_resources = {'memory': {'size': '%smb' % req_mem_per_task }}
+        test.extra_resources = {'memory': {'size': f'{req_mem_per_task}mb'}}
         log(f"Requested {req_mem_per_task} MiB per task from the torque batch scheduler")
 
     else:
@@ -462,7 +462,6 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
         msg += " Please expand the functionality of hooks.req_memory_per_node for your scheduler."
         # Warnings will, at default loglevel, be printed on stdout when executing the ReFrame command
         logger.warning(msg)
-    
 
 def set_modules(test: rfm.RegressionTest):
     """
