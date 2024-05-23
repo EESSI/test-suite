@@ -373,11 +373,6 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     log(f'valid_systems set to {test.valid_systems}')
 
 
-## TODO: function should take everything in MB, as schedulers (at least slurm) does not except asking for fractional memory
-## ie --mem=7.0G is invalid. This should be done as --mem=7168M.
-## It's probably better if this function does everything in MB, and the ReFrame config also specifies available mem per node in MB.
-## Then, we should make sure the numbers are integers by rounding up for app_mem_req (1 MB more should never really be an issue)
-## and probably down for the proportional_mem (as to not ask for more than the equivalent share of a core)
 def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
     """
     This hook will request a specific amount of memory per node to the batch scheduler.
@@ -434,7 +429,7 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
         # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
         req_mem_per_node = max(proportional_mem, app_mem_req)
 
-        test.extra_resources = {'memory': {'size': f'{req_mem_per_node}M' }}
+        test.extra_resources = {'memory': {'size': f'{req_mem_per_node}M'}}
         log(f"Requested {req_mem_per_node} MB per node from the SLURM batch scheduler")
 
     elif scheduler_name == 'torque':
@@ -462,6 +457,7 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
         msg += " Please expand the functionality of hooks.req_memory_per_node for your scheduler."
         # Warnings will, at default loglevel, be printed on stdout when executing the ReFrame command
         logger.warning(msg)
+
 
 def set_modules(test: rfm.RegressionTest):
     """

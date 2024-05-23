@@ -66,7 +66,7 @@ site_configuration = {
                     },
                     'descr': 'CPU partition Standard, see https://en-doc.vega.izum.si/architecture/'
                 },
-{
+                # {
                 #     'name': 'gpu',
                 #     'scheduler': 'slurm',
                 #     'prepare_cmds': [
