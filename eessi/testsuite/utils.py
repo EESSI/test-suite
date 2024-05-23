@@ -150,7 +150,7 @@ def check_proc_attribute_defined(test: rfm.RegressionTest, attribute) -> bool:
         )
     raise AttributeError(msg)
 
-
+    
 def check_extras_key_defined(test: rfm.RegressionTest, extra_key) -> bool:
     """
     Checks if a specific key is defined in the 'extras' dictionary for the current partition
