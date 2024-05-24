@@ -6,7 +6,9 @@
 from reframe.core.backends import register_launcher
 from reframe.core.launchers import JobLauncher
 
-from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
+from eessi.testsuite.common_config import (common_eessi_init,
+                                           common_general_config,
+                                           common_logging_config)
 from eessi.testsuite.constants import *  # noqa: F403
 
 account = "my-slurm-account"
@@ -56,8 +58,8 @@ site_configuration = {
                     ] + list(SCALES.keys()),
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
-                         # per node
-                         'mem_per_node': 256.000  # in GiB (should be checked, its unclear from slurm.conf)
+                        # per node
+                        'mem_per_node': 256.000  # in GiB (should be checked, its unclear from slurm.conf)
                     },
                 },
                 {
