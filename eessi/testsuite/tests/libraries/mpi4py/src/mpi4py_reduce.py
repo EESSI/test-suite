@@ -35,7 +35,7 @@ t1 = time.time()
 for i in range(n_iter):
     total = MPI.COMM_WORLD.reduce(rank)
 t2 = time.time()
-total_time = (t2-t1)/n_iter
+total_time = (t2 - t1) / n_iter
 
 if rank == 0:
     print(f"Total ranks: {size}")
