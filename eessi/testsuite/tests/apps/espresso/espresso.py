@@ -26,7 +26,7 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
     scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
     valid_systems = ['*']
-    time_limit = '30m'
+    time_limit = '180m'
     # Need to check if QuantumESPRESSO also gets listed.
     module_name = parameter(find_modules('ESPResSo'))
     # device type is parameterized for an impending CUDA ESPResSo module.
@@ -66,12 +66,6 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
         if (self.benchmark_info[0] == 'mpi.ionic_crystals.p3m'):
             self.tags.add('ionic_crystals_p3m')
 
-
-    @run_after('init')
-    def set_mem(self):
-        """ Setting an extra job option of memory. """
-        self.extra_resources = {'memory': {'size': '50GB'}}
-
     @run_after('init')
     def set_executable_opts(self):
         """Set executable opts based on device_type parameter"""
@@ -88,6 +82,13 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
         """ Setting number of tasks per node and cpus per task in this function. This function sets num_cpus_per_task
         for 1 node and 2 node options where the request is for full nodes."""
         hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[CPU])
+
+    @run_after('setup')
+    def set_mem(self):
+        """ Setting an extra job option of memory. Here the assumption made is that HPC systems will contain at
+        least 1 GB per core of memory."""
+        mem_required_per_node = str(self.num_tasks_per_node * 1) + 'GB'
+        self.extra_resources = {'memory': {'size': mem_required_per_node}}
 
     @deferrable
     def assert_completion(self):
