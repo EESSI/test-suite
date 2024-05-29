@@ -145,7 +145,41 @@ def check_proc_attribute_defined(test: rfm.RegressionTest, attribute) -> bool:
     else:
         msg = (
             "This test's current_partition is not set yet. "
-            "The function utils.proc_attribute_defined should only be called after the setup() phase of ReFrame."
+            "The function utils.check_proc_attribute_defined should only be called after the setup() phase of ReFrame."
+            "This is a programming error, please report this issue."
+        )
+    raise AttributeError(msg)
+
+
+def check_extras_key_defined(test: rfm.RegressionTest, extra_key) -> bool:
+    """
+    Checks if a specific key is defined in the 'extras' dictionary for the current partition
+    (i.e. if test.current_partition.extras[extra_key] is defined)
+    If not, throws an informative error message.
+    Note that partition extras are defined by free text keys, so any string is (potentially) valid.
+
+    Arguments:
+    - test: the reframe regression test instance for which should be checked if the key is defined in 'extras'
+    - extra_key: key for which to check in the 'extras' dictionary
+
+    Return:
+    - True (bool) if the key is defined
+    - Function does not return (but raises an error) if the attribute is undefined
+    """
+
+    if test.current_partition:
+        if extra_key in test.current_partition.extras:
+            return True
+        else:
+            msg = (
+                f"Key '{extra_key}' missing in the 'extras' dictionary for partition '{test.current_partition.name}'."
+                "Please define this key for the relevant partition in the ReFrame configuration file (see "
+                "https://reframe-hpc.readthedocs.io/en/stable/config_reference.html#config.systems.partitions.extras)."
+            )
+    else:
+        msg = (
+            "This test's current_partition is not set yet. "
+            "The function utils.check_extras_key_defined should only be called after the setup() phase of ReFrame."
             "This is a programming error, please report this issue."
         )
     raise AttributeError(msg)

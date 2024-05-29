@@ -59,6 +59,11 @@ site_configuration = {
                     'features': [
                         FEATURES[CPU],
                     ] + list(SCALES.keys()),
+                    'extras': {
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 219.345  # in GiB
+                    },
                     'descr': 'CPU Universal Compute Nodes, see https://docs.it4i.cz/karolina/hardware-overview/'
                 },
                 # We don't have GPU budget on Karolina at this time
