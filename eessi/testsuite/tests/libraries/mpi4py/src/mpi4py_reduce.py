@@ -36,7 +36,6 @@ for i in range(n_iter):
     total = MPI.COMM_WORLD.reduce(rank)
 t2 = time.time()
 total_time = (t2-t1)/n_iter
-# print(f"Hello, World! I am process {rank} of {size} on {name}.\n")
 
 if rank == 0:
     print(f"Total ranks: {size}")
