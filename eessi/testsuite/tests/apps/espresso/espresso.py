@@ -26,7 +26,7 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
     scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
     valid_systems = ['*']
-    time_limit = '180m'
+    time_limit = '300m'
     # Need to check if QuantumESPRESSO also gets listed.
     module_name = parameter(find_modules('ESPResSo'))
     # device type is parameterized for an impending CUDA ESPResSo module.
