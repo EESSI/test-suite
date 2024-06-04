@@ -21,7 +21,6 @@ import espressomd
 import espressomd.version
 import espressomd.electrostatics
 import argparse
-import pathlib
 import time
 import numpy as np
 
@@ -45,12 +44,14 @@ group.add_argument("--strong-scaling", action="store_true",
                    help="Strong scaling benchmark (Amdahl's law: constant total work)")
 args = parser.parse_args()
 
+
 def get_reference_values_per_ion(base_vector):
     madelung_constant = -1.74756459463318219
     base_tensor = base_vector * np.eye(3)
     ref_energy = madelung_constant
     ref_pressure = madelung_constant * base_tensor / np.trace(base_tensor)
     return ref_energy, ref_pressure
+
 
 def get_normalized_values_per_ion(system):
     energy = system.analysis.energy()["coulomb"]
@@ -59,6 +60,7 @@ def get_normalized_values_per_ion(system):
     N = len(system.part)
     V = system.volume()
     return 2. * energy / N, 2. * p_scalar * V / N, 2. * p_tensor * V / N
+
 
 # initialize system
 system = espressomd.System(box_l=[100., 100., 100.])
@@ -96,12 +98,15 @@ else:
 
 print("Algorithm executed. \n")
 
+# Old rtol_pressure = 2e-5
+# This resulted in failures especially at high number of nodes therefore increased
+# to a larger value.
+
 atol_energy = atol_pressure = 1e-12
 atol_forces = 1e-5
 atol_abs_forces = 2e-6
 
 rtol_energy = 5e-6
-#rtol_pressure = 2e-5
 rtol_pressure = 1e-4
 rtol_forces = 0.
 rtol_abs_forces = 0.
@@ -142,8 +147,3 @@ print(header)
 print(report)
 
 print(f"Performance: {np.mean(timings):.3e} \n")
-
-# if pathlib.Path(args.output).is_file():
-#     header = ""
-# with open(args.output, "a") as f:
-#     f.write(header + report)

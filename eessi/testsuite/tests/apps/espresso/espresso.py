@@ -1,11 +1,10 @@
 """
-This module tests Espresso in available modules containing substring 'ESPResSo' which is different from Quantum Espresso. 
-Tests included:
+This module tests Espresso in available modules containing substring 'ESPResSo' which is different from Quantum
+Espresso. Tests included:
 - P3M benchmark - Ionic crystals
     - Weak scaling
-    - Strong scaling
-Weak and strong scaling are options that are needed to be provided tothe script and the system is either scaled based on
-number of cores or kept constant.
+    - Strong scaling Weak and strong scaling are options that are needed to be provided to the script and the system is
+      either scaled based on number of cores or kept constant.
 """
 
 import reframe as rfm
@@ -14,15 +13,14 @@ import reframe.utility.sanity as sn
 from reframe.core.builtins import parameter, run_after  # added only to make the linter happy
 from reframe.utility import reframe
 
-from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
-
 from eessi.testsuite import hooks, utils
 from eessi.testsuite.constants import *
 from eessi.testsuite.utils import find_modules, log
 
 @rfm.simple_test
 class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
-    ''''''
+
+
     scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
     valid_systems = ['*']
@@ -45,7 +43,6 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
     @run_after('init')
     def run_after_init(self):
         """hooks to run after init phase"""
-
         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
         hooks.filter_supported_scales(self)
 
