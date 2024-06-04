@@ -138,7 +138,10 @@ print("10 steps executed...\n")
 # write results to file
 header = '"mode","cores","mpi.x","mpi.y","mpi.z","particles","mean","std"\n'
 report = f'"{"weak scaling" if args.weak_scaling else "strong scaling"}",{n_cores},{node_grid[0]},{node_grid[1]},{node_grid[2]},{len(system.part)},{np.mean(timings):.3e},{np.std(timings, ddof=1):.3e}\n'
+print(header)
 print(report)
+
+print(f"Performance: {np.mean(timings):.3e} \n")
 
 # if pathlib.Path(args.output).is_file():
 #     header = ""

@@ -111,3 +111,7 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
             self.assert_convergence(),
         ])
 
+    @performance_function('s/step')
+    def perf(self):
+        return sn.extractsingle(r'^Performance:\s+(?P<perf>\S+)', self.stdout, 'perf', float)
+
