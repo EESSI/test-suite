@@ -17,9 +17,9 @@ from eessi.testsuite import hooks, utils
 from eessi.testsuite.constants import *
 from eessi.testsuite.utils import find_modules, log
 
+
 @rfm.simple_test
 class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
-
 
     scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
@@ -38,7 +38,6 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
     benchmark_info = parameter([
         ('mpi.ionic_crystals.p3m', 'p3m'),
     ], fmt=lambda x: x[0], loggable=True)
-
 
     @run_after('init')
     def run_after_init(self):
@@ -111,4 +110,3 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
     @performance_function('s/step')
     def perf(self):
         return sn.extractsingle(r'^Performance:\s+(?P<perf>\S+)', self.stdout, 'perf', float)
-
