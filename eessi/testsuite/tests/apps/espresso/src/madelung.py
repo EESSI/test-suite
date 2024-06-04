@@ -79,11 +79,11 @@ lattice_size = 3 * [2 * args.size]
 if args.weak_scaling:
     lattice_size = np.multiply(lattice_size, node_grid)
 system.box_l = np.multiply(lattice_size, base_vector)
-for j in range(lattice_size[0]):
-    for k in range(lattice_size[1]):
-        for l in range(lattice_size[2]):
-            _ = system.part.add(pos=np.multiply([j, k, l], base_vector),
-                                q=(-1.)**(j + k + l), fix=3 * [True])
+for var_j in range(lattice_size[0]):
+    for var_k in range(lattice_size[1]):
+        for var_l in range(lattice_size[2]):
+            _ = system.part.add(pos=np.multiply([var_j, var_k, var_l], base_vector),
+                                q=(-1.)**(var_j + var_k + var_l), fix=3 * [True])
 
 # setup P3M algorithm
 algorithm = espressomd.electrostatics.P3M
