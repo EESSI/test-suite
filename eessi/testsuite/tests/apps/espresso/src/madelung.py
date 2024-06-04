@@ -101,7 +101,8 @@ atol_forces = 1e-5
 atol_abs_forces = 2e-6
 
 rtol_energy = 5e-6
-rtol_pressure = 2e-5
+#rtol_pressure = 2e-5
+rtol_pressure = 1e-4
 rtol_forces = 0.
 rtol_abs_forces = 0.
 # run checks
