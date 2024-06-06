@@ -83,8 +83,9 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
     def set_mem(self):
         """ Setting an extra job option of memory. Here the assumption made is that HPC systems will contain at
         least 1 GB per core of memory."""
-        mem_required_per_node = str(self.num_tasks_per_node * 1) + 'GB'
-        self.extra_resources = {'memory': {'size': mem_required_per_node}}
+        mem_required_per_node = self.num_tasks_per_node * 0.9
+        hooks.req_memory_per_node(test=self, app_mem_req=mem_required_per_node)
+
 
     @deferrable
     def assert_completion(self):
