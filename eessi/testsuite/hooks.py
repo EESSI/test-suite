@@ -7,10 +7,11 @@ import shlex
 import warnings
 
 import reframe as rfm
+import reframe.core.logging as rflog
 
 from eessi.testsuite.constants import *
 from eessi.testsuite.utils import (get_max_avail_gpus_per_node, is_cuda_required_module, log,
-                                   check_proc_attribute_defined)
+                                   check_proc_attribute_defined, check_extras_key_defined)
 
 
 def _assign_default_num_cpus_per_node(test: rfm.RegressionTest):
@@ -116,6 +117,15 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
         raise ValueError(f'compute unit {compute_unit} is currently not supported')
 
     _check_always_request_gpus(test)
+
+    if test.current_partition.launcher_type().registered_name == 'srun':
+        # Make sure srun inherits --cpus-per-task from the job environment for Slurm versions >= 22.05 < 23.11,
+        # ensuring the same task binding across all Slurm versions.
+        # https://bugs.schedmd.com/show_bug.cgi?id=13351
+        # https://bugs.schedmd.com/show_bug.cgi?id=11275
+        # https://bugs.schedmd.com/show_bug.cgi?id=15632#c43
+        test.env_vars['SRUN_CPUS_PER_TASK'] = test.num_cpus_per_task
+        log(f'Set environment variable SRUN_CPUS_PER_TASK to {test.env_vars["SRUN_CPUS_PER_TASK"]}')
 
 
 def _assign_num_tasks_per_node(test: rfm.RegressionTest, num_per: int = 1):
@@ -374,6 +384,92 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     log(f'valid_systems set to {test.valid_systems}')
 
 
+def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
+    """
+    This hook will request a specific amount of memory per node to the batch scheduler.
+    First, it computes which fraction of CPUs is requested from a node, and how much the corresponding (proportional)
+    amount of memory would be.
+    Then, the hook compares this to how much memory the application claims to need per node (app_mem_req).
+    It then passes the maximum of these two numbers to the batch scheduler as a memory request.
+
+    Note: using this hook requires that the ReFrame configuration defines system.partition.extras['mem_per_node']
+    That field should be defined in GiB
+
+    Arguments:
+    - test: the ReFrame test to which this hook should apply
+    - app_mem_req: the amount of memory this application needs (per node) in GiB
+
+    Example 1:
+    - A system with 128 cores and 64 GiB per node.
+    - The test is launched on 64 cores
+    - The app_mem_req is 40 (GiB)
+    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 32 GiB.
+    The app_mem_req is higher. Thus, 40GiB (per node) is requested from the batch scheduler.
+
+    Example 2:
+    - A system with 128 cores per node, 128 GiB mem per node is used.
+    - The test is launched on 64 cores
+    - the app_mem_req is 40 (GiB)
+    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 64 GiB.
+    This is higher than the app_mem_req. Thus, 64 GiB (per node) is requested from the batch scheduler.
+    """
+    # Check that the systems.partitions.extra dict in the ReFrame config contains mem_per_node
+    check_extras_key_defined(test, 'mem_per_node')
+    # Skip if the current partition doesn't have sufficient memory to run the application
+    msg = f"Skipping test: nodes in this partition only have {test.current_partition.extras['mem_per_node']} GiB"
+    msg += " memory available (per node) accodring to the current ReFrame configuration,"
+    msg += f" but {app_mem_req} GiB is needed"
+    test.skip_if(test.current_partition.extras['mem_per_node'] < app_mem_req, msg)
+
+    # Compute what is higher: the requested memory, or the memory available proportional to requested CPUs
+    # Fraction of CPU cores requested
+    check_proc_attribute_defined(test, 'num_cpus')
+    cpu_fraction = test.num_tasks_per_node * test.num_cpus_per_task / test.current_partition.processor.num_cpus
+    proportional_mem = cpu_fraction * test.current_partition.extras['mem_per_node']
+
+    scheduler_name = test.current_partition.scheduler.registered_name
+    if scheduler_name == 'slurm' or scheduler_name == 'squeue':
+        # SLURMs --mem defines memory per node, see https://slurm.schedmd.com/sbatch.html
+        # SLURM uses megabytes and gigabytes, i.e. base-10, so conversion is 1000, not 1024
+        # Thus, we convert from GiB (gibibytes) to MB (megabytes) (1024 * 1024 * 1024 / (1000 * 1000) = 1073.741824)
+        app_mem_req = math.ceil(1073.741824 * app_mem_req)
+        log(f"Memory requested by application: {app_mem_req} MB")
+        proportional_mem = math.floor(1073.741824 * proportional_mem)
+        log(f"Memory proportional to the core count: {proportional_mem} MB")
+
+        # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
+        req_mem_per_node = max(proportional_mem, app_mem_req)
+
+        test.extra_resources = {'memory': {'size': f'{req_mem_per_node}M'}}
+        log(f"Requested {req_mem_per_node} MB per node from the SLURM batch scheduler")
+
+    elif scheduler_name == 'torque':
+        # Torque/moab requires asking for --pmem (--mem only works single node and thus doesnt generalize)
+        # See https://docs.adaptivecomputing.com/10-0-1/Torque/torque.htm#topics/torque/3-jobs/3.1.3-requestingRes.htm
+        # Units are MiB according to the documentation, thus, we simply multiply with 1024
+        # We immediately divide by num_tasks_per_node (before rounding), since -pmem specifies memroy _per process_
+        app_mem_req_task = math.ceil(1024 * app_mem_req / test.num_tasks_per_node)
+        proportional_mem_task = math.floor(1024 * proportional_mem / test.num_tasks_per_node)
+
+        # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
+        req_mem_per_task = max(proportional_mem_task, app_mem_req_task)
+
+        # We assume here the reframe config defines the extra resource memory as asking for pmem
+        # i.e. 'options': ['--pmem={size}']
+        test.extra_resources = {'memory': {'size': f'{req_mem_per_task}mb'}}
+        log(f"Requested {req_mem_per_task} MiB per task from the torque batch scheduler")
+
+    else:
+        logger = rflog.getlogger()
+        msg = "hooks.req_memory_per_node does not support the scheduler you configured"
+        msg += f" ({test.current_partition.scheduler.registered_name})."
+        msg += " The test will run, but since it doesn't request the required amount of memory explicitely,"
+        msg += " it may result in an out-of-memory error."
+        msg += " Please expand the functionality of hooks.req_memory_per_node for your scheduler."
+        # Warnings will, at default loglevel, be printed on stdout when executing the ReFrame command
+        logger.warning(msg)
+
+
 def set_modules(test: rfm.RegressionTest):
     """
     Skip current test if module_name is not among a list of modules,
@@ -433,18 +529,31 @@ def set_compact_process_binding(test: rfm.RegressionTest):
     num_cpus_per_core = test.current_partition.processor.num_cpus_per_core
     physical_cpus_per_task = int(test.num_cpus_per_task / num_cpus_per_core)
 
-    # Do binding for intel and OpenMPI's mpirun, and srun
-    # Other launchers may or may not do the correct binding
-    test.env_vars['I_MPI_PIN_CELL'] = 'core'  # Don't bind to hyperthreads, only to physcial cores
-    test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % physical_cpus_per_task
-    test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'node:PE=%s' % physical_cpus_per_task
-    # Default binding for SLURM. Only effective if the task/affinity plugin is enabled
-    # and when number of tasks times cpus per task equals either socket, core or thread count
-    test.env_vars['SLURM_CPU_BIND'] = 'verbose'
-    log(f'Set environment variable I_MPI_PIN_DOMAIN to {test.env_vars["I_MPI_PIN_DOMAIN"]}')
-    log('Set environment variable OMPI_MCA_rmaps_base_mapping_policy to '
-        f'{test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
-    log(f'Set environment variable SLURM_CPU_BIND to {test.env_vars["SLURM_CPU_BIND"]}')
+    if test.current_partition.launcher_type().registered_name == 'mpirun':
+        # Do binding for intel and OpenMPI's mpirun, and srun
+        test.env_vars['I_MPI_PIN_CELL'] = 'core'  # Don't bind to hyperthreads, only to physcial cores
+        test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % physical_cpus_per_task
+        test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'slot:PE=%s' % physical_cpus_per_task
+        log(f'Set environment variable I_MPI_PIN_CELL to {test.env_vars["I_MPI_PIN_CELL"]}')
+        log(f'Set environment variable I_MPI_PIN_DOMAIN to {test.env_vars["I_MPI_PIN_DOMAIN"]}')
+        log('Set environment variable OMPI_MCA_rmaps_base_mapping_policy to '
+            f'{test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
+    elif test.current_partition.launcher_type().registered_name == 'srun':
+        # Set compact binding for SLURM. Only effective if the task/affinity plugin is enabled
+        # and when number of tasks times cpus per task equals either socket, core or thread count
+        test.env_vars['SLURM_DISTRIBUTION'] = 'block:block'
+        test.env_vars['SLURM_CPU_BIND'] = 'verbose'
+        log(f'Set environment variable SLURM_DISTRIBUTION to {test.env_vars["SLURM_DISTRIBUTION"]}')
+        log(f'Set environment variable SLURM_CPU_BIND to {test.env_vars["SLURM_CPU_BIND"]}')
+    else:
+        logger = rflog.getlogger()
+        msg = "hooks.set_compact_process_binding does not support the current launcher"
+        msg += f" ({test.current_partition.launcher_type().registered_name})."
+        msg += " The test will run, but using the default binding strategy of your parallel launcher."
+        msg += " This may lead to suboptimal performance."
+        msg += " Please expand the functionality of hooks.set_compact_process_binding for your parallel launcher."
+        # Warnings will, at default loglevel, be printed on stdout when executing the ReFrame command
+        logger.warning(msg)
 
 
 def set_compact_thread_binding(test: rfm.RegressionTest):
