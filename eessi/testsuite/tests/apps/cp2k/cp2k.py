@@ -72,7 +72,7 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest):
     @run_after('init')
     def set_tag_ci(self):
         """Set tag CI on smallest benchmark, so it can be selected on the cmd line via --tag CI"""
-        if self.benchmark_info[0] == 'QS/H2O-32':
+        if self.bench_name == 'QS/H2O-32':
             self.tags.add(TAGS['CI'])
             log(f'tags set to {self.tags}')
 
@@ -87,3 +87,15 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest):
 
         # Set OMP_NUM_THREADS environment variable
         hooks.set_omp_num_threads(self)
+
+    @run_after('setup')
+    def request_mem(self):
+        mems = {
+            'QS/H2O-32': {'intercept': 0.5, 'slope': 0.15},
+            'QS/H2O-128': {'intercept': 5, 'slope': 0.15},
+            'QS/H2O-512': {'intercept': 33, 'slope': 0.19},
+        }
+
+        mem = mems[self.bench_name]
+        mem_required = self.num_tasks_per_node * mem['slope'] + mem['intercept']
+        hooks.req_memory_per_node(self, app_mem_req=mem_required)
