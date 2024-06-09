@@ -383,7 +383,7 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     log(f'valid_systems set to {test.valid_systems}')
 
 
-def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: int):
+def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
     """
     This hook will request a specific amount of memory per node to the batch scheduler.
     First, it computes which fraction of CPUs is requested from a node, and how much the corresponding (proportional)
@@ -425,6 +425,7 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: int):
     check_proc_attribute_defined(test, 'num_cpus')
     cpu_fraction = test.num_tasks_per_node * test.num_cpus_per_task / test.current_partition.processor.num_cpus
     proportional_mem = math.floor(cpu_fraction * test.current_partition.extras['mem_per_node'])
+    app_mem_req = math.ceil(app_mem_req)
 
     scheduler_name = test.current_partition.scheduler.registered_name
     if scheduler_name == 'slurm' or scheduler_name == 'squeue':
