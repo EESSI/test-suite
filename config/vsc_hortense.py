@@ -59,7 +59,7 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 256.000  # in GiB (should be checked, its unclear from slurm.conf)
+                        'mem_per_node': 234  # in GiB
                     },
                 },
                 {
@@ -91,7 +91,7 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 511.983  # in GiB
+                        'mem_per_node': 473  # in GiB
                     },
                 },
                 {
@@ -123,7 +123,7 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 256.000  # in GiB (should be checked, its unclear from slurm.conf)
+                        'mem_per_node': 234  # in GiB
                     },
                 },
                 {
@@ -150,7 +150,7 @@ site_configuration = {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 256.000  # in GiB
+                        'mem_per_node': 236  # in GiB
                     },
                     'resources': [
                         {
@@ -194,7 +194,7 @@ site_configuration = {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 511.983  # in GiB
+                        'mem_per_node': 475  # in GiB
                     },
                     'resources': [
                         {
