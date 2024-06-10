@@ -17,11 +17,23 @@ from eessi.testsuite import hooks, utils
 from eessi.testsuite.constants import *
 from eessi.testsuite.utils import find_modules, log
 
+def filter_scales_P3M():
+    """
+    Filtering function for filtering scales for P3M test.
+    This is currently required because the 16 node test takes way too long and always fails due to time limit.
+    Once a solution to mesh tuning algorithm is found, where we can specify the mesh sizes for a particular scale,
+    this function can be removed.
+    """
+    return [
+        k for (k, v) in SCALES.items()
+        if v['num_nodes'] != 16
+    ]
+
 
 @rfm.simple_test
 class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
 
-    scale = parameter(SCALES.keys())
+    scale = parameter(filter_scales_P3M())
     valid_prog_environs = ['default']
     valid_systems = ['*']
     time_limit = '300m'
@@ -55,7 +67,8 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
     @run_after('init')
     def set_tag_ci(self):
         """ Setting tests under CI tag. """
-        if (self.benchmark_info[0] in ['mpi.ionic_crystals.p3m']):
+        if (self.benchmark_info[0] in ['mpi.ionic_crystals.p3m']
+            and SCALES[self.scale]['num_nodes'] < 2):
             self.tags.add('CI')
             log(f'tags set to {self.tags}')
 
