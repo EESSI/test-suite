@@ -68,8 +68,7 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
     @run_after('init')
     def set_tag_ci(self):
         """ Setting tests under CI tag. """
-        if (self.benchmark_info[0] in ['mpi.ionic_crystals.p3m'] and
-                SCALES[self.scale]['num_nodes'] < 2):
+        if (self.benchmark_info[0] in ['mpi.ionic_crystals.p3m'] and SCALES[self.scale]['num_nodes'] < 2):
             self.tags.add('CI')
             log(f'tags set to {self.tags}')
 
