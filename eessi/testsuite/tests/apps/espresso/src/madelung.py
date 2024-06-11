@@ -34,9 +34,6 @@ parser.add_argument("--gpu", action=argparse.BooleanOptionalAction,
                     default=False, required=False, help="Use GPU implementation")
 parser.add_argument("--topology", metavar=("X", "Y", "Z"), nargs=3, action="store",
                     default=None, required=False, type=int, help="Cartesian topology")
-parser.add_argument("--output", metavar="FILEPATH", action="store",
-                    type=str, required=False, default="benchmarks.csv",
-                    help="Output file (default: benchmarks.csv)")
 group = parser.add_mutually_exclusive_group()
 group.add_argument("--weak-scaling", action="store_true",
                    help="Weak scaling benchmark (Gustafson's law: constant work per core)")
