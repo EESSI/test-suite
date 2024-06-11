@@ -33,7 +33,7 @@ site_configuration = {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
                         # This is a fictional amount, GH actions probably has less, but only does --dry-run
-                        'mem_per_node': 30  # in GiB
+                        'mem_per_node': 30 * 1024  # in MiB
                     },
                 }
             ]
