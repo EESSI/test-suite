@@ -1,8 +1,7 @@
 """
-This module tests the binary 'gmx_mpi' in available modules containing substring 'GROMACS'.
-Test input files are taken from https://www.hecbiosim.ac.uk/access-hpc/benchmarks,
-as defined in the ReFrame test library,
-see https://github.com/reframe-hpc/reframe/blob/develop/hpctestlib/sciapps/gromacs/benchmarks.py
+This module tests the binary 'pw.x' in available modules containing substring 'QuantumESPRESSO'.
+Test input files are defined in the ReFrame test library,
+see https://github.com/reframe-hpc/reframe/blob/develop/hpctestlib/sciapps/qespresso/benchmarks.py
 
 ReFrame terminology:
 
@@ -30,22 +29,26 @@ See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 """
 
 import reframe as rfm
-from reframe.core.builtins import parameter, run_after  # added only to make the linter happy
-
-from hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
+from hpctestlib.sciapps.qespresso.benchmarks import QEspressoPWCheck
+from reframe.core.builtins import (  # added only to make the linter happy
+    parameter, run_after)
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import SCALES, TAGS
+from eessi.testsuite.constants import (COMPUTE_UNIT, CPU, DEVICE_TYPES, GPU,
+                                       SCALES, TAGS)
 from eessi.testsuite.utils import find_modules, log
 
 
 @rfm.simple_test
-class EESSI_GROMACS(gromacs_check):
+class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck):
     scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
     valid_systems = ['*']
     time_limit = '30m'
-    module_name = parameter(find_modules('GROMACS'))
+    module_name = parameter(find_modules('QuantumESPRESSO'))
+    # For now, QE is being build for CPU targets only
+    # compute_device = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
+    compute_device = parameter([DEVICE_TYPES[CPU], ])
 
     @run_after('init')
     def run_after_init(self):
@@ -57,7 +60,7 @@ class EESSI_GROMACS(gromacs_check):
         # Make sure that GPU tests run in partitions that support running on a GPU,
         # and that CPU-only tests run in partitions that support running CPU-only.
         # Also support setting valid_systems on the cmd line.
-        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.nb_impl)
+        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.compute_device)
 
         # Support selecting modules on the cmd line.
         hooks.set_modules(self)
@@ -68,23 +71,19 @@ class EESSI_GROMACS(gromacs_check):
     @run_after('init')
     def set_tag_ci(self):
         """Set tag CI on smallest benchmark, so it can be selected on the cmd line via --tag CI"""
-        # Crambin input is smallest input (20K atoms), cfr. https://www.hecbiosim.ac.uk/access-hpc/benchmarks
-        if self.benchmark_info[0] == 'HECBioSim/Crambin':
+        min_ecut = min(QEspressoPWCheck.ecut.values)
+        min_nbnd = min(QEspressoPWCheck.nbnd.values)
+        if self.ecut == min_ecut and self.nbnd == min_nbnd:
             self.tags.add(TAGS['CI'])
             log(f'tags set to {self.tags}')
 
-    @run_after('setup')
-    def set_executable_opts(self):
-        """
-        Add extra executable_opts, unless specified via --setvar executable_opts=<x>
-        Set default executable_opts and support setting custom executable_opts on the cmd line.
-        """
-
-        num_default = 4  # normalized number of executable opts added by parent class (gromacs_check)
-        hooks.check_custom_executable_opts(self, num_default=num_default)
-        if not self.has_custom_executable_opts:
-            self.executable_opts += ['-dlb', 'yes', '-npme', '-1']
-            log(f'executable_opts set to {self.executable_opts}')
+    @run_after('init')
+    def set_increased_walltime(self):
+        """Increase the amount of time for the largest benchmark, so it can complete successfully."""
+        max_ecut = max(QEspressoPWCheck.ecut.values)
+        max_nbnd = max(QEspressoPWCheck.nbnd.values)
+        if self.ecut == max_ecut and self.nbnd == max_nbnd:
+            self.time_limit = '60m'
 
     @run_after('setup')
     def run_after_setup(self):
@@ -93,31 +92,22 @@ class EESSI_GROMACS(gromacs_check):
         # Calculate default requested resources based on the scale:
         # 1 task per CPU for CPU-only tests, 1 task per GPU for GPU tests.
         # Also support setting the resources on the cmd line.
-        hooks.assign_tasks_per_compute_unit(test=self, compute_unit=self.nb_impl)
+        if self.compute_device == DEVICE_TYPES[GPU]:
+            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[GPU])
+        else:
+            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[CPU])
+
+    @run_after('setup')
+    def request_mem(self):
+        memory_required = self.num_tasks_per_node * 0.9 + 4
+        hooks.req_memory_per_node(test=self, app_mem_req=memory_required * 1024)
 
     @run_after('setup')
     def set_omp_num_threads(self):
         """
-        Set number of OpenMP threads.
-        Set both OMP_NUM_THREADS and -ntomp explicitly to avoid conflicting values.
+        Set number of OpenMP threads via OMP_NUM_THREADS.
         Set default number of OpenMP threads equal to number of CPUs per task.
-        Also support setting OpenMP threads on the cmd line via custom executable option '-ntomp'.
         """
 
-        if '-ntomp' in self.executable_opts:
-            omp_num_threads = self.executable_opts[self.executable_opts.index('-ntomp') + 1]
-        else:
-            omp_num_threads = self.num_cpus_per_task
-            self.executable_opts += ['-ntomp', str(omp_num_threads)]
-            log(f'executable_opts set to {self.executable_opts}')
-
-        self.env_vars['OMP_NUM_THREADS'] = omp_num_threads
+        self.env_vars['OMP_NUM_THREADS'] = self.num_cpus_per_task
         log(f'env_vars set to {self.env_vars}')
-
-    @run_after('setup')
-    def set_binding_policy(self):
-        """
-        Default process binding may depend on the launcher used. We've seen some variable performance.
-        Better set it explicitely to make sure process migration cannot cause such variations.
-        """
-        hooks.set_compact_process_binding(self)

@@ -53,6 +53,11 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
     # unset num_tasks_per_node from the hpctestlib.
     num_tasks_per_node = None
 
+    # Set num_warmup_iters to 5 to reduce execution time, especially on slower interconnects
+    num_warmup_iters = 5
+    # Set num_iters to 10 to reduce execution time, especially on slower interconnects
+    num_iters = 10
+
     @run_after('init')
     def filter_scales_2gpus(self):
         """Filter out scales with < 2 GPUs if running on GPUs"""
@@ -114,7 +119,7 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
     @run_after('init')
     def set_mem(self):
         """ Setting an extra job option of memory. This test has only 4 possibilities: 1_node, 2_nodes, 2_cores and
-        1_cpn_2_nodes. This is implemented for all cases including full node cases. The requested memory may seem large
+        1cpn_2nodes. This is implemented for all cases including full node cases. The requested memory may seem large
         and the test requires at least 4.5 GB per core at the minimum for the full test when run with validation (-c
         option for osu_bw or osu_latency). We run till message size 8 (-m 8) which significantly reduces memory
         requirement."""
@@ -168,6 +173,11 @@ class EESSI_OSU_Micro_Benchmarks_coll(osu_benchmark):
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
     # Unset num_tasks_per_node from hpctestlib
     num_tasks_per_node = None
+
+    # Set num_warmup_iters to 5 to reduce execution time, especially on slower interconnects
+    num_warmup_iters = 5
+    # Set num_iters to 10 to reduce execution time, especially on slower interconnects
+    num_iters = 10
 
     @run_after('init')
     def run_after_init(self):
