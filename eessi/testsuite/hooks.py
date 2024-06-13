@@ -399,7 +399,7 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
     - app_mem_req: the amount of memory this application needs (per node) in MiB
 
     Example 1:
-    - A system with 128 cores and 64 GiB per node.
+    - A system with 128 cores and 64,000 MiB per node.
     - The test is launched on 64 cores
     - The app_mem_req is 40,000 (MiB)
     In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 32,000 MiB.
