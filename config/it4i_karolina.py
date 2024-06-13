@@ -62,7 +62,7 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 219.345  # in GiB
+                        'mem_per_node': 219.345 * 1024  # in MiB
                     },
                     'descr': 'CPU Universal Compute Nodes, see https://docs.it4i.cz/karolina/hardware-overview/'
                 },

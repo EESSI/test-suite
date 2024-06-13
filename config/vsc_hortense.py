@@ -59,7 +59,7 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 234  # in GiB
+                        'mem_per_node': 252160,  # in MiB
                     },
                 },
                 {
@@ -91,7 +91,7 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 473  # in GiB
+                        'mem_per_node': 508160,  # in MiB
                     },
                 },
                 {
@@ -123,7 +123,7 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 234  # in GiB
+                        'mem_per_node': 252160,  # in MiB
                     },
                 },
                 {
@@ -150,7 +150,7 @@ site_configuration = {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 236  # in GiB
+                        'mem_per_node': 254400,  # in MiB
                     },
                     'resources': [
                         {
@@ -194,7 +194,7 @@ site_configuration = {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 475  # in GiB
+                        'mem_per_node': 510720,  # in MiB
                     },
                     'resources': [
                         {
