@@ -98,4 +98,4 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest):
 
         mem = mems[self.bench_name]
         mem_required = self.num_tasks_per_node * mem['slope'] + mem['intercept']
-        hooks.req_memory_per_node(self, app_mem_req=mem_required)
+        hooks.req_memory_per_node(self, app_mem_req=mem_required * 1024)
