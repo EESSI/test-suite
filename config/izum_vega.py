@@ -62,7 +62,7 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 238.418  # in GiB
+                        'mem_per_node': 238.418 * 1024  # in MiB
                     },
                     'descr': 'CPU partition Standard, see https://en-doc.vega.izum.si/architecture/'
                 },
@@ -106,7 +106,7 @@ site_configuration = {
                 #     'extras': {
                 #         # Make sure to round down, otherwise a job might ask for more mem than is available
                 #         # per node
-                #         'mem_per_node': 476.837  # in GiB (should be checked, its unclear from slurm.conf)
+                #         'mem_per_node': 476.837 * 1024  # in MiB (should be checked, its unclear from slurm.conf)
                 #     },
                 #     'descr': 'GPU partition, see https://en-doc.vega.izum.si/architecture/'
                 # },

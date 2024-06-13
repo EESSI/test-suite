@@ -383,7 +383,7 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     log(f'valid_systems set to {test.valid_systems}')
 
 
-def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
+def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
     """
     This hook will request a specific amount of memory per node to the batch scheduler.
     First, it computes which fraction of CPUs is requested from a node, and how much the corresponding (proportional)
@@ -396,59 +396,57 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req):
 
     Arguments:
     - test: the ReFrame test to which this hook should apply
-    - app_mem_req: the amount of memory this application needs (per node) in GiB
+    - app_mem_req: the amount of memory this application needs (per node) in MiB
 
     Example 1:
-    - A system with 128 cores and 64 GiB per node.
+    - A system with 128 cores and 64,000 MiB per node.
     - The test is launched on 64 cores
-    - The app_mem_req is 40 (GiB)
-    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 32 GiB.
-    The app_mem_req is higher. Thus, 40GiB (per node) is requested from the batch scheduler.
+    - The app_mem_req is 40,000 (MiB)
+    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 32,000 MiB.
+    The app_mem_req is higher. Thus, 40,000 MiB (per node) is requested from the batch scheduler.
 
     Example 2:
-    - A system with 128 cores per node, 128 GiB mem per node is used.
+    - A system with 128 cores per node, 128,000 MiB mem per node.
     - The test is launched on 64 cores
-    - the app_mem_req is 40 (GiB)
-    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 64 GiB.
-    This is higher than the app_mem_req. Thus, 64 GiB (per node) is requested from the batch scheduler.
+    - the app_mem_req is 40,000 (MiB)
+    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 64,000 MiB.
+    This is higher than the app_mem_req. Thus, 64,000 MiB (per node) is requested from the batch scheduler.
     """
     # Check that the systems.partitions.extra dict in the ReFrame config contains mem_per_node
     check_extras_key_defined(test, 'mem_per_node')
     # Skip if the current partition doesn't have sufficient memory to run the application
-    msg = f"Skipping test: nodes in this partition only have {test.current_partition.extras['mem_per_node']} GiB"
+    msg = f"Skipping test: nodes in this partition only have {test.current_partition.extras['mem_per_node']} MiB"
     msg += " memory available (per node) accodring to the current ReFrame configuration,"
-    msg += f" but {app_mem_req} GiB is needed"
+    msg += f" but {app_mem_req} MiB is needed"
     test.skip_if(test.current_partition.extras['mem_per_node'] < app_mem_req, msg)
 
     # Compute what is higher: the requested memory, or the memory available proportional to requested CPUs
     # Fraction of CPU cores requested
     check_proc_attribute_defined(test, 'num_cpus')
     cpu_fraction = test.num_tasks_per_node * test.num_cpus_per_task / test.current_partition.processor.num_cpus
-    proportional_mem = cpu_fraction * test.current_partition.extras['mem_per_node']
+    proportional_mem = math.floor(cpu_fraction * test.current_partition.extras['mem_per_node'])
+    app_mem_req = math.ceil(app_mem_req)
 
     scheduler_name = test.current_partition.scheduler.registered_name
     if scheduler_name == 'slurm' or scheduler_name == 'squeue':
-        # SLURMs --mem defines memory per node, see https://slurm.schedmd.com/sbatch.html
-        # SLURM uses megabytes and gigabytes, i.e. base-10, so conversion is 1000, not 1024
-        # Thus, we convert from GiB (gibibytes) to MB (megabytes) (1024 * 1024 * 1024 / (1000 * 1000) = 1073.741824)
-        app_mem_req = math.ceil(1073.741824 * app_mem_req)
-        log(f"Memory requested by application: {app_mem_req} MB")
-        proportional_mem = math.floor(1073.741824 * proportional_mem)
-        log(f"Memory proportional to the core count: {proportional_mem} MB")
+        # SLURM defines --mem as memory per node, see https://slurm.schedmd.com/sbatch.html
+        # SLURM uses MiB units by default
+        log(f"Memory requested by application: {app_mem_req} MiB")
+        log(f"Memory proportional to the core count: {proportional_mem} MiB")
 
         # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
         req_mem_per_node = max(proportional_mem, app_mem_req)
 
         test.extra_resources = {'memory': {'size': f'{req_mem_per_node}M'}}
-        log(f"Requested {req_mem_per_node} MB per node from the SLURM batch scheduler")
+        log(f"Requested {req_mem_per_node} MiB per node from the SLURM batch scheduler")
 
     elif scheduler_name == 'torque':
         # Torque/moab requires asking for --pmem (--mem only works single node and thus doesnt generalize)
         # See https://docs.adaptivecomputing.com/10-0-1/Torque/torque.htm#topics/torque/3-jobs/3.1.3-requestingRes.htm
-        # Units are MiB according to the documentation, thus, we simply multiply with 1024
+        # Units are MiB according to the documentation
         # We immediately divide by num_tasks_per_node (before rounding), since -pmem specifies memroy _per process_
-        app_mem_req_task = math.ceil(1024 * app_mem_req / test.num_tasks_per_node)
-        proportional_mem_task = math.floor(1024 * proportional_mem / test.num_tasks_per_node)
+        app_mem_req_task = math.ceil(app_mem_req / test.num_tasks_per_node)
+        proportional_mem_task = math.floor(proportional_mem / test.num_tasks_per_node)
 
         # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
         req_mem_per_task = max(proportional_mem_task, app_mem_req_task)
