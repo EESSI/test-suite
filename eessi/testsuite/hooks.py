@@ -406,7 +406,7 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
     The app_mem_req is higher. Thus, 40,000 MiB (per node) is requested from the batch scheduler.
 
     Example 2:
-    - A system with 128 cores per node, 128,000 MiB mem per node is used.
+    - A system with 128 cores per node, 128,000 MiB mem per node.
     - The test is launched on 64 cores
     - the app_mem_req is 40,000 (MiB)
     In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 64,000 MiB.
