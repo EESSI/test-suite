@@ -64,7 +64,7 @@ site_configuration = {
                         # per node
                         # NB: Vega's MaxMemPerNode is set to 256000, but this MUST be a MB/MiB units mistake
                         # Most likely, it is 256 GB, so 256*1E9/(1024*1024) MiB
-                        'mem_per_node': 244140 # in MiB
+                        'mem_per_node': 244140  # in MiB
                     },
                     'descr': 'CPU partition Standard, see https://en-doc.vega.izum.si/architecture/'
                 },
