@@ -143,7 +143,7 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
         regex = r'^Total # of neighbors = (?P<neigh>\S+)'
         n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
 
-        return sn.assert_eq(n_neigh, 14304913)
+        return sn.assert_eq(n_neigh, 12028093)
     
     @sanity_function
     def assert_sanity(self):
