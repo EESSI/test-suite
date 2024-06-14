@@ -47,15 +47,6 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
 
         return sn.assert_eq(n_atoms, 32000)
 
-    @sanity_function
-    def assert_sanity(self):
-        '''Check all sanity criteria'''
-        return sn.all([
-            self.assert_lammps_openmp_treads(),
-            self.assert_lammps_processor_grid(),
-            self.assert_run(),
-        ])
-
     @performance_function('img/s')
     def perf(self):
         regex = r'^(?P<perf>[.0-9]+)% CPU use with [0-9]+ MPI tasks x [0-9]+ OpenMP threads'
@@ -104,6 +95,24 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
 
     sourcesdir = 'src/lj'
     executable = 'lmp -in in.lj'
+    
+    @deferrable
+    def check_number_neighbors(self):
+        '''Assert that the test calulated the right number of neighbours'''
+        regex = r'^Total # of neighbors = (?P<neigh>\S+)'
+        n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
+
+        return sn.assert_eq(n_neigh, 1202833)
+    
+    @sanity_function
+    def assert_sanity(self):
+        '''Check all sanity criteria'''
+        return sn.all([
+            self.assert_lammps_openmp_treads(),
+            self.assert_lammps_processor_grid(),
+            self.assert_run(),
+            self.check_number_neighbors(),
+        ])
 
     @run_after('setup')
     def set_executable_opts(self):
@@ -117,6 +126,7 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
                 self.executable_opts += [
                     f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
                     '-suffix kk',
+                    '-package kokkos newton on neigh half',
                 ]
                 utils.log(f'executable_opts set to {self.executable_opts}')
 
@@ -126,6 +136,24 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
     sourcesdir = 'src/rhodo'
     readonly_files = ["data.rhodo"]
     executable = 'lmp -in in.rhodo'
+    
+    @deferrable
+    def check_number_neighbors(self):
+        '''Assert that the test calulated the right number of neighbours'''
+        regex = r'^Total # of neighbors = (?P<neigh>\S+)'
+        n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
+
+        return sn.assert_eq(n_neigh, 14304913)
+    
+    @sanity_function
+    def assert_sanity(self):
+        '''Check all sanity criteria'''
+        return sn.all([
+            self.assert_lammps_openmp_treads(),
+            self.assert_lammps_processor_grid(),
+            self.assert_run(),
+            self.check_number_neighbors(),
+        ])
 
     @run_after('setup')
     def set_executable_opts(self):
@@ -139,6 +167,6 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
                 self.executable_opts += [
                     f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
                     '-suffix kk',
-                    '-package kokkos neigh half',
+                    '-package kokkos newton on neigh half',
                 ]
                 utils.log(f'executable_opts set to {self.executable_opts}')
