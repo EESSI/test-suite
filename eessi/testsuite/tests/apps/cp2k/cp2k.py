@@ -85,6 +85,11 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest):
         # Also support setting the resources on the cmd line.
         hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[CPU])
 
+        # Skip QS/H2O-512 benchmark if not enough cores requested
+        min_cores = 16
+        self.skip_if(self.bench_name == 'QS/H2O-512' and self.num_tasks < min_cores,
+                     f'Skipping benchmark {self.bench_name}: less than {min_cores} cores requested ({self.num_tasks})')
+
         # Set OMP_NUM_THREADS environment variable
         hooks.set_omp_num_threads(self)
 
