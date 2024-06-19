@@ -91,8 +91,7 @@ box_v = args.particles_per_core * 4. / 3. * \
     np.pi * (lj_sig / 2.)**3 / args.volume_fraction
 # box_v = (x * n) * x * x for a column
 system.box_l = float((box_v)**(1. / 3.)) * node_grid
-assert np.abs(n_part * 4. / 3. * np.pi * (lj_sig / 2.)**3 /
-              np.prod(system.box_l) - args.volume_fraction) < 0.1
+assert np.abs(n_part * 4. / 3. * np.pi * (lj_sig / 2.)**3 / np.prod(system.box_l) - args.volume_fraction) < 0.1
 
 system.non_bonded_inter[0, 0].lennard_jones.set_params(
     epsilon=lj_eps, sigma=lj_sig, cutoff=lj_cut, shift="auto")

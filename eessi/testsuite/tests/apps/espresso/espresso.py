@@ -93,8 +93,7 @@ class EESSI_ESPRESSO(rfm.RunOnlyRegressionTest):
             # By default we run weak scaling since the strong scaling sizes need to change based on max node size and a
             # corresponding min node size has to be chozen. For this test the default values embedded in the lj.py are
             # good enough. Otherwise custom executable options can be passed anyways.
-            self.executable = 'python3 lj.py' # Updating the executable.
-
+            self.executable = 'python3 lj.py'  # Updating the executable.
 
     @run_after('setup')
     def set_num_tasks_per_node(self):
