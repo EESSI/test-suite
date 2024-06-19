@@ -32,7 +32,7 @@ def filter_scales_P3M():
 
 
 @rfm.simple_test
-class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
+class EESSI_ESPRESSO(rfm.RunOnlyRegressionTest):
 
     scale = parameter(filter_scales_P3M())
     valid_prog_environs = ['default']
@@ -50,6 +50,7 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
 
     benchmark_info = parameter([
         ('mpi.ionic_crystals.p3m', 'p3m'),
+        ('mpi.particles.lj', 'lj'),
     ], fmt=lambda x: x[0], loggable=True)
 
     @run_after('init')
@@ -75,16 +76,25 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
         if (self.benchmark_info[0] == 'mpi.ionic_crystals.p3m'):
             self.tags.add('ionic_crystals_p3m')
 
+        if (self.benchmark_info[0] == 'mpi.particles.lj'):
+            self.tags.add('particles_lj')
+
     @run_after('init')
     def set_executable_opts(self):
         """Set executable opts based on device_type parameter"""
         num_default = 0  # If this test already has executable opts, they must have come from the command line
         hooks.check_custom_executable_opts(self, num_default=num_default)
-        if not self.has_custom_executable_opts:
+        if (not self.has_custom_executable_opts and self.benchmark_info[0] in ['mpi.ionic_crystals.p3m']):
             # By default we run weak scaling since the strong scaling sizes need to change based on max node size and a
             # corresponding min node size has to be chozen.
             self.executable_opts += ['--size', str(self.default_weak_scaling_system_size), '--weak-scaling']
             utils.log(f'executable_opts set to {self.executable_opts}')
+        elif (not self.has_custom_executable_opts and self.benchmark_info[0] in ['mpi.particles.lj']):
+            # By default we run weak scaling since the strong scaling sizes need to change based on max node size and a
+            # corresponding min node size has to be chozen. For this test the default values embedded in the lj.py are
+            # good enough. Otherwise custom executable options can be passed anyways.
+            self.executable = 'python3 lj.py' # Updating the executable.
+
 
     @run_after('setup')
     def set_num_tasks_per_node(self):
@@ -102,14 +112,23 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(rfm.RunOnlyRegressionTest):
     @deferrable
     def assert_completion(self):
         '''Check completion'''
-        cao = sn.extractsingle(r'^resulting parameters:.*cao: (?P<cao>\S+),', self.stdout, 'cao', int)
-        return (sn.assert_found(r'^Algorithm executed.', self.stdout) and cao)
+        if self.benchmark_info[0] in ['mpi.ionic_crystals.p3m']:
+            cao = sn.extractsingle(r'^resulting parameters:.*cao: (?P<cao>\S+),', self.stdout, 'cao', int)
+            return (sn.assert_found(r'^Algorithm executed.', self.stdout) and cao)
+        elif self.benchmark_info[0] in ['mpi.particles.lj']:
+            return (sn.assert_found(r'^Algorithm executed.', self.stdout))
 
     @deferrable
     def assert_convergence(self):
         '''Check convergence'''
-        check_string = sn.assert_found(r'Final convergence met with tolerances:', self.stdout)
-        energy = sn.extractsingle(r'^\s+energy:\s+(?P<energy>\S+)', self.stdout, 'energy', float)
+        check_string = False
+        energy = 0.0
+        if self.benchmark_info[0] in ['mpi.ionic_crystals.p3m']:
+            check_string = sn.assert_found(r'Final convergence met with tolerances:', self.stdout)
+            energy = sn.extractsingle(r'^\s+energy:\s+(?P<energy>\S+)', self.stdout, 'energy', float)
+        elif self.benchmark_info[0] in ['mpi.particles.lj']:
+            check_string = sn.assert_found(r'Final convergence met with relative tolerances:', self.stdout)
+            energy = sn.extractsingle(r'^\s+sim_energy:\s+(?P<energy>\S+)', self.stdout, 'energy', float)
         return (check_string and (energy != 0.0))
 
     @sanity_function
