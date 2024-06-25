@@ -31,27 +31,13 @@ def filter_scales_P3M():
     ]
 
 
-@rfm.simple_test
 class EESSI_ESPRESSO(rfm.RunOnlyRegressionTest):
-
-    scale = parameter(filter_scales_P3M())
     valid_prog_environs = ['default']
     valid_systems = ['*']
-    time_limit = '300m'
     # Need to check if QuantumESPRESSO also gets listed.
     module_name = parameter(find_modules('ESPResSo'))
     # device type is parameterized for an impending CUDA ESPResSo module.
     device_type = parameter([DEVICE_TYPES[CPU]])
-
-    executable = 'python3 madelung.py'
-
-    default_strong_scaling_system_size = 9
-    default_weak_scaling_system_size = 6
-
-    benchmark_info = parameter([
-        ('mpi.ionic_crystals.p3m', 'p3m'),
-        ('mpi.particles.lj', 'lj'),
-    ], fmt=lambda x: x[0], loggable=True)
 
     @run_after('init')
     def run_after_init(self):
@@ -65,36 +51,6 @@ class EESSI_ESPRESSO(rfm.RunOnlyRegressionTest):
 
         # Set scales as tags
         hooks.set_tag_scale(self)
-
-    @run_after('init')
-    def set_tag_ci(self):
-        """ Setting tests under CI tag. """
-        if (self.benchmark_info[0] in ['mpi.ionic_crystals.p3m', 'mpi.particles.lj']
-                and SCALES[self.scale]['num_nodes'] < 2):
-            self.tags.add('CI')
-            log(f'tags set to {self.tags}')
-
-        if (self.benchmark_info[0] == 'mpi.ionic_crystals.p3m'):
-            self.tags.add('ionic_crystals_p3m')
-
-        if (self.benchmark_info[0] == 'mpi.particles.lj'):
-            self.tags.add('particles_lj')
-
-    @run_after('init')
-    def set_executable_opts(self):
-        """Set executable opts based on device_type parameter"""
-        num_default = 0  # If this test already has executable opts, they must have come from the command line
-        hooks.check_custom_executable_opts(self, num_default=num_default)
-        if (not self.has_custom_executable_opts and self.benchmark_info[0] in ['mpi.ionic_crystals.p3m']):
-            # By default we run weak scaling since the strong scaling sizes need to change based on max node size and a
-            # corresponding min node size has to be chozen.
-            self.executable_opts += ['--size', str(self.default_weak_scaling_system_size), '--weak-scaling']
-            utils.log(f'executable_opts set to {self.executable_opts}')
-        elif (not self.has_custom_executable_opts and self.benchmark_info[0] in ['mpi.particles.lj']):
-            # By default we run weak scaling since the strong scaling sizes need to change based on max node size and a
-            # corresponding min node size has to be chozen. For this test the default values embedded in the lj.py are
-            # good enough. Otherwise custom executable options can be passed anyways.
-            self.executable = 'python3 lj.py'  # Updating the executable.
 
     @run_after('setup')
     def set_num_tasks_per_node(self):
@@ -142,3 +98,98 @@ class EESSI_ESPRESSO(rfm.RunOnlyRegressionTest):
     @performance_function('s/step')
     def perf(self):
         return sn.extractsingle(r'^Performance:\s+(?P<perf>\S+)', self.stdout, 'perf', float)
+
+
+@rfm.simple_test
+class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(EESSI_ESPRESSO):
+    scale = parameter(filter_scales_P3M())
+    time_limit = '300m'
+
+    executable = 'python3 madelung.py'
+
+    default_weak_scaling_system_size = 6
+
+    @run_after('init')
+    def set_tag_ci(self):
+        """ Setting tests under CI tag. """
+        if SCALES[self.scale]['num_nodes'] < 2:
+            self.tags.add('CI')
+            log(f'tags set to {self.tags}')
+
+        self.tags.add('ionic_crystals_p3m')
+
+    @run_after('init')
+    def set_executable_opts(self):
+        """Set executable opts based on device_type parameter"""
+        num_default = 0  # If this test already has executable opts, they must have come from the command line
+        hooks.check_custom_executable_opts(self, num_default=num_default)
+        # By default we run weak scaling since the strong scaling sizes need to change based on max node size and a
+        # corresponding min node size has to be chozen.
+        self.executable_opts += ['--size', str(self.default_weak_scaling_system_size), '--weak-scaling']
+        utils.log(f'executable_opts set to {self.executable_opts}')
+
+    @run_after('setup')
+    def set_mem(self):
+        """ Setting an extra job option of memory. Here the assumption made is that HPC systems will contain at
+        least 1 GB per core of memory."""
+        mem_required_per_node = self.num_tasks_per_node * 0.9
+        hooks.req_memory_per_node(test=self, app_mem_req=mem_required_per_node)
+
+    @deferrable
+    def assert_completion(self):
+        '''Check completion'''
+        cao = sn.extractsingle(r'^resulting parameters:.*cao: (?P<cao>\S+),', self.stdout, 'cao', int)
+        return (sn.assert_found(r'^Algorithm executed.', self.stdout) and cao)
+
+    @deferrable
+    def assert_convergence(self):
+        '''Check convergence'''
+        check_string = False
+        energy = 0.0
+        check_string = sn.assert_found(r'Final convergence met with tolerances:', self.stdout)
+        energy = sn.extractsingle(r'^\s+energy:\s+(?P<energy>\S+)', self.stdout, 'energy', float)
+        return (check_string and (energy != 0.0))
+
+
+@rfm.simple_test
+class EESSI_ESPRESSO_LJ_PARTICLES(EESSI_ESPRESSO):
+    scale = parameter(SCALES.keys())
+    time_limit = '300m'
+
+    executable = 'python3 lj.py'
+
+    @run_after('init')
+    def set_tag_ci(self):
+        """ Setting tests under CI tag. """
+        if SCALES[self.scale]['num_nodes'] < 2:
+            self.tags.add('CI')
+            log(f'tags set to {self.tags}')
+
+        self.tags.add('particles_lj')
+
+    @run_after('init')
+    def set_executable_opts(self):
+        """Allow executable opts to be overwritten from command line"""
+        num_default = 0  # If this test already has executable opts, they must have come from the command line
+        hooks.check_custom_executable_opts(self, num_default=num_default)
+
+    @run_after('setup')
+    def set_mem(self):
+        """ Setting an extra job option of memory. Here the assumption made is that HPC systems will contain at
+        least 1 GB per core of memory."""
+        mem_required_per_node = self.num_tasks_per_node * 0.9  # TODO: figure out if this is also ok for lb use case
+        hooks.req_memory_per_node(test=self, app_mem_req=mem_required_per_node)
+
+    @deferrable
+    def assert_completion(self):
+        '''Check completion'''
+        return (sn.assert_found(r'^Algorithm executed.', self.stdout))
+
+    @deferrable
+    def assert_convergence(self):
+        '''Check convergence'''
+        check_string = False
+        energy = 0.0
+        check_string = sn.assert_found(r'Final convergence met with relative tolerances:', self.stdout)
+        energy = sn.extractsingle(r'^\s+sim_energy:\s+(?P<energy>\S+)', self.stdout, 'energy', float)
+        return (check_string and (energy != 0.0))
