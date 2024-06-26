@@ -18,9 +18,9 @@ from eessi.testsuite.constants import *
 from eessi.testsuite.utils import find_modules, log
 
 
-def filter_scales_P3M():
+def filter_scales():
     """
-    Filtering function for filtering scales for P3M test.
+    Filtering function for filtering scales for P3M test and the LJ test.
     This is currently required because the 16 node test takes way too long and always fails due to time limit.
     Once a solution to mesh tuning algorithm is found, where we can specify the mesh sizes for a particular scale,
     this function can be removed.
@@ -102,7 +102,7 @@ class EESSI_ESPRESSO(rfm.RunOnlyRegressionTest):
 
 @rfm.simple_test
 class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(EESSI_ESPRESSO):
-    scale = parameter(filter_scales_P3M())
+    scale = parameter(filter_scales())
     time_limit = '300m'
 
     executable = 'python3 madelung.py'
@@ -153,7 +153,7 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(EESSI_ESPRESSO):
 
 @rfm.simple_test
 class EESSI_ESPRESSO_LJ_PARTICLES(EESSI_ESPRESSO):
-    scale = parameter(SCALES.keys())
+    scale = parameter(filter_scales())
     time_limit = '300m'
 
     executable = 'python3 lj.py'
@@ -176,8 +176,9 @@ class EESSI_ESPRESSO_LJ_PARTICLES(EESSI_ESPRESSO):
     @run_after('setup')
     def set_mem(self):
         """ Setting an extra job option of memory. Here the assumption made is that HPC systems will contain at
-        least 1 GB per core of memory."""
-        mem_required_per_node = self.num_tasks_per_node * 0.9  # TODO: figure out if this is also ok for lb use case
+        least 1 GB per core of memory. LJ requires much lesser memory than P3M. 200 MB per core is as per measurement,
+        therefore 300 should be more than enough. """
+        mem_required_per_node = self.num_tasks_per_node * 0.3
         hooks.req_memory_per_node(test=self, app_mem_req=mem_required_per_node)
 
     @deferrable
