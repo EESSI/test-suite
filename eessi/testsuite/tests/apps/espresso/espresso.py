@@ -133,7 +133,7 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(EESSI_ESPRESSO):
         """ Setting an extra job option of memory. Here the assumption made is that HPC systems will contain at
         least 1 GB per core of memory."""
         mem_required_per_node = self.num_tasks_per_node * 0.9
-        hooks.req_memory_per_node(test=self, app_mem_req=mem_required_per_node)
+        hooks.req_memory_per_node(test=self, app_mem_req=mem_required_per_node * 1024)
 
     @deferrable
     def assert_completion(self):
@@ -179,7 +179,7 @@ class EESSI_ESPRESSO_LJ_PARTICLES(EESSI_ESPRESSO):
         least 1 GB per core of memory. LJ requires much lesser memory than P3M. 200 MB per core is as per measurement,
         therefore 300 should be more than enough. """
         mem_required_per_node = self.num_tasks_per_node * 0.3
-        hooks.req_memory_per_node(test=self, app_mem_req=mem_required_per_node)
+        hooks.req_memory_per_node(test=self, app_mem_req=mem_required_per_node * 1024)
 
     @deferrable
     def assert_completion(self):
