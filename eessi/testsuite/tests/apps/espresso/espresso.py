@@ -65,6 +65,10 @@ class EESSI_ESPRESSO(rfm.RunOnlyRegressionTest):
         mem_required_per_node = self.num_tasks_per_node * 0.9
         hooks.req_memory_per_node(test=self, app_mem_req=mem_required_per_node * 1024)
 
+    @run_after('setup')
+    def set_binding(self):
+        hooks.set_compact_process_binding(self)
+
     @deferrable
     def assert_completion(self):
         '''Check completion'''
