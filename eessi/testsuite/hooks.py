@@ -108,7 +108,9 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
     if SCALES[test.scale].get('num_cpus_per_node') is not None and compute_unit != COMPUTE_UNIT[HWTHREAD]:
         check_proc_attribute_defined(test, 'num_cpus_per_core')
         num_cpus_per_core = test.current_partition.processor.num_cpus_per_core
-        test.default_num_cpus_per_node = test.default_num_cpus_per_node * num_cpus_per_core
+        # On a hyperthreading system?
+        if num_cpus_per_core > 1:
+            test.default_num_cpus_per_node = test.default_num_cpus_per_node * num_cpus_per_core
 
     if FEATURES[GPU] in test.current_partition.features:
         _assign_default_num_gpus_per_node(test)
