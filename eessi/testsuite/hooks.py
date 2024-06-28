@@ -241,7 +241,7 @@ def _assign_one_task_per_cpu(test: rfm.RegressionTest):
     # neither num_tasks_per_node nor num_cpus_per_task are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
         check_proc_attribute_defined(test, 'num_cpus_per_core')
-        test.num_tasks_per_node = min(
+        test.num_tasks_per_node = max(
             int(test.default_num_cpus_per_node / test.current_partition.processor.num_cpus_per_core),
             1
         )
