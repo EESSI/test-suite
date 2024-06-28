@@ -99,6 +99,16 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
         )
 
     _assign_default_num_cpus_per_node(test)
+    # If on
+    # - a hyperthreading system
+    # - num_cpus_per_node was set by the scale
+    # - compute_unit != COMPUTE_UNIT[HWTHREAD]
+    # double the default_num_cpus_per_node. In this scenario, if the scale asks for e.g. 1 num_cpus_per_node and
+    # the test doesn't state it wants to use hwthreads, we want to launch on two hyperthreads, i.e. one physical core
+    if SCALES[test.scale].get('num_cpus_per_node') is not None and compute_unit != COMPUTE_UNIT[HWTHREAD]:
+        check_proc_attribute_defined(test, 'num_cpus_per_core')
+        num_cpus_per_core = test.current_partition.processor.num_cpus_per_core
+        test.default_num_cpus_per_node = test.default_num_cpus_per_node * num_cpus_per_core
 
     if FEATURES[GPU] in test.current_partition.features:
         _assign_default_num_gpus_per_node(test)
