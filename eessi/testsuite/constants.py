@@ -4,6 +4,7 @@ Constants for ReFrame tests
 
 AMD = 'AMD'
 CI = 'CI'
+HWTHREAD = 'HWTHREAD'
 CPU = 'CPU'
 CPU_SOCKET = 'CPU_SOCKET'
 GPU = 'GPU'
@@ -19,6 +20,7 @@ DEVICE_TYPES = {
 }
 
 COMPUTE_UNIT = {
+    HWTHREAD: 'hwthread',
     CPU: 'cpu',
     CPU_SOCKET: 'cpu_socket',
     GPU: 'gpu',

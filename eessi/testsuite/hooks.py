@@ -66,20 +66,18 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
     Total task count is determined based on the number of nodes to be used in the test.
     Behaviour of this function is (usually) sensible for MPI tests.
 
+    WARNING: when using COMPUTE_UNIT[HWTHREAD] and invoking a hook for process binding, please verify that process binding happens correctly
+
     Arguments:
     - test: the ReFrame test to which this hook should apply
     - compute_unit: a device as listed in eessi.testsuite.constants.COMPUTE_UNIT
 
     Examples:
     On a single node with 2 sockets, 64 cores and 128 hyperthreads:
-    - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU]) will launch 64 tasks with 1 thread
-    - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET]) will launch 2 tasks with 32 threads per task
+    - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[HWTHREAD]) will launch 128 tasks with 1 thread per task
+    - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU]) will launch 64 tasks with 2 threads per task
+    - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET]) will launch 2 tasks with 64 threads per task
 
-    Future work:
-    Currently, on a single node with 2 sockets, 64 cores and 128 hyperthreads, this
-    - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU], true) launches 128 tasks with 1 thread
-    - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET], true) launches 2 tasks with 64 threads per task
-    In the future, we'd like to add an arugment that disables spawning tasks for hyperthreads.
     """
     if num_per != 1 and compute_unit in [COMPUTE_UNIT[GPU], COMPUTE_UNIT[CPU], COMPUTE_UNIT[CPU_SOCKET]]:
         raise NotImplementedError(
@@ -106,6 +104,8 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
 
     if compute_unit == COMPUTE_UNIT[GPU]:
         _assign_one_task_per_gpu(test)
+    elif compute_unit == COMPUTE_UNIT[HWTHREAD]:
+        _assign_one_task_per_hwthread(test)
     elif compute_unit == COMPUTE_UNIT[CPU]:
         _assign_one_task_per_cpu(test)
     elif compute_unit == COMPUTE_UNIT[CPU_SOCKET]:
@@ -217,6 +217,41 @@ def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
 
 
 def _assign_one_task_per_cpu(test: rfm.RegressionTest):
+    """
+    Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per core,
+    unless specified with:
+    --setvar num_tasks_per_node=<x> and/or
+    --setvar num_cpus_per_task=<y>.
+
+    Default resources requested:
+    - num_tasks_per_node = default_num_cpus_per_node
+    - num_cpus_per_task = default_num_cpus_per_node / num_tasks_per_node
+    """
+    # neither num_tasks_per_node nor num_cpus_per_task are set
+    if not test.num_tasks_per_node and not test.num_cpus_per_task:
+        check_proc_attribute_defined(test, 'num_cpus_per_core')
+        test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.current_partition.processor.num_cpus_per_core)
+        test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
+
+    # num_tasks_per_node is not set, but num_cpus_per_task is
+    elif not test.num_tasks_per_node:
+        test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.num_cpus_per_task)
+
+    # num_cpus_per_task is not set, but num_tasks_per_node is
+    elif not test.num_cpus_per_task:
+        test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
+
+    else:
+        pass  # both num_tasks_per_node and num_cpus_per_node are already set
+
+    test.num_tasks = test.num_nodes * test.num_tasks_per_node
+
+    log(f'num_tasks_per_node set to {test.num_tasks_per_node}')
+    log(f'num_cpus_per_task set to {test.num_cpus_per_task}')
+    log(f'num_tasks set to {test.num_tasks}')
+
+
+def _assign_one_task_per_hwthread(test: rfm.RegressionTest):
     """
     Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per core,
     unless specified with:
@@ -508,6 +543,10 @@ def set_compact_process_binding(test: rfm.RegressionTest):
     This hook sets a binding policy for process binding.
     More specifically, it will bind each process to subsequent domains of test.num_cpus_per_task cores.
 
+    Arguments:
+    - test: the ReFrame test to which this hook should apply
+
+
     A few examples:
     - Pure MPI (test.num_cpus_per_task = 1) will result in binding 1 process to each core.
       this will happen in a compact way, i.e. rank 0 to core 0, rank 1 to core 1, etc
@@ -522,6 +561,7 @@ def set_compact_process_binding(test: rfm.RegressionTest):
 
     # Check if hyperthreading is enabled. If so, divide the number of cpus per task by the number
     # of hw threads per core to get a physical core count
+    # TODO: check if this also leads to sensible binding when using COMPUTE_UNIT[HWTHREAD]
     check_proc_attribute_defined(test, 'num_cpus_per_core')
     num_cpus_per_core = test.current_partition.processor.num_cpus_per_core
     physical_cpus_per_task = int(test.num_cpus_per_task / num_cpus_per_core)
