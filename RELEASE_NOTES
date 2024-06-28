@@ -1,6 +1,15 @@
 This file contains a description of the major changes to the EESSI test suite.
 For more detailed information, please see the git log.
 
+v0.3.1 (28 June 2024)
+---------------------
+
+This is a bugfix release of the EESSI test-suite
+
+It includes:
+
+- Correct required memory per node to MiB in ESPResSo test (#158)
+
 v0.3.0 (27 June 2024)
 ---------------------
 
