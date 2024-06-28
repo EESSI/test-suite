@@ -66,7 +66,8 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
     Total task count is determined based on the number of nodes to be used in the test.
     Behaviour of this function is (usually) sensible for MPI tests.
 
-    WARNING: when using COMPUTE_UNIT[HWTHREAD] and invoking a hook for process binding, please verify that process binding happens correctly
+    WARNING: when using COMPUTE_UNIT[HWTHREAD] and invoking a hook for process binding, please verify that process
+    binding happens correctly.
 
     Arguments:
     - test: the ReFrame test to which this hook should apply
@@ -230,7 +231,9 @@ def _assign_one_task_per_cpu(test: rfm.RegressionTest):
     # neither num_tasks_per_node nor num_cpus_per_task are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
         check_proc_attribute_defined(test, 'num_cpus_per_core')
-        test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.current_partition.processor.num_cpus_per_core)
+        test.num_tasks_per_node = int(
+            test.default_num_cpus_per_node / test.current_partition.processor.num_cpus_per_core
+        )
         test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
 
     # num_tasks_per_node is not set, but num_cpus_per_task is
