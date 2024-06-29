@@ -1,6 +1,17 @@
 This file contains a description of the major changes to the EESSI test suite.
 For more detailed information, please see the git log.
 
+v0.3.1 (28 June 2024)
+---------------------
+
+This is a bugfix release of the EESSI test-suite
+
+It includes:
+
+- Correct required memory per node to MiB in ESPResSo test (#158)
+- Change behavior for assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU]) on hyperthreading-enabled systems (#160)
+- Use compact process binding in ESPResSo test (#160)
+
 v0.3.0 (27 June 2024)
 ---------------------
 
