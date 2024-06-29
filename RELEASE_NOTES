@@ -1,6 +1,15 @@
 This file contains a description of the major changes to the EESSI test suite.
 For more detailed information, please see the git log.
 
+v0.3.2 (29 June 2024)
+---------------------
+
+This is a bugfix release of the EESSI test-suite
+
+It includes:
+
+- Add config for Deucalion (#162)
+
 v0.3.1 (28 June 2024)
 ---------------------
 
