@@ -59,7 +59,7 @@ def _assign_default_num_gpus_per_node(test: rfm.RegressionTest):
 def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, num_per: int = 1):
     """
     Assign one task per compute unit. More than 1 task per compute unit can be assigned with
-    num_per for compute units that support it. 
+    num_per for compute units that support it.
     Automatically sets num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
     based on the current scale and the current partition’s num_cpus, max_avail_gpus_per_node and num_nodes.
     For GPU tests, one task per GPU is set, and num_cpus_per_task is based on the ratio of CPU-cores/GPUs.
