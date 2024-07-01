@@ -63,19 +63,18 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
         if self.compute_device == DEVICE_TYPES[GPU]:
             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[GPU])
         else:
-            # Hybrid code, so launch 1 rank per socket.
-            # Probably, launching 1 task per NUMA domain is even better, but the current hook doesn't support it
+            # Hybrid code, for which launching one task per NUMA_NODE is typically the most efficient
             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[NUMA_NODE])
 
         # This is a hybrid test, binding is important for performance
         hooks.set_compact_process_binding(self)
 
     @run_after('setup')
-    def set_ddp_env_vars(self):
+    def set_ddp_options(self):
         # Set environment variables for PyTorch DDP
         if self.parallel_strategy == 'ddp':
             # Set additional options required by DDP
-            self.executable_opts += ["--master-port $(python python_get_free_socket.py)"]
+            self.executable_opts += ["--master-port $(python get_free_socket.py)"]
             self.executable_opts += ["--master-address $(hostname --fqdn)"]
             self.executable_opts += ["--world-size %s" % self.num_tasks]
 
@@ -95,15 +94,6 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
         # Set parallelization strategy when using more than one process
         if self.num_tasks != 1:
             self.executable_opts += ['--use-%s' % self.parallel_strategy]
-
-    @run_after('setup')
-    def avoid_horovod_cpu_contention(self):
-        # Horovod had issues with CPU performance, see https://github.com/horovod/horovod/issues/2804
-        # The root cause is Horovod having two threads with very high utilization, which interferes with
-        # the compute threads. It was fixed, but seems to be broken again in Horovod 0.28.1
-        # The easiest workaround is to reduce the number of compute threads by 2
-        if self.compute_device == DEVICE_TYPES[CPU] and self.parallel_strategy == 'horovod':
-            self.env_vars['OMP_NUM_THREADS'] = max(self.num_cpus_per_task - 2, 2)  # Never go below 2 compute threads
 
     @sanity_function
     def assert_num_ranks(self):
@@ -140,8 +130,3 @@ class EESSI_PyTorch_torchvision_GPU(EESSI_PyTorch_torchvision):
         if self.precision == 'mixed':
             self.executable_opts += ['--use-amp']
 
-    @run_after('init')
-    def skip_hvd_plus_amp(self):
-        '''Skip combination of horovod and AMP, it does not work see https://github.com/horovod/horovod/issues/1417'''
-        if self.parallel_strategy == 'horovod' and self.precision == 'mixed':
-            self.valid_systems = [INVALID_SYSTEM]
