@@ -6,7 +6,7 @@ import reframe.utility.sanity as sn
 from reframe.core.builtins import parameter, variable, run_after, sanity_function, performance_function
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import SCALES, TAGS, DEVICE_TYPES, COMPUTE_UNIT, CPU, NUMA_NODE, GPU, INVALID_SYSTEM
+from eessi.testsuite.constants import SCALES, TAGS, DEVICE_TYPES, COMPUTE_UNIT, CPU, NUMA_NODE, GPU
 from eessi.testsuite.utils import find_modules
 
 
@@ -129,4 +129,3 @@ class EESSI_PyTorch_torchvision_GPU(EESSI_PyTorch_torchvision):
         # Set precision
         if self.precision == 'mixed':
             self.executable_opts += ['--use-amp']
-
