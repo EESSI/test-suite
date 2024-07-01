@@ -56,7 +56,7 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 213.623 * 1024  # in MiB
+                        'mem_per_node': 229376  # in MiB
                     },
                     'descr': 'AMD Rome CPU partition with native EESSI stack'
                 },
@@ -80,7 +80,7 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 320.434 * 1024  # in MiB
+                        'mem_per_node': 344064  # in MiB
                     },
                     'descr': 'AMD Genoa CPU partition with native EESSI stack'
                 },
@@ -117,7 +117,7 @@ site_configuration = {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 457.763 * 1024  # in MiB
+                        'mem_per_node': 491520  # in MiB
                     },
                     'descr': 'Nvidia A100 GPU partition with native EESSI stack'
                 },
