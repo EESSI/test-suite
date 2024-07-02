@@ -40,4 +40,4 @@ total_time = (t2 - t1) / n_iter
 if rank == 0:
     print(f"Total ranks: {size}")
     print(f"Sum of all ranks: {total}")  # Should be (size * (size-1) / 2)
-    print(f"Time elapsed: {total_time}")
+    print(f"Time elapsed: {total_time:.3e}")
