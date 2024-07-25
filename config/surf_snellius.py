@@ -84,13 +84,12 @@ site_configuration = {
                     },
                     'descr': 'AMD Genoa CPU partition with native EESSI stack'
                 },
-
                 {
-                    'name': 'gpu',
+                    'name': 'gpu_A100',
                     'scheduler': 'slurm',
                     'prepare_cmds': ['source %s' % common_eessi_init()],
                     'launcher': 'mpirun',
-                    'access': ['-p gpu', '--export=None'],
+                    'access': ['-p gpu_a100', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 60,
                     'devices': [
@@ -121,6 +120,43 @@ site_configuration = {
                     },
                     'descr': 'Nvidia A100 GPU partition with native EESSI stack'
                 },
+                {
+                    'name': 'gpu_H100',
+                    'scheduler': 'slurm',
+                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'launcher': 'mpirun',
+                    'access': ['-p gpu_h100', '--export=None'],
+                    'environs': ['default'],
+                    'max_jobs': 60,
+                    'devices': [
+                        {
+                            'type': DEVICE_TYPES[GPU],
+                            'num_devices': 4,
+                        }
+                    ],
+                    'resources': [
+                        {
+                            'name': '_rfm_gpu',
+                            'options': ['--gpus-per-node={num_gpus_per_node}'],
+                        },
+                        {
+                            'name': 'memory',
+                            'options': ['--mem={size}'],
+                        }
+                    ],
+                    'features': [
+                        FEATURES[GPU],
+                        FEATURES[ALWAYS_REQUEST_GPUS],
+                    ] + valid_scales_snellius_gpu,
+                    'extras': {
+                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 737280  # in MiB
+                    },
+                    'descr': 'Nvidia H100 GPU partition with native EESSI stack'
+                },
+
             ]
         },
     ],
