@@ -70,7 +70,7 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
         hooks.set_compact_process_binding(self)
 
         # Set OMP_NUM_THREADS based on the number of cores per task
-        test.env_vars["OMP_NUM_THREADS"] = self.num_cpus_per_task
+        self.env_vars["OMP_NUM_THREADS"] = self.num_cpus_per_task
 
     @run_after('setup')
     def set_ddp_options(self):
