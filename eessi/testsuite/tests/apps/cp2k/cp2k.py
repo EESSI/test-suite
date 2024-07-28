@@ -93,12 +93,15 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest):
         # Set OMP_NUM_THREADS environment variable
         hooks.set_omp_num_threads(self)
 
+        # Set compact process binding
+        hooks.set_compact_process_binding(self)
+
     @run_after('setup')
     def request_mem(self):
         mems = {
             'QS/H2O-32': {'intercept': 0.5, 'slope': 0.15},
             'QS/H2O-128': {'intercept': 5, 'slope': 0.15},
-            'QS/H2O-512': {'intercept': 33, 'slope': 0.19},
+            'QS/H2O-512': {'intercept': 34, 'slope': 0.20},
         }
 
         mem = mems[self.bench_name]
