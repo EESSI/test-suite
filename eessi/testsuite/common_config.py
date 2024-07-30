@@ -96,7 +96,7 @@ def common_eessi_init(eessi_version=None):
     eessi_cvmfs_repo = os.getenv('EESSI_CVMFS_REPO', None)
 
     if eessi_cvmfs_repo is None:
-        warn_msg = "Environment variable 'EESSI_CVMFS_REPO' was not found; using local modules only."
+        warn_msg = "Environment variable 'EESSI_CVMFS_REPO' was not found."
         warn_msg += " To use EESSI modules, initialize the EESSI environment before running the test suite."
         warnings.warn(warn_msg)
         return []
