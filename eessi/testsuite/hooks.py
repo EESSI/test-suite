@@ -576,10 +576,9 @@ def set_compact_thread_binding(test: rfm.RegressionTest):
 
 def set_omp_num_threads(test: rfm.RegressionTest):
     """
-    Set default number of OpenMP threads equal to number of CPUs per task,
-    unless OMP_NUM_THREADS is already set
+    Set number of OpenMP threads equal to number of CPUs per task
     """
-    test.env_vars['OMP_NUM_THREADS'] = os.getenv('OMP_NUM_THREADS', test.num_cpus_per_task)
+    test.env_vars['OMP_NUM_THREADS'] = test.num_cpus_per_task
     log(f'Set environment variable OMP_NUM_THREADS to {test.env_vars["OMP_NUM_THREADS"]}')
 
 
