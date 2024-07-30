@@ -2,7 +2,6 @@
 Hooks for adding tags, filtering and setting job resources in ReFrame tests
 """
 import math
-import os
 import shlex
 import warnings
 
