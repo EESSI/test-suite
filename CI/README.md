@@ -28,7 +28,8 @@ It should define:
 - `REFRAME_VERSION` (mandatory): the version of ReFrame you'd like to use to drive the EESSI test suite in the CI pipeline.
 - `REFRAME_URL` (optional): the URL that will be used to `git clone` the ReFrame repository (in order to provide the `hpctestlib`). Typically this points to the official repository, but you may want to use another URL from a fork for development purposes. Default: `https://github.com/reframe-hpc/reframe.git`.
 - `REFRAME_BRANCH` (optional): the branch name to be cloned for the ReFrame repository (in order to provide the `hpctestlib`). Typically this points to the branch corresponding with `${REFRAME_VERSION}`, unless you want to run from a feature branch for development purposes. Default: `v${REFRAME_VERSION}`.
-- `EESSI_VERSION` (mandatory): the version of the EESSI software stack you would like to be loaded & tested in the CI pipeline.
+- `EESSI_CVMFS_REPO` (optional): the prefix for the CVMFS repository to use, e.g. `/cvmfs/software.eessi.io`
+- `EESSI_VERSION` (optional): the version of the EESSI software stack you would like to be loaded & tested in the CI pipeline.
 - `EESSI_TESTSUITE_URL` (optional): the URL that will be used to `git clone` the `EESSI/test-suite` repository. Typically this points to the official repository, but you may want to use another URL from a fork for development purposes. Default: `https://github.com/EESSI/test-suite.git`.
 - `EESSI_TESTSUITE_VERSION` (optional): the version of the EESSI test-suite repository you want to use in the CI pipeline. Default: latest release.
 - `RFM_CONFIG_FILES` (optional): the location of the ReFrame configuration file to be used for this system. Default: `${TEMPDIR}/test-suite/config/${EESSI_CI_SYSTEM_NAME}.py`.
@@ -43,6 +44,13 @@ This line depends on how often you want to run the tests, and where the `run_ref
 echo "0 0 * * SUN EESSI_CI_SYSTEM_NAME=aws_citc ${HOME}/test-suite/CI/run_reframe_wrapper.sh" | crontab -
 ```
 Would create a cronjob running weekly on Sundays. See the crontab manual for other schedules.
+
+Note that you can overwrite the settings in the ci_config.sh by setting environment variables in the crontab. E.g. the following crontab file would run single node and 2-node tests daily, and 1, 2, 4, 8, and 16-node tests weekly (on Sundays):
+```
+# crontab file
+0 0 * * * EESSI_CI_SYSTEM_NAME=aws_mc REFRAME_ARGS="--tag CI --tag 1_node|2_nodes" ${HOME}/test-suite/CI/run_reframe_wrapper.sh
+0 0 * * SUN EESSI_CI_SYSTEM_NAME=aws_mc REFRAME_ARGS="--tag CI --tag 1_node|2_nodes|4_nodes|8_nodes|16_nodes" ${HOME}/test-suite/CI/run_reframe_wrapper.sh
+```
 
 ## Output of the CI pipeline
 The whole point of the `run_reframe_wrapper.sh` script is to easily get the stdout and stderr from your `run_reframe.sh` in a time-stamped logfile. By default, these are stored in `${HOME}/EESSI_CI_LOGS`. This can be changed by setting the environment variable `EESSI_CI_LOGDIR`. Again, you'd have to set this when creating your `crontab` file, e.g.

@@ -44,6 +44,12 @@ site_configuration = {
                         # Avoid https://github.com/EESSI/software-layer/issues/136
                         # Can be taken out once we don't care about old OpenMPI versions anymore (pre-4.1.1)
                         'export OMPI_MCA_pml=ucx',
+                        # Work around "Failed to modify UD QP to INIT on mlx5_0: Operation not permitted" issue
+                        # until we can resolve this through an LMOD hook in host_injections.
+                        # (then these OMPI_MCA_btl & mtl can be removed again)
+                        # See https://github.com/EESSI/software-layer/issues/456#issuecomment-2107755266
+                        'export OMPI_MCA_mtl="^ofi"',
+                        'export OMPI_MCA_btl="^ofi"',
                     ],
                     'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
@@ -53,6 +59,11 @@ site_configuration = {
                     'features': [
                         FEATURES[CPU],
                     ] + list(SCALES.keys()),
+                    'extras': {
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 235520  # in MiB
+                    },
                     'descr': 'CPU Universal Compute Nodes, see https://docs.it4i.cz/karolina/hardware-overview/'
                 },
                 # We don't have GPU budget on Karolina at this time

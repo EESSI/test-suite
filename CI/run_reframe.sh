@@ -4,31 +4,39 @@
 # Setup instructions: make sure you have your github access key configured in your .ssh/config
 # i.e. configure an entry with HostName github.com and IdentityFile pointing to the ssh key registered with Github
 
+# Print on which host this CI is running
+echo "Running CI on host $(hostname)"
+
 # Get directory of the current script
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-
+echo $SCRIPT_DIR
 # Check if EESSI_CI_SYSTEM_NAME is defined
 if [ -z "${EESSI_CI_SYSTEM_NAME}" ]; then 
     echo "You have to define the EESSI_CI_SYSTEM_NAME environment variable in order to run the EESSI test suite CI" > /dev/stderr
+    echo "Valid EESSI_CI_SYSTEM_NAME's are:"
+    echo "$(find $SCRIPT_DIR -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)"
     exit 1
 fi
 
 # Check if CI_CONFIG file file exists
 CI_CONFIG="${SCRIPT_DIR}/${EESSI_CI_SYSTEM_NAME}/ci_config.sh"
 if [ ! -f "${CI_CONFIG}" ]; then
-    echo "File ${CI_CONFIG} does not exist. Please check your RFM_CI_SYSTEM_NAME (${EESSI_CI_SYSTEM_NAME}) and make sure the directory in which the current script resides (${SCRIPT_DIR}) contains a subdirectory with that name, and a CI configuration file (ci_config.sh) inside". > /dev/stderr
+    echo "File ${CI_CONFIG} does not exist. Please check your EESSI_CI_SYSTEM_NAME (${EESSI_CI_SYSTEM_NAME}) and make sure the directory in which the current script resides (${SCRIPT_DIR}) contains a subdirectory with that name, and a CI configuration file (ci_config.sh) inside". > /dev/stderr
     exit 1
 fi
 
 # Set the CI configuration for this system
 source "${CI_CONFIG}"
 
-# Set default configuration
+# Set default configuration, but let anything set by CI_CONFIG take priority
 if [ -z "${TEMPDIR}" ]; then
     TEMPDIR=$(mktemp --directory --tmpdir=/tmp  -t rfm.XXXXXXXXXX)
 fi
 if [ -z "${REFRAME_ARGS}" ]; then
     REFRAME_ARGS="--tag CI --tag 1_node"
+fi
+if [ -z "${REFRAME_VERSION}"]; then
+    REFRAME_VERSION=4.5.1
 fi
 if [ -z "${REFRAME_URL}" ]; then
     REFRAME_URL='https://github.com/reframe-hpc/reframe.git'
@@ -40,10 +48,13 @@ if [ -z "${EESSI_TESTSUITE_URL}" ]; then
     EESSI_TESTSUITE_URL='https://github.com/EESSI/test-suite.git'
 fi
 if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
-    EESSI_TESTSUITE_BRANCH='v0.1.0'
+    EESSI_TESTSUITE_BRANCH='v0.3.2'
+fi
+if [ -z "${EESSI_CVMFS_REPO}" ]; then
+    export EESSI_CVMFS_REPO=/cvmfs/software.eessi.io
 fi
 if [ -z "${EESSI_VERSION}" ]; then
-    EESSI_VERSION='latest'
+    export EESSI_VERSION=2023.06
 fi
 if [ -z "${RFM_CONFIG_FILES}" ]; then
     export RFM_CONFIG_FILES="${TEMPDIR}/test-suite/config/${EESSI_CI_SYSTEM_NAME}.py"
@@ -74,11 +85,7 @@ export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/test-suite/
 
 # Start the EESSI environment
 unset MODULEPATH
-if [ "${EESSI_VERSION}" = 'latest' ]; then
-    eessi_init_path=/cvmfs/pilot.eessi-hpc.org/latest/init/bash
-else
-    eessi_init_path=/cvmfs/pilot.eessi-hpc.org/versions/"${EESSI_VERSION}"/init/bash
-fi
+eessi_init_path="${EESSI_CVMFS_REPO}"/versions/"${EESSI_VERSION}"/init/bash
 source "${eessi_init_path}"
 
 # Needed in order to make sure the reframe from our TEMPDIR is first on the PATH,
