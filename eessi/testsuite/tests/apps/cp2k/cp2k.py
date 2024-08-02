@@ -90,6 +90,11 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest):
         self.skip_if(self.bench_name == 'QS/H2O-512' and self.num_tasks < min_cores,
                      f'Skipping benchmark {self.bench_name}: less than {min_cores} cores requested ({self.num_tasks})')
 
+        # Skip QS/H2O-512 benchmark if too many nodes requested
+        max_nodes = 8
+        self.skip_if(self.bench_name == 'QS/H2O-512' and self.num_nodes > max_nodes,
+                     f'Skipping benchmark {self.bench_name}: more than {max_nodes} nodes requested ({self.num_nodes})')
+
         # Set OMP_NUM_THREADS environment variable
         hooks.set_omp_num_threads(self)
 
