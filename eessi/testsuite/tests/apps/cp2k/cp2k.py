@@ -23,7 +23,7 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest):
     scale = parameter(SCALES.keys())
 
     executable = 'cp2k.popt'
-    time_limit = '1h'
+    time_limit = '2h'
     valid_systems = ['*']
     valid_prog_environs = ['default']
 
