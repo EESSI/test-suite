@@ -76,17 +76,8 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
         else:
             raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')
 
-    @run_after('setup')
-    def set_omp_num_threads(self):
-        """
-        Set number of OpenMP threads.
-        Set OMP_NUM_THREADS.
-        Set default number of OpenMP threads equal to number of CPUs per task.
-        """
-
-        omp_num_threads = self.num_cpus_per_task
-        self.env_vars['OMP_NUM_THREADS'] = omp_num_threads
-        utils.log(f'env_vars set to {self.env_vars}')
+        # Set OMP_NUM_THREADS environment variable
+        hooks.set_omp_num_threads(self)
 
 
 @rfm.simple_test
