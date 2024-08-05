@@ -680,6 +680,14 @@ def set_compact_thread_binding(test: rfm.RegressionTest):
     log(f'Set environment variable KMP_AFFINITY to {test.env_vars["KMP_AFFINITY"]}')
 
 
+def set_omp_num_threads(test: rfm.RegressionTest):
+    """
+    Set number of OpenMP threads equal to number of CPUs per task
+    """
+    test.env_vars['OMP_NUM_THREADS'] = test.num_cpus_per_task
+    log(f'Set environment variable OMP_NUM_THREADS to {test.env_vars["OMP_NUM_THREADS"]}')
+
+
 def _check_always_request_gpus(test: rfm.RegressionTest):
     """
     Make sure we always request enough GPUs if required for the current GPU partition (cluster-specific policy)
