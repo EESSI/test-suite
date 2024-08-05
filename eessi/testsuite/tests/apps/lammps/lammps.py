@@ -86,7 +86,7 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
 
     sourcesdir = 'src/lj'
     executable = 'lmp -in in.lj'
- 
+
     @deferrable
     def check_number_neighbors(self):
         '''Assert that the test calulated the right number of neighbours'''
@@ -127,7 +127,7 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
     sourcesdir = 'src/rhodo'
     readonly_files = ["data.rhodo"]
     executable = 'lmp -in in.rhodo'
- 
+
     @deferrable
     def check_number_neighbors(self):
         '''Assert that the test calulated the right number of neighbours'''
@@ -135,7 +135,7 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
         n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
 
         return sn.assert_eq(n_neigh, 12028093)
- 
+
     @sanity_function
     def assert_sanity(self):
         '''Check all sanity criteria'''
