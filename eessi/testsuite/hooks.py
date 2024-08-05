@@ -6,10 +6,11 @@ import shlex
 import warnings
 
 import reframe as rfm
+import reframe.core.logging as rflog
 
 from eessi.testsuite.constants import *
 from eessi.testsuite.utils import (get_max_avail_gpus_per_node, is_cuda_required_module, log,
-                                   check_proc_attribute_defined)
+                                   check_proc_attribute_defined, check_extras_key_defined)
 
 
 def _assign_default_num_cpus_per_node(test: rfm.RegressionTest):
@@ -57,7 +58,8 @@ def _assign_default_num_gpus_per_node(test: rfm.RegressionTest):
 
 def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, num_per: int = 1):
     """
-    Assign one task per compute unit (COMPUTE_UNIT[CPU], COMPUTE_UNIT[CPU_SOCKET] or COMPUTE_UNIT[GPU]).
+    Assign one task per compute unit. More than 1 task per compute unit can be assigned with
+    num_per for compute units that support it.
     Automatically sets num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
     based on the current scale and the current partition’s num_cpus, max_avail_gpus_per_node and num_nodes.
     For GPU tests, one task per GPU is set, and num_cpus_per_task is based on the ratio of CPU-cores/GPUs.
@@ -65,22 +67,21 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
     Total task count is determined based on the number of nodes to be used in the test.
     Behaviour of this function is (usually) sensible for MPI tests.
 
+    WARNING: when using COMPUTE_UNIT[HWTHREAD] and invoking a hook for process binding, please verify that process
+    binding happens correctly.
+
     Arguments:
     - test: the ReFrame test to which this hook should apply
     - compute_unit: a device as listed in eessi.testsuite.constants.COMPUTE_UNIT
 
     Examples:
     On a single node with 2 sockets, 64 cores and 128 hyperthreads:
-    - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU]) will launch 64 tasks with 1 thread
-    - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET]) will launch 2 tasks with 32 threads per task
+    - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[HWTHREAD]) will launch 128 tasks with 1 thread per task
+    - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU]) will launch 64 tasks with 2 threads per task
+    - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET]) will launch 2 tasks with 64 threads per task
 
-    Future work:
-    Currently, on a single node with 2 sockets, 64 cores and 128 hyperthreads, this
-    - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU], true) launches 128 tasks with 1 thread
-    - assign_one_task_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET], true) launches 2 tasks with 64 threads per task
-    In the future, we'd like to add an arugment that disables spawning tasks for hyperthreads.
     """
-    if num_per != 1 and compute_unit in [COMPUTE_UNIT[GPU], COMPUTE_UNIT[CPU], COMPUTE_UNIT[CPU_SOCKET]]:
+    if num_per != 1 and compute_unit not in [COMPUTE_UNIT[NODE]]:
         raise NotImplementedError(
             f'Non-default num_per {num_per} is not implemented for compute_unit {compute_unit}.')
 
@@ -99,22 +100,47 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
         )
 
     _assign_default_num_cpus_per_node(test)
+    # If on
+    # - a hyperthreading system
+    # - num_cpus_per_node was set by the scale
+    # - compute_unit != COMPUTE_UNIT[HWTHREAD]
+    # double the default_num_cpus_per_node. In this scenario, if the scale asks for e.g. 1 num_cpus_per_node and
+    # the test doesn't state it wants to use hwthreads, we want to launch on two hyperthreads, i.e. one physical core
+    if SCALES[test.scale].get('num_cpus_per_node') is not None and compute_unit != COMPUTE_UNIT[HWTHREAD]:
+        check_proc_attribute_defined(test, 'num_cpus_per_core')
+        num_cpus_per_core = test.current_partition.processor.num_cpus_per_core
+        # On a hyperthreading system?
+        if num_cpus_per_core > 1:
+            test.default_num_cpus_per_node = test.default_num_cpus_per_node * num_cpus_per_core
 
     if FEATURES[GPU] in test.current_partition.features:
         _assign_default_num_gpus_per_node(test)
 
     if compute_unit == COMPUTE_UNIT[GPU]:
         _assign_one_task_per_gpu(test)
+    elif compute_unit == COMPUTE_UNIT[HWTHREAD]:
+        _assign_one_task_per_hwthread(test)
     elif compute_unit == COMPUTE_UNIT[CPU]:
         _assign_one_task_per_cpu(test)
     elif compute_unit == COMPUTE_UNIT[CPU_SOCKET]:
         _assign_one_task_per_cpu_socket(test)
+    elif compute_unit == COMPUTE_UNIT[NUMA_NODE]:
+        _assign_one_task_per_numa_node(test)
     elif compute_unit == COMPUTE_UNIT[NODE]:
         _assign_num_tasks_per_node(test, num_per)
     else:
         raise ValueError(f'compute unit {compute_unit} is currently not supported')
 
     _check_always_request_gpus(test)
+
+    if test.current_partition.launcher_type().registered_name == 'srun':
+        # Make sure srun inherits --cpus-per-task from the job environment for Slurm versions >= 22.05 < 23.11,
+        # ensuring the same task binding across all Slurm versions.
+        # https://bugs.schedmd.com/show_bug.cgi?id=13351
+        # https://bugs.schedmd.com/show_bug.cgi?id=11275
+        # https://bugs.schedmd.com/show_bug.cgi?id=15632#c43
+        test.env_vars['SRUN_CPUS_PER_TASK'] = test.num_cpus_per_task
+        log(f'Set environment variable SRUN_CPUS_PER_TASK to {test.env_vars["SRUN_CPUS_PER_TASK"]}')
 
 
 def _assign_num_tasks_per_node(test: rfm.RegressionTest, num_per: int = 1):
@@ -175,22 +201,70 @@ def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
     test.num_tasks_per_node * test.num_cpus_per_task == test.default_num_cpus_per_node.
 
     Default resources requested:
-    - num_tasks_per_node = default_num_cpus_per_node
+    - num_tasks_per_node = default_num_cpus_per_node / num_cpus_per_socket
     - num_cpus_per_task = default_num_cpus_per_node / num_tasks_per_node
     """
     # neither num_tasks_per_node nor num_cpus_per_task are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
-        check_proc_attribute_defined(test, 'num_cpus')
-        check_proc_attribute_defined(test, 'num_sockets')
-        num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets
-        test.num_tasks_per_node = math.ceil(test.default_num_cpus_per_node / num_cpus_per_socket)
+        check_proc_attribute_defined(test, 'num_cores_per_socket')
+        test.num_tasks_per_node = math.ceil(
+            test.default_num_cpus_per_node / test.current_partition.processor.num_cores_per_socket
+        )
         test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
 
     # num_tasks_per_node is not set, but num_cpus_per_task is
     elif not test.num_tasks_per_node:
-        check_proc_attribute_defined(test, 'num_cpus')
-        check_proc_attribute_defined(test, 'num_sockets')
-        num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets
+        test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.num_cpus_per_task)
+
+    # num_cpus_per_task is not set, but num_tasks_per_node is
+    elif not test.num_cpus_per_task:
+        test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
+
+    else:
+        pass  # both num_tasks_per_node and num_cpus_per_node are already set
+
+    test.num_tasks = test.num_nodes * test.num_tasks_per_node
+    log(f'Number of tasks per node set to: {test.num_tasks_per_node}')
+    log(f'Number of cpus per task set to {test.num_cpus_per_task}')
+    log(f'num_tasks set to {test.num_tasks}')
+
+
+def _assign_one_task_per_numa_node(test: rfm.RegressionTest):
+    """
+    Determines the number of tasks per node by dividing the default_num_cpus_per_node by
+    the number of cpus available per numa node, and rounding up. The result is that for full-node jobs the default
+    will spawn one task per numa node, with a number of cpus per task equal to the number of cpus per numa node.
+    Other examples:
+    - half a node (i.e. node_part=2) on a system with 4 numa nodes would result in 2 tasks per node,
+    with number of cpus per task equal to the number of cpus per numa node.
+    - a quarter node (i.e. node_part=4) on a system with 2 numa nodes would result in 1 task per node,
+    with number of cpus equal to half a numa node.
+    - 2 cores (i.e. default_num_cpus_per_node=2) on a system with 4 cores per numa node would result in
+    1 task per node, with 2 cpus per task
+    - 8 cores (i.e. default_num_cpus_per_node=4) on a system with 4 cores per numa node would result in
+    2 tasks per node, with 4 cpus per task
+
+    This default is set unless the test is run with:
+    --setvar num_tasks_per_node=<x> and/or
+    --setvar num_cpus_per_task=<y>.
+    In those cases, those take precedence, and the remaining variable (num_cpus_per task or
+    num_tasks_per_node respectively) is calculated based on the equality
+    test.num_tasks_per_node * test.num_cpus_per_task == test.default_num_cpus_per_node.
+
+    Default resources requested:
+    - num_tasks_per_node = default_num_cpus_per_node / num_cores_per_numa_node
+    - num_cpus_per_task = default_num_cpus_per_node / num_tasks_per_node
+    """
+    # neither num_tasks_per_node nor num_cpus_per_task are set
+    if not test.num_tasks_per_node and not test.num_cpus_per_task:
+        check_proc_attribute_defined(test, 'num_cores_per_numa_node')
+        test.num_tasks_per_node = math.ceil(
+            test.default_num_cpus_per_node / test.current_partition.processor.num_cores_per_numa_node
+        )
+        test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
+
+    # num_tasks_per_node is not set, but num_cpus_per_task is
+    elif not test.num_tasks_per_node:
         test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.num_cpus_per_task)
 
     # num_cpus_per_task is not set, but num_tasks_per_node is
@@ -207,6 +281,44 @@ def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
 
 
 def _assign_one_task_per_cpu(test: rfm.RegressionTest):
+    """
+    Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per core,
+    unless specified with:
+    --setvar num_tasks_per_node=<x> and/or
+    --setvar num_cpus_per_task=<y>.
+
+    Default resources requested:
+    - num_tasks_per_node = default_num_cpus_per_node
+    - num_cpus_per_task = default_num_cpus_per_node / num_tasks_per_node
+    """
+    # neither num_tasks_per_node nor num_cpus_per_task are set
+    if not test.num_tasks_per_node and not test.num_cpus_per_task:
+        check_proc_attribute_defined(test, 'num_cpus_per_core')
+        test.num_tasks_per_node = max(
+            int(test.default_num_cpus_per_node / test.current_partition.processor.num_cpus_per_core),
+            1
+        )
+        test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
+
+    # num_tasks_per_node is not set, but num_cpus_per_task is
+    elif not test.num_tasks_per_node:
+        test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.num_cpus_per_task)
+
+    # num_cpus_per_task is not set, but num_tasks_per_node is
+    elif not test.num_cpus_per_task:
+        test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
+
+    else:
+        pass  # both num_tasks_per_node and num_cpus_per_node are already set
+
+    test.num_tasks = test.num_nodes * test.num_tasks_per_node
+
+    log(f'num_tasks_per_node set to {test.num_tasks_per_node}')
+    log(f'num_cpus_per_task set to {test.num_cpus_per_task}')
+    log(f'num_tasks set to {test.num_tasks}')
+
+
+def _assign_one_task_per_hwthread(test: rfm.RegressionTest):
     """
     Sets num_tasks_per_node and num_cpus_per_task such that it will run one task per core,
     unless specified with:
@@ -373,6 +485,90 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     log(f'valid_systems set to {test.valid_systems}')
 
 
+def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
+    """
+    This hook will request a specific amount of memory per node to the batch scheduler.
+    First, it computes which fraction of CPUs is requested from a node, and how much the corresponding (proportional)
+    amount of memory would be.
+    Then, the hook compares this to how much memory the application claims to need per node (app_mem_req).
+    It then passes the maximum of these two numbers to the batch scheduler as a memory request.
+
+    Note: using this hook requires that the ReFrame configuration defines system.partition.extras['mem_per_node']
+    That field should be defined in GiB
+
+    Arguments:
+    - test: the ReFrame test to which this hook should apply
+    - app_mem_req: the amount of memory this application needs (per node) in MiB
+
+    Example 1:
+    - A system with 128 cores and 64,000 MiB per node.
+    - The test is launched on 64 cores
+    - The app_mem_req is 40,000 (MiB)
+    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 32,000 MiB.
+    The app_mem_req is higher. Thus, 40,000 MiB (per node) is requested from the batch scheduler.
+
+    Example 2:
+    - A system with 128 cores per node, 128,000 MiB mem per node.
+    - The test is launched on 64 cores
+    - the app_mem_req is 40,000 (MiB)
+    In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 64,000 MiB.
+    This is higher than the app_mem_req. Thus, 64,000 MiB (per node) is requested from the batch scheduler.
+    """
+    # Check that the systems.partitions.extra dict in the ReFrame config contains mem_per_node
+    check_extras_key_defined(test, 'mem_per_node')
+    # Skip if the current partition doesn't have sufficient memory to run the application
+    msg = f"Skipping test: nodes in this partition only have {test.current_partition.extras['mem_per_node']} MiB"
+    msg += " memory available (per node) accodring to the current ReFrame configuration,"
+    msg += f" but {app_mem_req} MiB is needed"
+    test.skip_if(test.current_partition.extras['mem_per_node'] < app_mem_req, msg)
+
+    # Compute what is higher: the requested memory, or the memory available proportional to requested CPUs
+    # Fraction of CPU cores requested
+    check_proc_attribute_defined(test, 'num_cpus')
+    cpu_fraction = test.num_tasks_per_node * test.num_cpus_per_task / test.current_partition.processor.num_cpus
+    proportional_mem = math.floor(cpu_fraction * test.current_partition.extras['mem_per_node'])
+    app_mem_req = math.ceil(app_mem_req)
+
+    scheduler_name = test.current_partition.scheduler.registered_name
+    if scheduler_name == 'slurm' or scheduler_name == 'squeue':
+        # SLURM defines --mem as memory per node, see https://slurm.schedmd.com/sbatch.html
+        # SLURM uses MiB units by default
+        log(f"Memory requested by application: {app_mem_req} MiB")
+        log(f"Memory proportional to the core count: {proportional_mem} MiB")
+
+        # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
+        req_mem_per_node = max(proportional_mem, app_mem_req)
+
+        test.extra_resources = {'memory': {'size': f'{req_mem_per_node}M'}}
+        log(f"Requested {req_mem_per_node} MiB per node from the SLURM batch scheduler")
+
+    elif scheduler_name == 'torque':
+        # Torque/moab requires asking for --pmem (--mem only works single node and thus doesnt generalize)
+        # See https://docs.adaptivecomputing.com/10-0-1/Torque/torque.htm#topics/torque/3-jobs/3.1.3-requestingRes.htm
+        # Units are MiB according to the documentation
+        # We immediately divide by num_tasks_per_node (before rounding), since -pmem specifies memroy _per process_
+        app_mem_req_task = math.ceil(app_mem_req / test.num_tasks_per_node)
+        proportional_mem_task = math.floor(proportional_mem / test.num_tasks_per_node)
+
+        # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
+        req_mem_per_task = max(proportional_mem_task, app_mem_req_task)
+
+        # We assume here the reframe config defines the extra resource memory as asking for pmem
+        # i.e. 'options': ['--pmem={size}']
+        test.extra_resources = {'memory': {'size': f'{req_mem_per_task}mb'}}
+        log(f"Requested {req_mem_per_task} MiB per task from the torque batch scheduler")
+
+    else:
+        logger = rflog.getlogger()
+        msg = "hooks.req_memory_per_node does not support the scheduler you configured"
+        msg += f" ({test.current_partition.scheduler.registered_name})."
+        msg += " The test will run, but since it doesn't request the required amount of memory explicitely,"
+        msg += " it may result in an out-of-memory error."
+        msg += " Please expand the functionality of hooks.req_memory_per_node for your scheduler."
+        # Warnings will, at default loglevel, be printed on stdout when executing the ReFrame command
+        logger.warning(msg)
+
+
 def set_modules(test: rfm.RegressionTest):
     """
     Skip current test if module_name is not among a list of modules,
@@ -414,6 +610,10 @@ def set_compact_process_binding(test: rfm.RegressionTest):
     This hook sets a binding policy for process binding.
     More specifically, it will bind each process to subsequent domains of test.num_cpus_per_task cores.
 
+    Arguments:
+    - test: the ReFrame test to which this hook should apply
+
+
     A few examples:
     - Pure MPI (test.num_cpus_per_task = 1) will result in binding 1 process to each core.
       this will happen in a compact way, i.e. rank 0 to core 0, rank 1 to core 1, etc
@@ -428,22 +628,36 @@ def set_compact_process_binding(test: rfm.RegressionTest):
 
     # Check if hyperthreading is enabled. If so, divide the number of cpus per task by the number
     # of hw threads per core to get a physical core count
+    # TODO: check if this also leads to sensible binding when using COMPUTE_UNIT[HWTHREAD]
     check_proc_attribute_defined(test, 'num_cpus_per_core')
     num_cpus_per_core = test.current_partition.processor.num_cpus_per_core
     physical_cpus_per_task = int(test.num_cpus_per_task / num_cpus_per_core)
 
-    # Do binding for intel and OpenMPI's mpirun, and srun
-    # Other launchers may or may not do the correct binding
-    test.env_vars['I_MPI_PIN_CELL'] = 'core'  # Don't bind to hyperthreads, only to physcial cores
-    test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % physical_cpus_per_task
-    test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'node:PE=%s' % physical_cpus_per_task
-    # Default binding for SLURM. Only effective if the task/affinity plugin is enabled
-    # and when number of tasks times cpus per task equals either socket, core or thread count
-    test.env_vars['SLURM_CPU_BIND'] = 'verbose'
-    log(f'Set environment variable I_MPI_PIN_DOMAIN to {test.env_vars["I_MPI_PIN_DOMAIN"]}')
-    log('Set environment variable OMPI_MCA_rmaps_base_mapping_policy to '
-        f'{test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
-    log(f'Set environment variable SLURM_CPU_BIND to {test.env_vars["SLURM_CPU_BIND"]}')
+    if test.current_partition.launcher_type().registered_name == 'mpirun':
+        # Do binding for intel and OpenMPI's mpirun, and srun
+        test.env_vars['I_MPI_PIN_CELL'] = 'core'  # Don't bind to hyperthreads, only to physcial cores
+        test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % physical_cpus_per_task
+        test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'slot:PE=%s' % physical_cpus_per_task
+        log(f'Set environment variable I_MPI_PIN_CELL to {test.env_vars["I_MPI_PIN_CELL"]}')
+        log(f'Set environment variable I_MPI_PIN_DOMAIN to {test.env_vars["I_MPI_PIN_DOMAIN"]}')
+        log('Set environment variable OMPI_MCA_rmaps_base_mapping_policy to '
+            f'{test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
+    elif test.current_partition.launcher_type().registered_name == 'srun':
+        # Set compact binding for SLURM. Only effective if the task/affinity plugin is enabled
+        # and when number of tasks times cpus per task equals either socket, core or thread count
+        test.env_vars['SLURM_DISTRIBUTION'] = 'block:block'
+        test.env_vars['SLURM_CPU_BIND'] = 'verbose'
+        log(f'Set environment variable SLURM_DISTRIBUTION to {test.env_vars["SLURM_DISTRIBUTION"]}')
+        log(f'Set environment variable SLURM_CPU_BIND to {test.env_vars["SLURM_CPU_BIND"]}')
+    else:
+        logger = rflog.getlogger()
+        msg = "hooks.set_compact_process_binding does not support the current launcher"
+        msg += f" ({test.current_partition.launcher_type().registered_name})."
+        msg += " The test will run, but using the default binding strategy of your parallel launcher."
+        msg += " This may lead to suboptimal performance."
+        msg += " Please expand the functionality of hooks.set_compact_process_binding for your parallel launcher."
+        # Warnings will, at default loglevel, be printed on stdout when executing the ReFrame command
+        logger.warning(msg)
 
 
 def set_compact_thread_binding(test: rfm.RegressionTest):
@@ -464,6 +678,14 @@ def set_compact_thread_binding(test: rfm.RegressionTest):
     log(f'Set environment variable OMP_PLACES to {test.env_vars["OMP_PLACES"]}')
     log(f'Set environment variable OMP_PROC_BIND to {test.env_vars["OMP_PROC_BIND"]}')
     log(f'Set environment variable KMP_AFFINITY to {test.env_vars["KMP_AFFINITY"]}')
+
+
+def set_omp_num_threads(test: rfm.RegressionTest):
+    """
+    Set number of OpenMP threads equal to number of CPUs per task
+    """
+    test.env_vars['OMP_NUM_THREADS'] = test.num_cpus_per_task
+    log(f'Set environment variable OMP_NUM_THREADS to {test.env_vars["OMP_NUM_THREADS"]}')
 
 
 def _check_always_request_gpus(test: rfm.RegressionTest):

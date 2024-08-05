@@ -6,7 +6,9 @@
 from reframe.core.backends import register_launcher
 from reframe.core.launchers import JobLauncher
 
-from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
+from eessi.testsuite.common_config import (common_eessi_init,
+                                           common_general_config,
+                                           common_logging_config)
 from eessi.testsuite.constants import *  # noqa: F403
 
 account = "my-slurm-account"
@@ -54,6 +56,11 @@ site_configuration = {
                     'features': [
                         FEATURES[CPU],
                     ] + list(SCALES.keys()),
+                    'extras': {
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 252160,  # in MiB
+                    },
                 },
                 {
                     'name': 'cpu_rome_512gb',
@@ -81,6 +88,11 @@ site_configuration = {
                     'features': [
                         FEATURES[CPU],
                     ] + list(SCALES.keys()),
+                    'extras': {
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 508160,  # in MiB
+                    },
                 },
                 {
                     'name': 'cpu_milan',
@@ -108,6 +120,11 @@ site_configuration = {
                     'features': [
                         FEATURES[CPU],
                     ] + list(SCALES.keys()),
+                    'extras': {
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 252160,  # in MiB
+                    },
                 },
                 {
                     'name': 'gpu_rome_a100_40gb',
@@ -131,6 +148,9 @@ site_configuration = {
                     ] + list(SCALES.keys()),
                     'extras': {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 254400,  # in MiB
                     },
                     'resources': [
                         {
@@ -172,6 +192,9 @@ site_configuration = {
                     ] + list(SCALES.keys()),
                     'extras': {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 510720,  # in MiB
                     },
                     'resources': [
                         {

@@ -98,3 +98,18 @@ is that it is easy to pull in updates from a feature branch using `git pull`.
 You can also push back changes to the feature branch directly, but note that
 you are pushing to the Github fork of another Github user, so _make sure they
 are ok with that_ before doing so!
+
+## Release management
+
+When a release of the EESSI test suite is made, the following things must be taken care of:
+
+- Version bump: in both `pyproject.toml` and `setup.cfg`;
+- Version bump the default `EESSI_TESTSUITE_BRANCH` in `CI/run_reframe.sh`;
+- Release notes: in `RELEASE_NOTES` + in GitHub release (cfr. https://github.com/EESSI/test-suite/releases/tag/v0.2.0);
+- Tag release on GitHub + publish release (incl. release notes);
+- Publishing release to PyPI:
+  ```
+  # example for version 0.2.0
+  python setup.py sdist
+  twine upload dist/eessi_testsuite-0.2.0.tar.gz
+  ```
