@@ -94,6 +94,8 @@ def find_modules(regex: str, name_only=True) -> Iterator[str]:
     ms = rt.runtime().modules_system
     # Returns e.g. ['Bison/', 'Bison/3.7.6-GCCcore-10.3.0', 'BLIS/', 'BLIS/0.8.1-GCC-10.3.0']
     modules = ms.available_modules('')
+    seen = set()
+    dupes = []
     for mod in modules:
         # Exclude anything without version, i.e. ending with / (e.g. Bison/)
         if re.search('.*/$', mod):
@@ -109,8 +111,17 @@ def find_modules(regex: str, name_only=True) -> Iterator[str]:
         log(f"Matching module {mod} with regex {regex}")
         if re.search(regex, mod):
             log("Match!")
+            if orig_mod in seen:
+                dupes.append(orig_mod)
+            else:
+                seen.add(orig_mod)
             yield orig_mod
 
+    if dupes != []:
+        err_msg = "EESSI test-suite cannot handle duplicate modules." 
+        err_msg += "Please make sure that only one is available on your system."
+        err_msg += f"The following modules have a duplicate on your system: {dupes}"
+        raise ValueError(err_msg)
 
 def check_proc_attribute_defined(test: rfm.RegressionTest, attribute) -> bool:
     """
