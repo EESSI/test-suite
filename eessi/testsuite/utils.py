@@ -118,10 +118,11 @@ def find_modules(regex: str, name_only=True) -> Iterator[str]:
             yield orig_mod
 
     if dupes != []:
-        err_msg = "EESSI test-suite cannot handle duplicate modules." 
+        err_msg = "EESSI test-suite cannot handle duplicate modules."
         err_msg += "Please make sure that only one is available on your system."
         err_msg += f"The following modules have a duplicate on your system: {dupes}"
         raise ValueError(err_msg)
+
 
 def check_proc_attribute_defined(test: rfm.RegressionTest, attribute) -> bool:
     """
