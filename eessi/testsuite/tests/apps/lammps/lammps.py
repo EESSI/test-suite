@@ -90,9 +90,9 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
 
         return sn.assert_eq(n_neigh, 1202833)
 
-    @performance_function('tau/day')
+    @performance_function('timesteps/s')
     def perf(self):
-        regex = r'^Performance: (?P<perf>[.0-9]+) tau/day,'
+        regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s,'
         return sn.extractsingle(regex, self.stdout, 'perf', float)
 
     @sanity_function
@@ -136,9 +136,9 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
 
         return sn.assert_eq(n_neigh, 12028093)
 
-    @performance_function('ns/day')
+    @performance_function('timesteps/s')
     def perf(self):
-        regex = r'^Performance: (?P<perf>[.0-9]+) ns/day,'
+        regex = r'^Performance: [.0-9]+ ns/day, [.0-9]+ hours/ns, (?P<perf>[.0-9]+) timesteps/s,'
         return sn.extractsingle(regex, self.stdout, 'perf', float)
 
     @sanity_function
