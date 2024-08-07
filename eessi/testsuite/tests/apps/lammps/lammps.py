@@ -47,11 +47,6 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
 
         return sn.assert_eq(n_atoms, 32000)
 
-    @performance_function('img/s')
-    def perf(self):
-        regex = r'^(?P<perf>[.0-9]+)% CPU use with [0-9]+ MPI tasks x [0-9]+ OpenMP threads'
-        return sn.extractsingle(regex, self.stdout, 'perf', float)
-
     @run_after('init')
     def run_after_init(self):
         """hooks to run after init phase"""
@@ -95,6 +90,11 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
 
         return sn.assert_eq(n_neigh, 1202833)
 
+    @performance_function('tau/day')
+    def perf(self):
+        regex = r'^Performance: (?P<perf>[.0-9]+) tau/day,'
+        return sn.extractsingle(regex, self.stdout, 'perf', float)
+
     @sanity_function
     def assert_sanity(self):
         '''Check all sanity criteria'''
@@ -135,6 +135,11 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
         n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
 
         return sn.assert_eq(n_neigh, 12028093)
+
+    @performance_function('ns/day')
+    def perf(self):
+        regex = r'^Performance: (?P<perf>[.0-9]+) ns/day,'
+        return sn.extractsingle(regex, self.stdout, 'perf', float)
 
     @sanity_function
     def assert_sanity(self):
