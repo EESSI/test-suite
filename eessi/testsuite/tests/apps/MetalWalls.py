@@ -93,6 +93,18 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[CPU])
 
     @run_after('setup')
+    def set_binding(self):
+        hooks.set_compact_process_binding(self)
+
+    @run_after('setup')
+    def request_mem(self):
+        mem_per_task = 0.4
+        if self.benchmark_info[0] == 'hackathonGPU/benchmark5':
+            mem_per_task = 1.2
+        memory_required = self.num_tasks_per_node * mem_per_task + 2
+        hooks.req_memory_per_node(test=self, app_mem_req=memory_required * 1024)
+
+    @run_after('setup')
     def set_omp_num_threads(self):
         """
         Set number of OpenMP threads via OMP_NUM_THREADS.
