@@ -90,6 +90,12 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
 
         return sn.assert_eq(n_neigh, 1202833)
 
+    @deferrable
+    def check_total_energy(self):
+       '''Assert that the calculated total energy falls within the margin after 100 steps '''
+        regex = r'^\s100\s[.0-9]+\s0\s(?P<toteng>[.0-9]+)\s[.0-9]'
+        tot_eng = sn.extractsingle(regex, self.stdout, 'toteng', int)
+
     @performance_function('timesteps/s')
     def perf(self):
         regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s,'
