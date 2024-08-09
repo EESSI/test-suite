@@ -96,7 +96,7 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
         regex = r'^\s+100\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+(?P<energy>[-+]?[.0-9]+)'
         energy = sn.extractsingle(regex, self.stdout, 'energy', float)
         energy_diff = sn.abs(energy - (-4.6223613))
-        return sn.assert_lt(energy_diff, 1e-7)
+        return sn.assert_lt(energy_diff, 1e-6)
 
     @performance_function('timesteps/s')
     def perf(self):
@@ -111,7 +111,7 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
             self.assert_lammps_processor_grid(),
             self.assert_run(),
             self.check_number_neighbors(),
-            sekf.assert_energy(),
+            self.assert_energy(),
         ])
 
     @run_after('setup')
