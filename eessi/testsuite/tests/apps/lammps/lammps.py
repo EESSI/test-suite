@@ -100,7 +100,7 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
 
     @performance_function('timesteps/s')
     def perf(self):
-        regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s,'
+        regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s'
         return sn.extractsingle(regex, self.stdout, 'perf', float)
 
     @sanity_function
@@ -111,7 +111,7 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
             self.assert_lammps_processor_grid(),
             self.assert_run(),
             self.check_number_neighbors(),
-            assert_energy(self),
+            sekf.assert_energy(),
         ])
 
     @run_after('setup')
@@ -145,9 +145,17 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
 
         return sn.assert_eq(n_neigh, 12028093)
 
+    @deferrable
+    def assert_energy(self):
+        '''Asert that the calculated energy at timestep 100 is with the margin of error'''
+        regex = r'^-+\s+Step\s+100\s+-+\s+CPU\s=\s+[.0-9]+\s+\(sec\)\s+-+\nTotEng\s+=\s+(?P<energy>[-+]?[.0-9]+)'
+        energy = sn.extractsingle(regex, self.stdout, 'energy', float)
+        energy_diff = sn.abs(energy - (-25290.7300))
+        return sn.assert_lt(energy_diff, 1e-1)
+
     @performance_function('timesteps/s')
     def perf(self):
-        regex = r'^Performance: [.0-9]+ ns/day, [.0-9]+ hours/ns, (?P<perf>[.0-9]+) timesteps/s,'
+        regex = r'^Performance: [.0-9]+ ns/day, [.0-9]+ hours/ns, (?P<perf>[.0-9]+) timesteps/s'
         return sn.extractsingle(regex, self.stdout, 'perf', float)
 
     @sanity_function
@@ -158,6 +166,7 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
             self.assert_lammps_processor_grid(),
             self.assert_run(),
             self.check_number_neighbors(),
+            self.assert_energy(),
         ])
 
     @run_after('setup')
