@@ -87,7 +87,6 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
         '''Assert that the test calulated the right number of neighbours'''
         regex = r'Neighbor list builds = (?P<neigh>\S+)'
         n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
-
         return sn.assert_eq(n_neigh, 5)
 
     @deferrable
@@ -148,7 +147,6 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
         '''Assert that the test calulated the right number of neighbours'''
         regex = r'Neighbor list builds = (?P<neigh>\S+)'
         n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
-
         return sn.assert_eq(n_neigh, 11)
 
     @deferrable
