@@ -85,10 +85,10 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
     @deferrable
     def check_number_neighbors(self):
         '''Assert that the test calulated the right number of neighbours'''
-        regex = r'^Total # of neighbors = (?P<neigh>\S+)'
+        regex = r'Neighbor list builds = (?P<neigh>\S+)'
         n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
 
-        return sn.assert_eq(n_neigh, 1202833)
+        return sn.assert_eq(n_neigh, 5)
 
     @deferrable
     def assert_energy(self):
@@ -123,12 +123,18 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
             # should also check if the lammps is installed with kokkos.
             # Because this exutable opt is only for that case.
             if self.device_type == "gpu":
-                self.executable_opts += [
-                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
-                    '-suffix kk',
-                    '-package kokkos newton on neigh half',
-                ]
-                utils.log(f'executable_opts set to {self.executable_opts}')
+                if 'kokkos' in self.module_name:
+                    self.executable_opts += [
+                        f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
+                        '-suffix kk',
+                        '-package kokkos newton on neigh half',
+                    ]
+                    utils.log(f'executable_opts set to {self.executable_opts}')
+                else:
+                    self.executable_opts += [
+                        f'-suffix gpu -package gpu {self.num_gpus_per_node}',
+                    ]
+                    utils.log(f'executable_opts set to {self.executable_opts}')
 
 
 @rfm.simple_test
@@ -140,10 +146,10 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
     @deferrable
     def check_number_neighbors(self):
         '''Assert that the test calulated the right number of neighbours'''
-        regex = r'^Total # of neighbors = (?P<neigh>\S+)'
+        regex = r'Neighbor list builds = (?P<neigh>\S+)'
         n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
 
-        return sn.assert_eq(n_neigh, 12028093)
+        return sn.assert_eq(n_neigh, 11)
 
     @deferrable
     def assert_energy(self):
@@ -178,9 +184,15 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
             # should also check if the lammps is installed with kokkos.
             # Because this exutable opt is only for that case.
             if self.device_type == "gpu":
-                self.executable_opts += [
-                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
-                    '-suffix kk',
-                    '-package kokkos newton on neigh half',
-                ]
-                utils.log(f'executable_opts set to {self.executable_opts}')
+                if 'kokkos' in self.module_name:
+                    self.executable_opts += [
+                        f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
+                        '-suffix kk',
+                        '-package kokkos newton on neigh half',
+                    ]
+                    utils.log(f'executable_opts set to {self.executable_opts}')
+                else:
+                    self.executable_opts += [
+                        f'-suffix gpu -package gpu {self.num_gpus_per_node}',
+                    ]
+                    utils.log(f'executable_opts set to {self.executable_opts}')
