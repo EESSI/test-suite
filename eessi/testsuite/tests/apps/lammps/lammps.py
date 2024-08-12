@@ -74,6 +74,9 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
         # Set OMP_NUM_THREADS environment variable
         hooks.set_omp_num_threads(self)
 
+        # Set compact process binding
+        hooks.set_compact_process_binding(self)
+
 
 @rfm.simple_test
 class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
