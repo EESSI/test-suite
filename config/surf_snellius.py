@@ -39,7 +39,7 @@ site_configuration = {
                 {
                     'name': 'rome',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
                     'access': ['-p rome', '--export=None'],
                     'environs': ['default'],
@@ -63,7 +63,7 @@ site_configuration = {
                 {
                     'name': 'genoa',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
                     'access': ['-p genoa', '--export=None'],
                     'environs': ['default'],
@@ -87,7 +87,7 @@ site_configuration = {
                 {
                     'name': 'gpu_A100',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
                     'access': ['-p gpu_a100', '--export=None'],
                     'environs': ['default'],
@@ -123,7 +123,7 @@ site_configuration = {
                 {
                     'name': 'gpu_H100',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
                     'access': ['-p gpu_h100', '--export=None'],
                     'environs': ['default'],

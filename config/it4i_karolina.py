@@ -36,7 +36,7 @@ site_configuration = {
                     'name': 'qcpu',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
-                        'source %s' % common_eessi_init(),
+                        common_eessi_init(),
                         # Pass job environment variables like $PATH, etc., into job steps
                         'export SLURM_EXPORT_ENV=ALL',
                         # Needed when using srun launcher
@@ -71,7 +71,7 @@ site_configuration = {
                 #     'name': 'qgpu',
                 #     'scheduler': 'slurm',
                 #     'prepare_cmds': [
-                #         'source %s' % common_eessi_init(),
+                #         common_eessi_init(),
                 #         # Pass job environment variables like $PATH, etc., into job steps
                 #         'export SLURM_EXPORT_ENV=ALL',
                 #         # Needed when using srun launcher
