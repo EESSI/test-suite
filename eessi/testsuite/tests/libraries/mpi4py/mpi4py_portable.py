@@ -77,6 +77,13 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
         for 1 node and 2 node options where the request is for full nodes."""
         hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[CPU])
 
+        # This test scales almost indefinitely
+        # For tests that have limited scaling, one make sure that test instances exceeding
+        # a predefined maximum task count are skipped using:
+        # max_tasks = 300
+        # self.skip_if(self.num_tasks > max_tasks,
+        #              f'Skipping test: more than {max_tasks} tasks are requested ({self.num_tasks})')
+
     # Make sure we request sufficient memory from the scheduler
     @run_after('setup')
     def request_mem(self):
