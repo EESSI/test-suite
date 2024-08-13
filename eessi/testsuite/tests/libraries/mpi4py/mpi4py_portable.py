@@ -52,6 +52,9 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.executable_opts
     executable_opts = ['mpi4py_reduce.py', '--n_iter', f'{n_iterations}', '--n_warmup', f'{n_warmup}']
 
+    # Temporarily define postrun_cmds to make it easy to find out memory useage
+    postrun_cmds = ['MAX_MEM_IN_BYTES=$(cat /sys/fs/cgroup/memory/$(</proc/self/cpuset)/memory.max_usage_in_bytes)', 'echo "MAX_MEM_IN_BYTES=$MAX_MEM_IN_BYTES"', 'echo "MAX_MEM_IN_MIB=$(($MAX_MEM_IN_BYTES/1048576))"']
+
     # Define a time limit for the scheduler running this test
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.time_limit
     time_limit = '5m00s'
@@ -74,6 +77,17 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
         for 1 node and 2 node options where the request is for full nodes."""
         hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[CPU])
 
+    # Make sure we request sufficient memory from the scheduler
+    @run_after('setup')
+    def request_mem(self):
+        mem_required = self.num_tasks_per_node * 256
+        hooks.req_memory_per_node(self, app_mem_req=mem_required)
+
+    # Set binding strategy
+    @run_after('setup')
+    def set_binding(self):
+        hooks.set_compact_process_binding(self)
+
     # Now, we check if the pattern 'Sum of all ranks: X' with X the correct sum for the amount of ranks is found
     # in the standard output:
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.builtins.sanity_function
@@ -90,3 +104,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
     def time(self):
         # https://reframe-hpc.readthedocs.io/en/stable/deferrable_functions_reference.html#reframe.utility.sanity.extractsingle
         return sn.extractsingle(r'^Time elapsed:\s+(?P<perf>\S+)', self.stdout, 'perf', float)
+
+    @performance_function('MiB')
+    def max_mem_in_mib(self):
+        return sn.extractsingle(r'^MAX_MEM_IN_MIB=(?P<perf>\S+)', self.stdout, 'perf', int)
