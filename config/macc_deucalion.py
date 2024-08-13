@@ -25,7 +25,7 @@ site_configuration = {
                         # bypass CPU autodetection for now aarch64/a64fx,
                         # see https://github.com/EESSI/software-layer/pull/608
                         'export EESSI_SOFTWARE_SUBDIR_OVERRIDE=aarch64/a64fx',
-                        'source %s' % common_eessi_init(),
+                        common_eessi_init(),
                         # Pass job environment variables like $PATH, etc., into job steps
                         'export SLURM_EXPORT_ENV=HOME,PATH,LD_LIBRARY_PATH,PYTHONPATH',
                     ],
