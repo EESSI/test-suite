@@ -77,6 +77,12 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
         # Set compact process binding
         hooks.set_compact_process_binding(self)
 
+    @run_after('setup')
+    def request_mem(self):
+        mem = {'slope': 0.07, 'intercept': 0.5}
+        mem_required = self.num_tasks_per_node * mem['slope'] + mem['intercept']
+        hooks.req_memory_per_node(self, app_mem_req=mem_required * 1024)
+
 
 @rfm.simple_test
 class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
