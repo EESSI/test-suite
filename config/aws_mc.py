@@ -100,11 +100,16 @@ partition_defaults = {
         FEATURES['CPU']
     ] + list(SCALES.keys()),
     'prepare_cmds': [
-        'source %s' % common_eessi_init(),
+        common_eessi_init(),
         # Required when using srun as launcher with --export=NONE in partition access, in order to ensure job
         # steps inherit environment. It doesn't hurt to define this even if srun is not used
         'export SLURM_EXPORT_ENV=ALL'
     ],
+    'extras': {
+        # Node types have somewhat varying amounts of memory, but we'll make it easy on ourselves
+        # All should _at least_ have this amount (30GB * 1E9 / (1024*1024) = 28610 MiB)
+        'mem_per_node': 28610
+    },
 }
 for system in site_configuration['systems']:
     for partition in system['partitions']:

@@ -33,7 +33,7 @@ site_configuration = {
                 {
                     'name': 'cpu_rome_256gb',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_rome'],
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
@@ -59,13 +59,13 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 256.000  # in GiB (should be checked, its unclear from slurm.conf)
+                        'mem_per_node': 252160,  # in MiB
                     },
                 },
                 {
                     'name': 'cpu_rome_512gb',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_rome_512'],
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
@@ -91,13 +91,13 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 511.983  # in GiB
+                        'mem_per_node': 508160,  # in MiB
                     },
                 },
                 {
                     'name': 'cpu_milan',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_milan'],
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
@@ -123,13 +123,13 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 256.000  # in GiB (should be checked, its unclear from slurm.conf)
+                        'mem_per_node': 252160,  # in MiB
                     },
                 },
                 {
                     'name': 'gpu_rome_a100_40gb',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'access': hortense_access + ['--partition=gpu_rome_a100_40'],
                     'environs': ['default'],
                     'descr': 'GPU nodes (A100 40GB)',
@@ -150,7 +150,7 @@ site_configuration = {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 256.000  # in GiB
+                        'mem_per_node': 254400,  # in MiB
                     },
                     'resources': [
                         {
@@ -173,7 +173,7 @@ site_configuration = {
                 {
                     'name': 'gpu_rome_a100_80gb',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'access': hortense_access + ['--partition=gpu_rome_a100_80'],
                     'environs': ['default'],
                     'descr': 'GPU nodes (A100 80GB)',
@@ -194,7 +194,7 @@ site_configuration = {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 511.983  # in GiB
+                        'mem_per_node': 510720,  # in MiB
                     },
                     'resources': [
                         {

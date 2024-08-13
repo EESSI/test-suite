@@ -36,7 +36,7 @@ site_configuration = {
                     'name': 'cpu',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
-                        'source %s' % common_eessi_init(),
+                        common_eessi_init(),
                         # Pass job environment variables like $PATH, etc., into job steps
                         'export SLURM_EXPORT_ENV=ALL',
                         # Needed when using srun launcher
@@ -62,7 +62,9 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 238.418  # in GiB
+                        # NB: Vega's MaxMemPerNode is set to 256000, but this MUST be a MB/MiB units mistake
+                        # Most likely, it is 256 GB, so 256*1E9/(1024*1024) MiB
+                        'mem_per_node': 244140  # in MiB
                     },
                     'descr': 'CPU partition Standard, see https://en-doc.vega.izum.si/architecture/'
                 },
@@ -70,7 +72,7 @@ site_configuration = {
                 #     'name': 'gpu',
                 #     'scheduler': 'slurm',
                 #     'prepare_cmds': [
-                #         'source %s' % common_eessi_init(),
+                #         common_eessi_init(),
                 #         # Pass job environment variables like $PATH, etc., into job steps
                 #         'export SLURM_EXPORT_ENV=ALL',
                 #         # Needed when using srun launcher
@@ -106,7 +108,7 @@ site_configuration = {
                 #     'extras': {
                 #         # Make sure to round down, otherwise a job might ask for more mem than is available
                 #         # per node
-                #         'mem_per_node': 476.837  # in GiB (should be checked, its unclear from slurm.conf)
+                #         'mem_per_node': 476.837 * 1024  # in MiB (should be checked, its unclear from slurm.conf)
                 #     },
                 #     'descr': 'GPU partition, see https://en-doc.vega.izum.si/architecture/'
                 # },

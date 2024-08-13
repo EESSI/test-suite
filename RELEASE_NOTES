@@ -1,6 +1,50 @@
 This file contains a description of the major changes to the EESSI test suite.
 For more detailed information, please see the git log.
 
+v0.3.2 (29 June 2024)
+---------------------
+
+This is a bugfix release of the EESSI test-suite
+
+It includes:
+
+- Add config for Deucalion (#162)
+
+v0.3.1 (28 June 2024)
+---------------------
+
+This is a bugfix release of the EESSI test-suite
+
+It includes:
+
+- Correct required memory per node to MiB in ESPResSo test (#158)
+- Change behavior for assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU]) on hyperthreading-enabled systems (#160)
+- Use compact process binding in ESPResSo test (#160)
+
+v0.3.0 (27 June 2024)
+---------------------
+
+This is a minor release of the EESSI test-suite
+
+It includes:
+
+* Update config AWS MC cluster to use `software.eessi.io` (#126)
+* Add test for QuantumESPRESSO (pw.x) (#128)
+* Fix compact process binding for OpenMPI mpirun (#137)
+* Use compact process binding for GROMACS (#139)
+* Rename scale tags 1_cpn_2_nodes and 1_cpn_4_nodes (#140)
+* Set SRUN_CPUS_PER_TASK for srun launcher (#141)
+* Fix for "Failed to modify UD QP to INIT on mlx5_0" on Karolina CI runs (#142)
+* Reduce the iteration count to make the OSU tests run faster, especially on slower interconnects (#143)
+* Add test for ESPResSo (P3M) (#144)
+* Use software.eessi.io repo in CI (#146)
+* Add notes on release management to README (#148)
+* Fix memory_per_node for Hortense (#151)
+* Use MiB units for memory per node (#152)
+* Added / updated memory for various systems in MiB units (#153)
+* Add additional test for ESPRESSO (LJ) (#155)
+* Bump default version used in CI (#157)
+
 v0.2.0 (7 March 2024)
 ---------------------
 

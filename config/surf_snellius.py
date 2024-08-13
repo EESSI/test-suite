@@ -23,7 +23,7 @@ from eessi.testsuite.constants import *  # noqa: F403
 reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 
 # Jobs that partially fill multiple nodes are not allowed on the GPU partition
-valid_scales_snellius_gpu = [s for s in SCALES if s not in ['1_cpn_2_nodes', '1_cpn_4_nodes']]
+valid_scales_snellius_gpu = [s for s in SCALES if s not in ['1cpn_2nodes', '1cpn_4nodes']]
 
 # This is an example configuration file
 site_configuration = {
@@ -39,7 +39,7 @@ site_configuration = {
                 {
                     'name': 'rome',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
                     'access': ['-p rome', '--export=None'],
                     'environs': ['default'],
@@ -56,14 +56,14 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 213.623  # in GiB
+                        'mem_per_node': 229376  # in MiB
                     },
                     'descr': 'AMD Rome CPU partition with native EESSI stack'
                 },
                 {
                     'name': 'genoa',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
                     'access': ['-p genoa', '--export=None'],
                     'environs': ['default'],
@@ -80,17 +80,16 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 320.434  # in GiB
+                        'mem_per_node': 344064  # in MiB
                     },
                     'descr': 'AMD Genoa CPU partition with native EESSI stack'
                 },
-
                 {
-                    'name': 'gpu',
+                    'name': 'gpu_A100',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
-                    'access': ['-p gpu', '--export=None'],
+                    'access': ['-p gpu_a100', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 60,
                     'devices': [
@@ -117,10 +116,47 @@ site_configuration = {
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 457.763  # in GiB
+                        'mem_per_node': 491520  # in MiB
                     },
                     'descr': 'Nvidia A100 GPU partition with native EESSI stack'
                 },
+                {
+                    'name': 'gpu_H100',
+                    'scheduler': 'slurm',
+                    'prepare_cmds': [common_eessi_init()],
+                    'launcher': 'mpirun',
+                    'access': ['-p gpu_h100', '--export=None'],
+                    'environs': ['default'],
+                    'max_jobs': 60,
+                    'devices': [
+                        {
+                            'type': DEVICE_TYPES[GPU],
+                            'num_devices': 4,
+                        }
+                    ],
+                    'resources': [
+                        {
+                            'name': '_rfm_gpu',
+                            'options': ['--gpus-per-node={num_gpus_per_node}'],
+                        },
+                        {
+                            'name': 'memory',
+                            'options': ['--mem={size}'],
+                        }
+                    ],
+                    'features': [
+                        FEATURES[GPU],
+                        FEATURES[ALWAYS_REQUEST_GPUS],
+                    ] + valid_scales_snellius_gpu,
+                    'extras': {
+                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 737280  # in MiB
+                    },
+                    'descr': 'Nvidia H100 GPU partition with native EESSI stack'
+                },
+
             ]
         },
     ],

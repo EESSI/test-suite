@@ -36,7 +36,7 @@ site_configuration = {
                     'name': 'qcpu',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
-                        'source %s' % common_eessi_init(),
+                        common_eessi_init(),
                         # Pass job environment variables like $PATH, etc., into job steps
                         'export SLURM_EXPORT_ENV=ALL',
                         # Needed when using srun launcher
@@ -62,7 +62,7 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 219.345  # in GiB
+                        'mem_per_node': 235520  # in MiB
                     },
                     'descr': 'CPU Universal Compute Nodes, see https://docs.it4i.cz/karolina/hardware-overview/'
                 },
@@ -71,7 +71,7 @@ site_configuration = {
                 #     'name': 'qgpu',
                 #     'scheduler': 'slurm',
                 #     'prepare_cmds': [
-                #         'source %s' % common_eessi_init(),
+                #         common_eessi_init(),
                 #         # Pass job environment variables like $PATH, etc., into job steps
                 #         'export SLURM_EXPORT_ENV=ALL',
                 #         # Needed when using srun launcher
