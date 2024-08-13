@@ -56,7 +56,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.builtins.run_after
     # See https://reframe-hpc.readthedocs.io/en/stable/pipeline.html for all steps in the pipeline
     # that reframe uses to execute tests. Note that after the init step, ReFrame has generated test instances for each
-    # of the combinations of paratmers above. Thus, now, there are 6 instances (2 module names * 3 scales). Here,
+    # of the combinations of parameters above. Thus, now, there are 6 instances (2 module names * 3 scales). Here,
     # we set the modules to load equal to one of the module names
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.modules
     @run_after('init')
