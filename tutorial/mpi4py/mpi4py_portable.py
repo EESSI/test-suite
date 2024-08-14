@@ -5,7 +5,8 @@ This module tests mpi4py's MPI_Reduce call
 import reframe as rfm
 import reframe.utility.sanity as sn
 
-from reframe.core.builtins import variable, parameter, run_after  # added only to make the linter happy
+# added only to make the linter happy
+from reframe.core.builtins import variable, parameter, run_after, performance_function, sanity_function
 
 from eessi.testsuite import hooks
 from eessi.testsuite.constants import SCALES, COMPUTE_UNIT, CPU
@@ -53,7 +54,11 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
     executable_opts = ['mpi4py_reduce.py', '--n_iter', f'{n_iterations}', '--n_warmup', f'{n_warmup}']
 
     # Temporarily define postrun_cmds to make it easy to find out memory useage
-    postrun_cmds = ['MAX_MEM_IN_BYTES=$(cat /sys/fs/cgroup/memory/$(</proc/self/cpuset)/memory.max_usage_in_bytes)', 'echo "MAX_MEM_IN_BYTES=$MAX_MEM_IN_BYTES"', 'echo "MAX_MEM_IN_MIB=$(($MAX_MEM_IN_BYTES/1048576))"']
+    postrun_cmds = [
+        'MAX_MEM_IN_BYTES=$(cat /sys/fs/cgroup/memory/$(</proc/self/cpuset)/memory.max_usage_in_bytes)',
+        'echo "MAX_MEM_IN_BYTES=$MAX_MEM_IN_BYTES"',
+        'echo "MAX_MEM_IN_MIB=$(($MAX_MEM_IN_BYTES/1048576))"'
+    ]
 
     # Define a time limit for the scheduler running this test
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.time_limit
@@ -66,7 +71,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
     # Using this decorator, we tell ReFrame to run this AFTER the init step of the test
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.builtins.run_after
     # See https://reframe-hpc.readthedocs.io/en/stable/pipeline.html for all steps in the pipeline
-    # that reframe uses to execute tests. 
+    # that reframe uses to execute tests.
     @run_after('init')
     def run_after_init(self):
         hooks.set_tag_scale(self)
@@ -101,7 +106,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
     @sanity_function
     def validate(self):
         # Sum of 0, ..., N-1 is (N * (N-1) / 2)
-        sum_of_ranks = round(self.num_tasks * ((self.num_tasks-1) / 2))
+        sum_of_ranks = round(self.num_tasks * ((self.num_tasks - 1) / 2))
         # https://reframe-hpc.readthedocs.io/en/stable/deferrable_functions_reference.html#reframe.utility.sanity.assert_found
         return sn.assert_found(r'Sum of all ranks: %s' % sum_of_ranks, self.stdout)
 

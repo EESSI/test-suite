@@ -5,7 +5,9 @@ This module tests mpi4py's MPI_Reduce call
 import reframe as rfm
 import reframe.utility.sanity as sn
 
-from reframe.core.builtins import variable, parameter, run_after  # added only to make the linter happy
+# added only to make the linter happy
+from reframe.core.builtins import variable, parameter, run_after, performance_function, sanity_function
+
 
 # This python decorator indicates to ReFrame that this class defines a test
 # Our class inherits from rfm.RunOnlyRegressionTest, since this test does not have a compilation stage
@@ -62,7 +64,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
     @run_after('init')
     def set_modules(self):
         self.modules = [self.module_name]
-    
+
     # Similar for the scale, we now set the number of tasks equal to the scale for this instance
     @run_after('init')
     def define_task_count(self):
@@ -79,7 +81,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
     @sanity_function
     def validate(self):
         # Sum of 0, ..., N-1 is (N * (N-1) / 2)
-        sum_of_ranks = round(self.scale * ((self.scale-1) / 2))
+        sum_of_ranks = round(self.scale * ((self.scale - 1) / 2))
         # https://reframe-hpc.readthedocs.io/en/stable/deferrable_functions_reference.html#reframe.utility.sanity.assert_found
         return sn.assert_found(r'Sum of all ranks: %s' % sum_of_ranks, self.stdout)
 
