@@ -71,7 +71,8 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
         # Set the number of tasks, self.scale is now a single number out of the parameter list
         # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.num_tasks
         self.num_tasks = self.scale
-        # Set the number of tasks per node to either be equal to the number of tasks, but at most 128, since we have 128-core nodes
+        # Set the number of tasks per node to either be equal to the number of tasks, but at most 128,
+        # since we have 128-core nodes
         # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.num_tasks_per_node
         self.num_tasks_per_node = min(self.num_tasks, 128)
 

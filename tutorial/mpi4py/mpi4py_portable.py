@@ -12,6 +12,7 @@ from eessi.testsuite import hooks
 from eessi.testsuite.constants import SCALES, COMPUTE_UNIT, CPU
 from eessi.testsuite.utils import find_modules
 
+
 # This python decorator indicates to ReFrame that this class defines a test
 # Our class inherits from rfm.RunOnlyRegressionTest, since this test does not have a compilation stage
 # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RunOnlyRegressionTest
