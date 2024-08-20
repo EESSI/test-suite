@@ -84,7 +84,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
         hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[CPU])
 
         # This test scales almost indefinitely
-        # For tests that have limited scaling, one make sure that test instances exceeding
+        # For tests that have limited scaling, make sure that test instances exceeding
         # a predefined maximum task count are skipped using:
         # max_tasks = 300
         # self.skip_if(self.num_tasks > max_tasks,
