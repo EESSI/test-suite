@@ -26,7 +26,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
 
     # Typically, we list here the name of our cluster as it is specified in our ReFrame configuration file
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.valid_systems
-    valid_systems = ['snellius']
+    valid_systems = ['*']
 
     # ReFrame will generate a test for each module
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.builtins.parameter
