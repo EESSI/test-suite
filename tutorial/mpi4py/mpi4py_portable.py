@@ -93,7 +93,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
     # Make sure we request sufficient memory from the scheduler
     @run_after('setup')
     def request_mem(self):
-        mem_required = self.num_tasks_per_node * 256
+        mem_required = self.num_tasks_per_node * 256  # request 256 MB per task per node
         hooks.req_memory_per_node(self, app_mem_req=mem_required)
 
     # Set binding strategy
