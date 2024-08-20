@@ -33,7 +33,7 @@ for i in range(n_warmup):
 # Actual reduction, multiple iterations for accuracy of timing
 t1 = time.time()
 for i in range(n_iter):
-    total = MPI.COMM_WORLD.reduce(rank)
+    total = MPI.COMM_WORLD.reduce(rank, op=MPI.SUM)
 t2 = time.time()
 total_time = (t2 - t1) / n_iter
 
