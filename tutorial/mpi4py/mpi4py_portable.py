@@ -54,7 +54,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.executable_opts
     executable_opts = ['mpi4py_reduce.py', '--n_iter', f'{n_iterations}', '--n_warmup', f'{n_warmup}']
 
-    # Temporarily define postrun_cmds to make it easy to find out memory useage
+    # Temporarily define postrun_cmds to make it easy to find out memory usage
     postrun_cmds = [
         'MAX_MEM_IN_BYTES=$(cat /sys/fs/cgroup/memory/$(</proc/self/cpuset)/memory.max_usage_in_bytes)',
         'echo "MAX_MEM_IN_BYTES=$MAX_MEM_IN_BYTES"',
