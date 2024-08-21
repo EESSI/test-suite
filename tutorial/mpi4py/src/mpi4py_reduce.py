@@ -28,7 +28,7 @@ name = MPI.Get_processor_name()
 # Warmup
 t0 = time.time()
 for i in range(n_warmup):
-    total = MPI.COMM_WORLD.reduce(rank)
+    total = MPI.COMM_WORLD.reduce(rank, op=MPI.SUM)
 
 # Actual reduction, multiple iterations for accuracy of timing
 t1 = time.time()
