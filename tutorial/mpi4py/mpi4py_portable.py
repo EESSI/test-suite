@@ -26,7 +26,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
 
     # Typically, we list here the name of our cluster as it is specified in our ReFrame configuration file
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.valid_systems
-    valid_systems = ['snellius']
+    valid_systems = ['*']
 
     # ReFrame will generate a test for each module
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.builtins.parameter
@@ -54,7 +54,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.executable_opts
     executable_opts = ['mpi4py_reduce.py', '--n_iter', f'{n_iterations}', '--n_warmup', f'{n_warmup}']
 
-    # Temporarily define postrun_cmds to make it easy to find out memory useage
+    # Temporarily define postrun_cmds to make it easy to find out memory usage
     postrun_cmds = [
         'MAX_MEM_IN_BYTES=$(cat /sys/fs/cgroup/memory/$(</proc/self/cpuset)/memory.max_usage_in_bytes)',
         'echo "MAX_MEM_IN_BYTES=$MAX_MEM_IN_BYTES"',
@@ -85,7 +85,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
         hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[CPU])
 
         # This test scales almost indefinitely
-        # For tests that have limited scaling, one make sure that test instances exceeding
+        # For tests that have limited scaling, make sure that test instances exceeding
         # a predefined maximum task count are skipped using:
         # max_tasks = 300
         # self.skip_if(self.num_tasks > max_tasks,
@@ -94,7 +94,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
     # Make sure we request sufficient memory from the scheduler
     @run_after('setup')
     def request_mem(self):
-        mem_required = self.num_tasks_per_node * 256
+        mem_required = self.num_tasks_per_node * 256  # request 256 MB per task per node
         hooks.req_memory_per_node(self, app_mem_req=mem_required)
 
     # Set binding strategy
