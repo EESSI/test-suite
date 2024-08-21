@@ -79,8 +79,9 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
 
     @run_after('setup')
     def set_num_tasks_per_node(self):
-        """ Setting number of tasks per node and cpus per task in this function. This function sets num_cpus_per_task
-        for 1 node and 2 node options where the request is for full nodes."""
+        """ Setting number of tasks per node and cpus per task in this function. This function sets 
+        num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node, based on the current scale 
+        and the current partition's num_cpus, max_avail_gpus_per_node and num_nodes"""
         hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[CPU])
 
         # This test scales almost indefinitely
