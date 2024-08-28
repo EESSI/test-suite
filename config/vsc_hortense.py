@@ -11,10 +11,8 @@ from eessi.testsuite.common_config import (common_eessi_init,
                                            common_logging_config)
 from eessi.testsuite.constants import *  # noqa: F403
 
-account = "my-slurm-account"
-
 # Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
-hortense_access = [f'--export=NONE', '--get-user-env=60L']
+hortense_access = ['--export=NONE', '--get-user-env=60L']
 
 
 @register_launcher('mympirun')
