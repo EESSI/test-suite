@@ -94,15 +94,26 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
 
     @run_after('setup')
     def set_binding(self):
+        """Set binding to compact to improve performance reproducibility."""
         hooks.set_compact_process_binding(self)
 
     @run_after('setup')
     def request_mem(self):
+        """Request memory per node based on the benchmark."""
         mem_per_task = 0.4
         if self.benchmark_info[0] == 'hackathonGPU/benchmark5':
             mem_per_task = 1.2
         memory_required = self.num_tasks_per_node * mem_per_task + 2
         hooks.req_memory_per_node(test=self, app_mem_req=memory_required * 1024)
+
+    @run_after('setup')
+    def skip_max_corecnt(self):
+        """Skip tests if number of tasks per node exceeds maximum core count."""
+        max_corecnt = 256
+        self.skip_if(
+            self.num_tasks > max_corecnt,
+            f'Number of tasks per node {self.num_tasks} exceeds maximum core count {max_corecnt} for {self.bench_name}'
+        )
 
     @run_after('setup')
     def set_omp_num_threads(self):
