@@ -56,7 +56,10 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
 
     # Temporarily define postrun_cmds to make it easy to find out memory usage
     postrun_cmds = [
-        'MAX_MEM_IN_BYTES=$(</sys/fs/cgroup/memory/$(</proc/self/cpuset)/memory.max_usage_in_bytes)',
+        # for cgroups v1
+        'MAX_MEM_IN_BYTES=$(</sys/fs/cgroup/memory/$(</proc/self/cpuset)/../memory.max_usage_in_bytes)',
+        # for cgroups v2
+        # 'MAX_MEM_IN_BYTES=$(</sys/fs/cgroup/$(</proc/self/cpuset)/../../../memory.peak)',
         'echo "MAX_MEM_IN_BYTES=$MAX_MEM_IN_BYTES"',
         'echo "MAX_MEM_IN_MIB=$(($MAX_MEM_IN_BYTES/1048576))"'
     ]
