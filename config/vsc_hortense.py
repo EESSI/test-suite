@@ -11,9 +11,8 @@ from eessi.testsuite.common_config import (common_eessi_init,
                                            common_logging_config)
 from eessi.testsuite.constants import *  # noqa: F403
 
-account = "my-slurm-account"
-
-hortense_access = [f'-A {account}', '--export=NONE', '--get-user-env=60L']
+# Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
+hortense_access = ['--export=NONE', '--get-user-env=60L']
 
 
 @register_launcher('mympirun')
@@ -33,7 +32,7 @@ site_configuration = {
                 {
                     'name': 'cpu_rome_256gb',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_rome'],
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
@@ -65,7 +64,7 @@ site_configuration = {
                 {
                     'name': 'cpu_rome_512gb',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_rome_512'],
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
@@ -97,7 +96,7 @@ site_configuration = {
                 {
                     'name': 'cpu_milan',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_milan'],
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
@@ -129,7 +128,7 @@ site_configuration = {
                 {
                     'name': 'gpu_rome_a100_40gb',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'access': hortense_access + ['--partition=gpu_rome_a100_40'],
                     'environs': ['default'],
                     'descr': 'GPU nodes (A100 40GB)',
@@ -173,7 +172,7 @@ site_configuration = {
                 {
                     'name': 'gpu_rome_a100_80gb',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'access': hortense_access + ['--partition=gpu_rome_a100_80'],
                     'environs': ['default'],
                     'descr': 'GPU nodes (A100 80GB)',

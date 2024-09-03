@@ -36,7 +36,7 @@ site_configuration = {
                     'name': 'qcpu',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
-                        'source %s' % common_eessi_init(),
+                        common_eessi_init(),
                         # Pass job environment variables like $PATH, etc., into job steps
                         'export SLURM_EXPORT_ENV=ALL',
                         # Needed when using srun launcher
@@ -53,7 +53,8 @@ site_configuration = {
                     ],
                     'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
-                    'access': ['-p qcpu', '-A DD-23-96', '--export=None'],
+                    # Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
+                    'access': ['-p qcpu', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
                     'features': [
@@ -71,7 +72,7 @@ site_configuration = {
                 #     'name': 'qgpu',
                 #     'scheduler': 'slurm',
                 #     'prepare_cmds': [
-                #         'source %s' % common_eessi_init(),
+                #         common_eessi_init(),
                 #         # Pass job environment variables like $PATH, etc., into job steps
                 #         'export SLURM_EXPORT_ENV=ALL',
                 #         # Needed when using srun launcher
@@ -82,7 +83,8 @@ site_configuration = {
                 #     ],
                 #     'launcher': 'mpirun',
                 #     # Use --export=None to avoid that login environment is passed down to submitted jobs
-                #     'access':  ['-p gpu', '-A DD-23-96', '--export=None'],
+                #     # Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
+                #     'access':  ['-p gpu', '--export=None'],
                 #     'environs': ['default'],
                 #     'max_jobs': 60,
                 #     'devices': [

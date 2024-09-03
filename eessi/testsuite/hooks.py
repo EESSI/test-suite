@@ -58,7 +58,8 @@ def _assign_default_num_gpus_per_node(test: rfm.RegressionTest):
 
 def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, num_per: int = 1):
     """
-    Assign one task per compute unit (COMPUTE_UNIT[CPU], COMPUTE_UNIT[CPU_SOCKET] or COMPUTE_UNIT[GPU]).
+    Assign one task per compute unit. More than 1 task per compute unit can be assigned with
+    num_per for compute units that support it.
     Automatically sets num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node,
     based on the current scale and the current partition’s num_cpus, max_avail_gpus_per_node and num_nodes.
     For GPU tests, one task per GPU is set, and num_cpus_per_task is based on the ratio of CPU-cores/GPUs.
@@ -80,7 +81,7 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
     - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET]) will launch 2 tasks with 64 threads per task
 
     """
-    if num_per != 1 and compute_unit in [COMPUTE_UNIT[GPU], COMPUTE_UNIT[CPU], COMPUTE_UNIT[CPU_SOCKET]]:
+    if num_per != 1 and compute_unit not in [COMPUTE_UNIT[NODE]]:
         raise NotImplementedError(
             f'Non-default num_per {num_per} is not implemented for compute_unit {compute_unit}.')
 
@@ -123,6 +124,8 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
         _assign_one_task_per_cpu(test)
     elif compute_unit == COMPUTE_UNIT[CPU_SOCKET]:
         _assign_one_task_per_cpu_socket(test)
+    elif compute_unit == COMPUTE_UNIT[NUMA_NODE]:
+        _assign_one_task_per_numa_node(test)
     elif compute_unit == COMPUTE_UNIT[NODE]:
         _assign_num_tasks_per_node(test, num_per)
     else:
@@ -198,22 +201,70 @@ def _assign_one_task_per_cpu_socket(test: rfm.RegressionTest):
     test.num_tasks_per_node * test.num_cpus_per_task == test.default_num_cpus_per_node.
 
     Default resources requested:
-    - num_tasks_per_node = default_num_cpus_per_node
+    - num_tasks_per_node = default_num_cpus_per_node / num_cpus_per_socket
     - num_cpus_per_task = default_num_cpus_per_node / num_tasks_per_node
     """
     # neither num_tasks_per_node nor num_cpus_per_task are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
-        check_proc_attribute_defined(test, 'num_cpus')
-        check_proc_attribute_defined(test, 'num_sockets')
-        num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets
-        test.num_tasks_per_node = math.ceil(test.default_num_cpus_per_node / num_cpus_per_socket)
+        check_proc_attribute_defined(test, 'num_cores_per_socket')
+        test.num_tasks_per_node = math.ceil(
+            test.default_num_cpus_per_node / test.current_partition.processor.num_cores_per_socket
+        )
         test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
 
     # num_tasks_per_node is not set, but num_cpus_per_task is
     elif not test.num_tasks_per_node:
-        check_proc_attribute_defined(test, 'num_cpus')
-        check_proc_attribute_defined(test, 'num_sockets')
-        num_cpus_per_socket = test.current_partition.processor.num_cpus / test.current_partition.processor.num_sockets
+        test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.num_cpus_per_task)
+
+    # num_cpus_per_task is not set, but num_tasks_per_node is
+    elif not test.num_cpus_per_task:
+        test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
+
+    else:
+        pass  # both num_tasks_per_node and num_cpus_per_node are already set
+
+    test.num_tasks = test.num_nodes * test.num_tasks_per_node
+    log(f'Number of tasks per node set to: {test.num_tasks_per_node}')
+    log(f'Number of cpus per task set to {test.num_cpus_per_task}')
+    log(f'num_tasks set to {test.num_tasks}')
+
+
+def _assign_one_task_per_numa_node(test: rfm.RegressionTest):
+    """
+    Determines the number of tasks per node by dividing the default_num_cpus_per_node by
+    the number of cpus available per numa node, and rounding up. The result is that for full-node jobs the default
+    will spawn one task per numa node, with a number of cpus per task equal to the number of cpus per numa node.
+    Other examples:
+    - half a node (i.e. node_part=2) on a system with 4 numa nodes would result in 2 tasks per node,
+    with number of cpus per task equal to the number of cpus per numa node.
+    - a quarter node (i.e. node_part=4) on a system with 2 numa nodes would result in 1 task per node,
+    with number of cpus equal to half a numa node.
+    - 2 cores (i.e. default_num_cpus_per_node=2) on a system with 4 cores per numa node would result in
+    1 task per node, with 2 cpus per task
+    - 8 cores (i.e. default_num_cpus_per_node=4) on a system with 4 cores per numa node would result in
+    2 tasks per node, with 4 cpus per task
+
+    This default is set unless the test is run with:
+    --setvar num_tasks_per_node=<x> and/or
+    --setvar num_cpus_per_task=<y>.
+    In those cases, those take precedence, and the remaining variable (num_cpus_per task or
+    num_tasks_per_node respectively) is calculated based on the equality
+    test.num_tasks_per_node * test.num_cpus_per_task == test.default_num_cpus_per_node.
+
+    Default resources requested:
+    - num_tasks_per_node = default_num_cpus_per_node / num_cores_per_numa_node
+    - num_cpus_per_task = default_num_cpus_per_node / num_tasks_per_node
+    """
+    # neither num_tasks_per_node nor num_cpus_per_task are set
+    if not test.num_tasks_per_node and not test.num_cpus_per_task:
+        check_proc_attribute_defined(test, 'num_cores_per_numa_node')
+        test.num_tasks_per_node = math.ceil(
+            test.default_num_cpus_per_node / test.current_partition.processor.num_cores_per_numa_node
+        )
+        test.num_cpus_per_task = int(test.default_num_cpus_per_node / test.num_tasks_per_node)
+
+    # num_tasks_per_node is not set, but num_cpus_per_task is
+    elif not test.num_tasks_per_node:
         test.num_tasks_per_node = int(test.default_num_cpus_per_node / test.num_cpus_per_task)
 
     # num_cpus_per_task is not set, but num_tasks_per_node is
@@ -627,6 +678,14 @@ def set_compact_thread_binding(test: rfm.RegressionTest):
     log(f'Set environment variable OMP_PLACES to {test.env_vars["OMP_PLACES"]}')
     log(f'Set environment variable OMP_PROC_BIND to {test.env_vars["OMP_PROC_BIND"]}')
     log(f'Set environment variable KMP_AFFINITY to {test.env_vars["KMP_AFFINITY"]}')
+
+
+def set_omp_num_threads(test: rfm.RegressionTest):
+    """
+    Set number of OpenMP threads equal to number of CPUs per task
+    """
+    test.env_vars['OMP_NUM_THREADS'] = test.num_cpus_per_task
+    log(f'Set environment variable OMP_NUM_THREADS to {test.env_vars["OMP_NUM_THREADS"]}')
 
 
 def _check_always_request_gpus(test: rfm.RegressionTest):
