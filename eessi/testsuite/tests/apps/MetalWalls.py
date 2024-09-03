@@ -121,6 +121,4 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
         Set number of OpenMP threads via OMP_NUM_THREADS.
         Set default number of OpenMP threads equal to number of CPUs per task.
         """
-
-        self.env_vars['OMP_NUM_THREADS'] = self.num_cpus_per_task
-        log(f'env_vars set to {self.env_vars}')
+        hooks.set_omp_num_threads(self)
