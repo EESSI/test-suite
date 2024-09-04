@@ -12,6 +12,10 @@ from eessi.testsuite.constants import DEVICE_TYPES, CPU, GPU, SCALES, COMPUTE_UN
 # specific functions in case specific tests would require this
 # TODO: for this reason, we probably want to put _each_ hooks.something invocation into a seperate function, so that each 
 # individual one can be overwritten
+
+# Note that I don't think we can do anything about the things set in the class body, such as the parameter's.
+# Maybe we can move those to an __init__ step of the Mixin, even though that is not typically how ReFrame does it anymore?
+# That way, the child class could define it as class variables, and the parent can use it in its __init__ method?
 class EESSI_Mixin(RegressionMixin):
     """
     All EESSI tests should derive from this mixin class unless they have a very good reason not to.
