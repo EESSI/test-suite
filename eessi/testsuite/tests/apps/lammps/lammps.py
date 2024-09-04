@@ -24,6 +24,10 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     # Parameterize over all modules that start with LAMMPS
     module_name = parameter(utils.find_modules('LAMMPS'))
 
+    def required_mem_per_node(num_tasks_per_node):
+        mem = {'slope': 0.07, 'intercept': 0.5}
+        self.mem_required = (num_tasks_per_node * mem['slope'] + mem['intercept']) * 1024
+
     # Set sanity step
     @deferrable
     def assert_lammps_openmp_treads(self):
@@ -65,7 +69,7 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 #         # Set scales as tags
 #         hooks.set_tag_scale(self)
 
-    @run_before('setup')
+    @run_after('init')
     def run_after_setup(self):
         """hooks to run after the setup phase"""
         if self.device_type == 'cpu':
@@ -83,13 +87,10 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         # Set compact process binding
         # hooks.set_compact_process_binding(self)
 
-    def required_mem_per_node(num_tasks_per_node):
-        mem = {'slope': 0.07, 'intercept': 0.5}
-        self.mem_required = (num_tasks_per_node * mem['slope'] + mem['intercept']) * 1024
 
-    @run_before('setup')
-    def request_mem(self):
-        mem = {'slope': 0.07, 'intercept': 0.5}
+    #@run_after('init')
+    #def request_mem(self):
+        #mem = {'slope': 0.07, 'intercept': 0.5}
         # self.mem_required = (self.num_tasks_per_node * mem['slope'] + mem['intercept']) * 1024
         # hooks.req_memory_per_node(self, app_mem_req=mem_required * 1024)
 
