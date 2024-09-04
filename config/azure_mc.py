@@ -31,13 +31,13 @@ site_configuration = {
             'partitions': [
                 {
                     'name': 'x86_64-amd-zen4-node',
-                    'access': ['--partition=x86-64-amd-zen4-node1', '--export=NONE'],
+                    'access': ['--partition=x86-64-amd-zen4-node', '--export=NONE'],
                     'descr': 'Zen4, 16 cores, 30 GB',
                 },
                 {
-                    'name': 'aarch64-neoverse-N1-16c-32gb',
+                    'name': 'aarch64-neoverse-N1-16c-62gb',
                     'access': ['--partition=aarch64-neoverse-n1-node', '--export=NONE'],
-                    'descr': 'Neoverse N1, 16 cores, 32 GiB',
+                    'descr': 'Neoverse N1, 16 cores, 62 GiB',
                 },
             ]
         },
