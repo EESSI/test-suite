@@ -8,9 +8,9 @@ import reframe.utility.sanity as sn
 
 from eessi.testsuite import hooks, utils
 from eessi.testsuite.constants import *  # noqa
+from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
-
-class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
+class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
     valid_systems = ['*']
@@ -47,19 +47,19 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
 
         return sn.assert_eq(n_atoms, 32000)
 
-    @run_after('init')
-    def run_after_init(self):
-        """hooks to run after init phase"""
-
-        # Filter on which scales are supported by the partitions defined in the ReFrame configuration
-        hooks.filter_supported_scales(self)
-
-        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
-
-        hooks.set_modules(self)
-
-        # Set scales as tags
-        hooks.set_tag_scale(self)
+#     @run_after('init')
+#     def run_after_init(self):
+#         """hooks to run after init phase"""
+# 
+#         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
+#         hooks.filter_supported_scales(self)
+# 
+#         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
+# 
+#         hooks.set_modules(self)
+# 
+#         # Set scales as tags
+#         hooks.set_tag_scale(self)
 
     @run_after('setup')
     def run_after_setup(self):
