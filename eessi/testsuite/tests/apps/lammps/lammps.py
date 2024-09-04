@@ -24,9 +24,9 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     # Parameterize over all modules that start with LAMMPS
     module_name = parameter(utils.find_modules('LAMMPS'))
 
-    def required_mem_per_node(num_tasks_per_node):
+    def required_mem_per_node(self):
         mem = {'slope': 0.07, 'intercept': 0.5}
-        self.mem_required = (num_tasks_per_node * mem['slope'] + mem['intercept']) * 1024
+        return (self.num_tasks_per_node * mem['slope'] + mem['intercept']) * 1024
 
     # Set sanity step
     @deferrable
