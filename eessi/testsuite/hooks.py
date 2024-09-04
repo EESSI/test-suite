@@ -7,8 +7,11 @@ import warnings
 
 import reframe as rfm
 import reframe.core.logging as rflog
+import reframe.utility.sanity as sn
 
-from eessi.testsuite.constants import *
+from eessi.testsuite.constants import (ALWAYS_REQUEST_GPUS, COMPUTE_UNIT, CPU, CPU_SOCKET, DEVICE_TYPES, FEATURES, GPU,
+                                       GPU_VENDOR, GPU_VENDORS, HWTHREAD, INVALID_SYSTEM, NODE, NUMA_NODE, NVIDIA,
+                                       SCALES)
 from eessi.testsuite.utils import (get_max_avail_gpus_per_node, is_cuda_required_module, log,
                                    check_proc_attribute_defined, check_extras_key_defined)
 
@@ -695,3 +698,39 @@ def _check_always_request_gpus(test: rfm.RegressionTest):
     if FEATURES[ALWAYS_REQUEST_GPUS] in test.current_partition.features and not test.num_gpus_per_node:
         test.num_gpus_per_node = test.default_num_gpus_per_node
         log(f'num_gpus_per_node set to {test.num_gpus_per_node} for partition {test.current_partition.name}')
+
+
+def measure_memory_usage(test: rfm.RegressionTest):
+    """
+    Write the memory usage into the job output file if we are in a Slurm job and if cgroups is enabled in Slurm
+    First try to obtain the memory with cgroups v2, if that fails try with cgroups v1 (v2 takes precedence)
+    Intended to be used in tandem with hook extract_memory_usage()
+    To use this hook, add the following method to your test class:
+
+    @run_after('init')
+    def measure_memory_usage(self):
+        "Measure memory usage"
+        hooks.measure_memory_usage(self)
+    """
+    test.postrun_cmds = [
+        'path_v2=/sys/fs/cgroup/$(</proc/self/cpuset)/../../../memory.peak',
+        'path_v1=/sys/fs/cgroup/memory/$(</proc/self/cpuset)/../memory.max_usage_in_bytes',
+        'if [[ -f $path_v2 ]]; then MAX_MEM_IN_BYTES=$(<$path_v2)',
+        'elif [[ -f $path_v1 ]]; then MAX_MEM_IN_BYTES=$(<$path_v1)',
+        'fi',
+        '[[ $MAX_MEM_IN_BYTES =~ ^-?[0-9]+$ ]] || (echo ERROR: unable to get memory usage; exit 1)',
+        'echo "MAX_MEM_IN_BYTES=$MAX_MEM_IN_BYTES"',
+        'echo "MAX_MEM_IN_MIB=$(($MAX_MEM_IN_BYTES/1048576))"',
+    ]
+
+
+def extract_memory_usage(test: rfm.RegressionTest):
+    """
+    Extract the memory in MiB from the job output file as written by hook measure_memory_usage()
+    To Use this hook, add the following method to your test class:
+
+    @performance_function('MiB', perf_key='memory')
+    def extract_memory_usage(self):
+        return hooks.extract_memory_usage(self)
+    """
+    return sn.extractsingle(r'^MAX_MEM_IN_MIB=(?P<memory>\S+)', test.stdout, 'memory', int)
