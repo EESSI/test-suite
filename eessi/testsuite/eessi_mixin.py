@@ -110,4 +110,4 @@ class EESSI_Mixin(RegressionMixin):
 
     @run_after('setup')
     def request_mem(self):
-        hooks.req_memory_per_node(self, app_mem_req=required_mem_per_node(self.num_tasks_per_node))
+        hooks.req_memory_per_node(self, app_mem_req=self.required_mem_per_node(self.num_tasks_per_node))
