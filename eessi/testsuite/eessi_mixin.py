@@ -85,7 +85,8 @@ class EESSI_Mixin(RegressionMixin):
         # Check if mem_func was defined to compute the required memory per node as function of the number of tasks per node
         if not hasattr(self, 'required_mem_per_node'):
             msg = "The function 'required_mem_per_node' should be defined in any test class that inherits from EESSI_Mixin in the setup phase (or earlier), "
-            msg += "but it wasn't. It should be a function that takes the number of tasks per node as argument, and return the memory per node required"
+            msg += "but it wasn't. Note that this function can use self.num_tasks_per_node, as it will be called after that attribute "
+            msg += "has been set"
             raise ReframeSyntaxError(msg)
 
         # Check that the value for these variables is valid, i.e. exists in their respetive dict from eessi.testsuite.constants
