@@ -700,11 +700,17 @@ def _check_always_request_gpus(test: rfm.RegressionTest):
         log(f'num_gpus_per_node set to {test.num_gpus_per_node} for partition {test.current_partition.name}')
 
 
-def write_memory_usage(test: rfm.RegressionTest):
+def measure_memory_usage(test: rfm.RegressionTest):
     """
     Write the memory usage into the job output file if we are in a Slurm job and if cgroups is enabled in Slurm
     First try to obtain the memory with cgroups v2, if that fails try with cgroups v1 (v2 takes precedence)
-    Intended to be used in tandem with hook extract_memory()
+    Intended to be used in tandem with hook extract_memory_usage()
+    To use this hook, add the following method to your test:
+
+    @run_after('init')
+    def measure_memory_usage(self):
+        "Measure memory usage"
+        hooks.measure_memory_usage(self)
     """
     test.postrun_cmds = [
         'path_v2=/sys/fs/cgroup/$(</proc/self/cpuset)/../../../memory.peak',
@@ -720,11 +726,11 @@ def write_memory_usage(test: rfm.RegressionTest):
 
 def extract_memory_usage(test: rfm.RegressionTest):
     """
-    Extract the memory in MiB from the job output file as written by hook write_memory_usage()
+    Extract the memory in MiB from the job output file as written by hook measure_memory_usage()
     To Use this hook, add the following method to your test:
 
     @performance_function('MiB', perf_key='memory')
-    def memory_usage(self):
+    def extract_memory_usage(self):
         return hooks.extract_memory_usage(self)
     """
     return sn.extractsingle(r'^MAX_MEM_IN_MIB=(?P<memory>\S+)', test.stdout, 'memory', int)
