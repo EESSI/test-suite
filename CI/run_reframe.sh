@@ -36,7 +36,7 @@ if [ -z "${REFRAME_ARGS}" ]; then
     REFRAME_ARGS="--tag CI --tag 1_node"
 fi
 if [ -z "${REFRAME_VERSION}"]; then
-    REFRAME_VERSION=4.5.1
+    REFRAME_VERSION=4.6.2
 fi
 if [ -z "${REFRAME_URL}" ]; then
     REFRAME_URL='https://github.com/reframe-hpc/reframe.git'
