@@ -718,9 +718,13 @@ def write_memory_usage(test: rfm.RegressionTest):
     ]
 
 
-def extract_memory(test: rfm.RegressionTest):
+def extract_memory_usage(test: rfm.RegressionTest):
     """
     Extract the memory in MiB from the job output file as written by hook write_memory_usage()
-    Use in a test method with decorator @performance_function('MiB', perf_key='memory')
+    To Use this hook, add the following method to your test:
+
+    @performance_function('MiB', perf_key='memory')
+    def memory_usage(self):
+        return hooks.extract_memory_usage(self)
     """
     return sn.extractsingle(r'^MAX_MEM_IN_MIB=(?P<memory>\S+)', test.stdout, 'memory', int)
