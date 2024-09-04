@@ -11,10 +11,14 @@ from eessi.testsuite.constants import *  # noqa
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
 class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
+    # scales = list(SCALES.keys())
+    # scales.append('blabla')
+    # scale = parameter(scales)
     scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
     valid_systems = ['*']
     time_limit = '30m'
+    #device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU], 'bla'])
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
 
     # Parameterize over all modules that start with LAMMPS
@@ -61,27 +65,33 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 #         # Set scales as tags
 #         hooks.set_tag_scale(self)
 
-    @run_after('setup')
+    @run_before('setup')
     def run_after_setup(self):
         """hooks to run after the setup phase"""
         if self.device_type == 'cpu':
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['CPU'])
+            self.compute_unit = COMPUTE_UNIT['CPU']
+            # hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['CPU'])
         elif self.device_type == 'gpu':
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['GPU'])
+            self.compute_unit = COMPUTE_UNIT['GPU']
+            # hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['GPU'])
         else:
             raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')
 
         # Set OMP_NUM_THREADS environment variable
-        hooks.set_omp_num_threads(self)
+        # hooks.set_omp_num_threads(self)
 
         # Set compact process binding
-        hooks.set_compact_process_binding(self)
+        # hooks.set_compact_process_binding(self)
 
-    @run_after('setup')
+    def required_mem_per_node(num_tasks_per_node):
+        mem = {'slope': 0.07, 'intercept': 0.5}
+        self.mem_required = (num_tasks_per_node * mem['slope'] + mem['intercept']) * 1024
+
+    @run_before('setup')
     def request_mem(self):
         mem = {'slope': 0.07, 'intercept': 0.5}
-        mem_required = self.num_tasks_per_node * mem['slope'] + mem['intercept']
-        hooks.req_memory_per_node(self, app_mem_req=mem_required * 1024)
+        # self.mem_required = (self.num_tasks_per_node * mem['slope'] + mem['intercept']) * 1024
+        # hooks.req_memory_per_node(self, app_mem_req=mem_required * 1024)
 
 
 @rfm.simple_test

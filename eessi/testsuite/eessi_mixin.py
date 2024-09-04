@@ -2,23 +2,56 @@ from reframe.core.pipeline import RegressionMixin
 from reframe.core.exceptions import ReframeSyntaxError
 
 from eessi.testsuite import hooks
+from eessi.testsuite.constants import DEVICE_TYPES, CPU, GPU, SCALES, COMPUTE_UNIT
+
 
 class EESSI_Mixin(RegressionMixin):
     """
     All EESSI tests should derive from this mixin class unless they have a very good reason not to.
+    To run correctly, tests inheriting from this class need to define variables and parameters that are used here.
+    That definition needs to be done 'on time', i.e. early enough in the execution of the ReFrame pipeline.
+    Here, we list which class attributes need to be defined, and by (the end of) what phase:
+
+    - Init phase: device_type, scale, module_name
+    - Setup phase: compute_unit, required_mem_per_node
     """
-    
+
+    # Helper function to validate if an attribute is present it item_dict.
+    # If not, print it's current name, value, and the valid_values
+    def validate_item_in_dict(self, item, item_dict, check_keys=False):
+        """
+        Check if the item 'item' exist in the values of 'item_dict'. 
+        If check_keys=True, then it will check instead of 'item' exists in the keys of 'item_dict'.
+        If item is not found, an error will be raised that will mention the valid values for 'item'.
+        """
+        if check_keys:
+            valid_items = list(item_dict.keys())
+        else:
+            valid_items = list(item_dict.values())
+
+        value = getattr(self, item) 
+        if value not in valid_items:
+            valid_items_str = (', '.join("'" + item + "'" for item in valid_items))
+            raise ReframeSyntaxError("The variable '%s' had value '%s', but the only valid values are %s" % (item, value, valid_items_str))
+   
     # We have to make sure that these gets set in any test that inherits
     # device_type = variable(str)
     # scale = variable(str)
     # module_name = variable(str)
 
     @run_after('init')
-    def validate(self):
+    def validate_init(self):
         """Check that all variables that have to be set for subsequent hooks in the init phase have been set"""
-        if not hasattr(self, 'device_type'):
-            raise ReframeSyntaxError("device_type should be defined in any class that inherits from EESSI_Mixin, but wasn't")
-            
+        # List which variables we will need/use in the run_after('init') hooks
+        var_list = ['device_type', 'scale', 'module_name']
+        for var in var_list:
+            if not hasattr(self, var):
+                raise ReframeSyntaxError("The variable '%s' should be defined in any test class that inherits from EESSI_Mixin in the init phase (or earlier), but it wasn't" % var)
+
+        # Check that the value for these variables is valid, i.e. exists in their respetive dict from eessi.testsuite.constants
+        self.validate_item_in_dict('device_type', DEVICE_TYPES)
+        self.validate_item_in_dict('scale', SCALES, check_keys=True)
+
 
     @run_after('init')
     def run_after_init(self):
@@ -33,3 +66,41 @@ class EESSI_Mixin(RegressionMixin):
 
         # Set scales as tags
         hooks.set_tag_scale(self)
+
+    @run_after('setup')
+    def validate_setup(self):
+        """Check that all variables that have to be set for subsequent hooks in the setup phase have been set"""
+        var_list = ['compute_unit']
+        for var in var_list:
+            if not hasattr(self, var):
+                raise ReframeSyntaxError("The variable '%s' should be defined in any test class that inherits from EESSI_Mixin in the setup phase (or earlier), but it wasn't" % var)
+
+        # Check if mem_func was defined to compute the required memory per node as function of the number of tasks per node
+        if not hasattr(self, 'required_mem_per_node'):
+            msg = "The function 'required_mem_per_node' should be defined in any test class that inherits from EESSI_Mixin in the setup phase (or earlier), "
+            msg += "but it wasn't. It should be a function that takes the number of tasks per node as argument, and return the memory per node required"
+            raise ReframeSyntaxError(msg)
+
+        # Check that the value for these variables is valid, i.e. exists in their respetive dict from eessi.testsuite.constants
+        self.validate_item_in_dict('compute_unit', COMPUTE_UNIT)
+
+    @run_after('setup')
+    def assign_tasks_per_compute_unit(self):
+        """hooks to run after the setup phase"""
+        hooks.assign_tasks_per_compute_unit(test=self, compute_unit=self.compute_unit)
+#         if self.device_type == 'cpu':
+#             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['CPU'])
+#         elif self.device_type == 'gpu':
+#             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['GPU'])
+#         else:
+#             raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')
+
+        # Set OMP_NUM_THREADS environment variable
+        hooks.set_omp_num_threads(self)
+
+        # Set compact process binding
+        hooks.set_compact_process_binding(self)
+
+    @run_after('setup')
+    def request_mem(self):
+        hooks.req_memory_per_node(self, app_mem_req=required_mem_per_node(self.num_tasks_per_node))
