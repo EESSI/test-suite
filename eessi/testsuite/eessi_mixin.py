@@ -4,7 +4,12 @@ from reframe.core.exceptions import ReframeSyntaxError
 from eessi.testsuite import hooks
 from eessi.testsuite.constants import DEVICE_TYPES, CPU, GPU, SCALES, COMPUTE_UNIT
 
-
+# Hooks from the Mixin class seem to be executed _before_ those of the child class
+# Thus, if the Mixin class needs self.X to be defined in after setup, the child class would have to define it before setup
+# That's a disadvantage and might not always be possible - let's see how far we get
+# It also seems that, like normal inheritance, functions with the same in the child and parent class will mean the child class
+# will overwrite that of the parent class. That is a plus, as we can use the EESSI_Mixin class as a basis, but still overwrite
+# specific functions in case specific tests would require this
 class EESSI_Mixin(RegressionMixin):
     """
     All EESSI tests should derive from this mixin class unless they have a very good reason not to.
