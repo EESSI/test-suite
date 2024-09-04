@@ -30,7 +30,7 @@ site_configuration = {
             'prefix': reframe_prefix,
             'partitions': [
                 {
-                    'name': 'x86_64-amd-zen4-node1',
+                    'name': 'x86_64-amd-zen4-node',
                     'access': ['--partition=x86-64-amd-zen4-node1', '--export=NONE'],
                     'descr': 'Zen4, 16 cores, 30 GB',
                 },
