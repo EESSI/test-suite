@@ -705,7 +705,7 @@ def measure_memory_usage(test: rfm.RegressionTest):
     Write the memory usage into the job output file if we are in a Slurm job and if cgroups is enabled in Slurm
     First try to obtain the memory with cgroups v2, if that fails try with cgroups v1 (v2 takes precedence)
     Intended to be used in tandem with hook extract_memory_usage()
-    To use this hook, add the following method to your test:
+    To use this hook, add the following method to your test class:
 
     @run_after('init')
     def measure_memory_usage(self):
@@ -727,7 +727,7 @@ def measure_memory_usage(test: rfm.RegressionTest):
 def extract_memory_usage(test: rfm.RegressionTest):
     """
     Extract the memory in MiB from the job output file as written by hook measure_memory_usage()
-    To Use this hook, add the following method to your test:
+    To Use this hook, add the following method to your test class:
 
     @performance_function('MiB', perf_key='memory')
     def extract_memory_usage(self):
