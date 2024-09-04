@@ -26,7 +26,7 @@ site_configuration = {
             'name': 'Magic_Castle_Azure',
             'descr': 'Magic Castle build and test environment on Azure',
             'modules_system': 'lmod',
-            'hostnames': ['login*', '*-node'],
+            'hostnames': ['login.*', '.*-node'],
             'prefix': reframe_prefix,
             'partitions': [
                 {
