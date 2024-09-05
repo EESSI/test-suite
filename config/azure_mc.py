@@ -43,8 +43,8 @@ site_configuration = {
                     ],
                     'extras': {
                         'mem_per_node': 768000
-                   },
-               },
+                    },
+                },
                 {
                     'name': 'aarch64-neoverse-N1-16c-62gb',
                     'access': ['--partition=aarch64-neoverse-n1-node', '--export=NONE'],
@@ -58,7 +58,7 @@ site_configuration = {
                     ],
                     'extras': {
                         'mem_per_node': 64000
-                   },
+                    },
                 },
             ]
         },
