@@ -36,12 +36,13 @@ site_configuration = {
                     'prepare_cmds': [
                         'export EESSI_SOFTWARE_SUBDIR_OVERRIDE=x86_64/amd/zen4',
                         common_eessi_init(),
-                        # Required when using srun as launcher with --export=NONE in partition access, in order to ensure job
-                        # steps inherit environment. It doesn't hurt to define this even if srun is not used
+                        # Required when using srun as launcher with --export=NONE in partition access,
+                        # in order to ensure job steps inherit environment. It doesn't hurt to define
+                        # this even if srun is not used
                         'export SLURM_EXPORT_ENV=ALL'
                     ]
                     'extras': {
-                       'mem_per_node': 768000
+                        'mem_per_node': 768000
                    },
                },
                 {
@@ -50,12 +51,13 @@ site_configuration = {
                     'descr': 'Neoverse N1, 16 cores, 62 GiB',
                     'prepare_cmds': [
                         common_eessi_init(),
-                        # Required when using srun as launcher with --export=NONE in partition access, in order to ensure job
-                        # steps inherit environment. It doesn't hurt to define this even if srun is not used
+                        # Required when using srun as launcher with --export=NONE in partition access,
+                        # in order to ensure job steps inherit environment. It doesn't hurt to define
+                        # this even if srun is not used
                         'export SLURM_EXPORT_ENV=ALL'
                     ],
                     'extras': {
-                       'mem_per_node': 64000
+                        'mem_per_node': 64000
                    },
                 },
             ]
