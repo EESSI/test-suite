@@ -33,11 +33,32 @@ site_configuration = {
                     'name': 'x86_64-amd-zen4-node',
                     'access': ['--partition=x86-64-amd-zen4-node', '--export=NONE'],
                     'descr': 'Zen4, 16 cores, 30 GB',
+                    'prepare_cmds': [
+                        'export EESSI_SOFTWARE_SUBDIR_OVERRIDE=x86_64/amd/zen4',
+                        common_eessi_init(),
+                        # Required when using srun as launcher with --export=NONE in partition access,
+                        # in order to ensure job steps inherit environment. It doesn't hurt to define
+                        # this even if srun is not used
+                        'export SLURM_EXPORT_ENV=ALL'
+                    ],
+                    'extras': {
+                        'mem_per_node': 768000
+                    },
                 },
                 {
                     'name': 'aarch64-neoverse-N1-16c-62gb',
                     'access': ['--partition=aarch64-neoverse-n1-node', '--export=NONE'],
                     'descr': 'Neoverse N1, 16 cores, 62 GiB',
+                    'prepare_cmds': [
+                        common_eessi_init(),
+                        # Required when using srun as launcher with --export=NONE in partition access,
+                        # in order to ensure job steps inherit environment. It doesn't hurt to define
+                        # this even if srun is not used
+                        'export SLURM_EXPORT_ENV=ALL'
+                    ],
+                    'extras': {
+                        'mem_per_node': 64000
+                    },
                 },
             ]
         },
@@ -69,17 +90,6 @@ partition_defaults = {
     'features': [
         FEATURES['CPU']
     ] + list(SCALES.keys()),
-    'prepare_cmds': [
-        common_eessi_init(),
-        # Required when using srun as launcher with --export=NONE in partition access, in order to ensure job
-        # steps inherit environment. It doesn't hurt to define this even if srun is not used
-        'export SLURM_EXPORT_ENV=ALL'
-    ],
-    'extras': {
-        # Node types have strongly varying amounts of memory, but we'll make it easy on ourselves
-        # All should _at least_ have this amount
-        'mem_per_node': 64000
-    },
 }
 for system in site_configuration['systems']:
     for partition in system['partitions']:
