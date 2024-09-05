@@ -40,7 +40,7 @@ site_configuration = {
                         # in order to ensure job steps inherit environment. It doesn't hurt to define
                         # this even if srun is not used
                         'export SLURM_EXPORT_ENV=ALL'
-                    ]
+                    ],
                     'extras': {
                         'mem_per_node': 768000
                    },
