@@ -92,11 +92,6 @@ site_configuration = {
                             'options': ['--mem={size}'],
                         }
                     ],
-                    'extras': {
-                        # Make sure to round down, otherwise a job might ask for more mem than is available
-                        # per node
-                        'mem_per_node': 229376  # in MiB
-                    },
                     'devices': [
                         {
                             'type': DEVICE_TYPES[GPU],
@@ -108,6 +103,9 @@ site_configuration = {
                         FEATURES[GPU],
                     ] + list(SCALES.keys()),
                     'extras': {
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 229376,  # in MiB
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },
                 },
