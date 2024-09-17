@@ -105,6 +105,12 @@ partition_defaults = {
         # steps inherit environment. It doesn't hurt to define this even if srun is not used
         'export SLURM_EXPORT_ENV=ALL'
     ],
+    'resources': [
+        {
+            'name': 'memory',
+            'options': ['--mem={size}'],
+        }
+    ],
     'extras': {
         # Node types have somewhat varying amounts of memory, but we'll make it easy on ourselves
         # All should _at least_ have this amount (30GB * 1E9 / (1024*1024) = 28610 MiB)
