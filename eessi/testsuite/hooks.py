@@ -532,17 +532,16 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
         logger = rflog.getlogger()
         msg = "Your ReFrame configuration file does not specify any resource called 'memory' for this partition "
         msg += f" ({test.current_partition.name})."
-        msg += "Without this, an explicit memory request cannot be made from the scheduler. This test will run"
+        msg += " Without this, an explicit memory request cannot be made from the scheduler. This test will run,"
         msg += " but it may result in an out of memory error."
-        msg += "Please specify how to requst memory (per node) from your resource scheduler by defining a resource"
-        msg += "'memory' in your ReFrame configuration file for this partition."
-        msg += "For a SLURM system, one would e.g. define:"
-        msg += "'resources': [{'name': 'memory', 'options': ['--mem={size}']}]"
+        msg += " Please specify how to requst memory (per node) from your resource scheduler by defining a resource"
+        msg += " 'memory' in your ReFrame configuration file for this partition."
+        msg += " For a SLURM system, one would e.g. define:"
+        msg += " 'resources': [{'name': 'memory', 'options': ['--mem={size}']}]"
         logger.warning(msg)
         # We return, as setting a test.extra_resources is pointless - it would be ignored anyway
         # This way, we also don't add any lines to the log that a specific amount of memory was requested
         return
-
 
     # Compute what is higher: the requested memory, or the memory available proportional to requested CPUs
     # Fraction of CPU cores requested
