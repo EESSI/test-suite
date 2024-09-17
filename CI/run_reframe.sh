@@ -68,6 +68,11 @@ fi
 if [ -z "${RFM_PREFIX}" ]; then
     export RFM_PREFIX="${HOME}/reframe_CI_runs"
 fi
+if [ -z "${REFRAME_TIMEOUT}" ]; then
+    # 10 minutes short of 1 day, since typically the test suite will be run daily.
+    # This will prevent multiple ReFrame runs from piling up and exceeding the quota on our Magic Castle clusters
+    export REFRAME_TIMEOUT=1430m
+fi
 
 # Create virtualenv for ReFrame using system python
 python3 -m venv "${TEMPDIR}"/reframe_venv
@@ -118,7 +123,7 @@ reframe ${REFRAME_ARGS} --list
 
 # Run
 echo "Run tests:"
-reframe ${REFRAME_ARGS} --run
+timeout -v --preserve-status -s SIGTERM ${REFRAME_TIMEOUT} reframe ${REFRAME_ARGS} --run
 
 # Cleanup
 rm -rf "${TEMPDIR}"
