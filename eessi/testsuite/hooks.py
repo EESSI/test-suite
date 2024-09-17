@@ -525,6 +525,25 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
     msg += f" but {app_mem_req} MiB is needed"
     test.skip_if(test.current_partition.extras['mem_per_node'] < app_mem_req, msg)
 
+    # Check if a resource with the name 'memory' was set in the ReFrame config file. If not, warn the user
+    # and return from this hook (as setting test.extra_resources will be ignored in that case according to
+    # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.extra_resources
+    if 'memory' not in test.current_partition.resources:
+        logger = rflog.getlogger()
+        msg = "Your ReFrame configuration file does not specify any resource called 'memory' for this partition "
+        msg += f" ({test.current_partition.name})."
+        msg += "Without this, an explicit memory request cannot be made from the scheduler. This test will run"
+        msg += " but it may result in an out of memory error."
+        msg += "Please specify how to requst memory (per node) from your resource scheduler by defining a resource"
+        msg += "'memory' in your ReFrame configuration file for this partition."
+        msg += "For a SLURM system, one would e.g. define:"
+        msg += "'resources': [{'name': 'memory', 'options': ['--mem={size}']}]"
+        logger.warning(msg)
+        # We return, as setting a test.extra_resources is pointless - it would be ignored anyway
+        # This way, we also don't add any lines to the log that a specific amount of memory was requested
+        return
+
+
     # Compute what is higher: the requested memory, or the memory available proportional to requested CPUs
     # Fraction of CPU cores requested
     check_proc_attribute_defined(test, 'num_cpus')
