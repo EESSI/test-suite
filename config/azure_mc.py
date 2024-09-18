@@ -90,6 +90,12 @@ partition_defaults = {
     'features': [
         FEATURES['CPU']
     ] + list(SCALES.keys()),
+    'resources': [
+        {
+            'name': 'memory',
+            'options': ['--mem={size}'],
+        }
+    ],
 }
 for system in site_configuration['systems']:
     for partition in system['partitions']:

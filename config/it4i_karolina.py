@@ -60,6 +60,12 @@ site_configuration = {
                     'features': [
                         FEATURES[CPU],
                     ] + list(SCALES.keys()),
+                    'resources': [
+                        {
+                            'name': 'memory',
+                            'options': ['--mem={size}'],
+                        }
+                    ],
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
