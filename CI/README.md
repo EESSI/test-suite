@@ -36,6 +36,7 @@ It should define:
 - `RFM_CHECK_SEARCH_PATH` (optional): the search path where ReFrame should search for tests to run in this CI pipeline. Default: `${TEMPDIR}/test-suite/eessi/testsuite/tests/`.
 - `RFM_CHECK_SEARCH_RECURSIVE` (optional): whether ReFrame should search `RFM_CHECK_SEARCH_PATH` recursively. Default: `1`.
 - `RFM_PREFIX` (optional): the prefix in which ReFrame stores all the files. Default: `${HOME}/reframe_CI_runs`.
+- `REFRAME_TIMEOUT` (optional): DURATION as passed to the `timeout` command in Unix. If the `reframe` commands runs for longer than this, it will be killed by SIGTERM. The ReFrame runtime will then cancel all scheduled (and running) jobs. Can be used to make sure jobs don't pile up, e.g. if the test suite runs daily, but it takes longer than one day to process all jobs.
 
 ## Creating the `crontab` entry and specifying `EESSI_CI_SYSTEM_NAME`
 This line depends on how often you want to run the tests, and where the `run_reframe_wrapper.sh` is located exactly. We also define the EESSI_CI_SYSTEM_NAME in this entry, as cronjobs don't normally read your `.bashrc` (and thus we need a different way of specifying this environment variable).
