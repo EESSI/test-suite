@@ -79,7 +79,7 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
             self.compute_unit = COMPUTE_UNIT['GPU']
             # hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['GPU'])
         else:
-            raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')
+            raise NotImplementedError(f'No mapping of device type {self.device_type} to a COMPUTE_UNIT was specified in this test')
 
         # Set OMP_NUM_THREADS environment variable
         # hooks.set_omp_num_threads(self)
