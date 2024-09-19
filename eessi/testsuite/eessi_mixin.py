@@ -1,9 +1,12 @@
-from reframe.core.pipeline import RegressionMixin
+from reframe.core.builtins import variable
 from reframe.core.exceptions import ReframeSyntaxError
+from reframe.core.pipeline import RegressionMixin
 from reframe.utility.sanity import make_performance_function
 
 from eessi.testsuite import hooks
 from eessi.testsuite.constants import DEVICE_TYPES, CPU, GPU, SCALES, COMPUTE_UNIT
+
+from eessi.testsuite import __version__ as EESSI_TESTSUITE_VERSION
 
 # Hooks from the Mixin class seem to be executed _before_ those of the child class
 # Thus, if the Mixin class needs self.X to be defined in after setup, the child class would have to define it before setup
@@ -27,6 +30,9 @@ class EESSI_Mixin(RegressionMixin):
     - Init phase: device_type, scale, module_name
     - Setup phase: compute_unit, required_mem_per_node
     """
+
+    # Current version of the EESSI test suite
+    eessi_testsuite_version = variable(str, value=EESSI_TESTSUITE_VERSION)
 
     measure_memory_usage = False
 #    valid_prog_environs = ['default']
