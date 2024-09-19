@@ -34,6 +34,11 @@ class EESSI_Mixin(RegressionMixin):
 #    time_limit = '30m'
     scale = parameter(SCALES.keys())
 
+    # Note that the error for an empty parameter is a bit unclear for ReFrame 4.6.2, but that will hopefully improve
+    # see https://github.com/reframe-hpc/reframe/issues/3254
+    # If that improves: uncomment the following to force the user to set module_name
+    # module_name = parameter()
+
     # Helper function to validate if an attribute is present it item_dict.
     # If not, print it's current name, value, and the valid_values
     def validate_item_in_dict(self, item, item_dict, check_keys=False):
