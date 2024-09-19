@@ -1,5 +1,6 @@
 from reframe.core.pipeline import RegressionMixin
 from reframe.core.exceptions import ReframeSyntaxError
+from reframe.utility.sanity import make_performance_function
 
 from eessi.testsuite import hooks
 from eessi.testsuite.constants import DEVICE_TYPES, CPU, GPU, SCALES, COMPUTE_UNIT
@@ -26,6 +27,12 @@ class EESSI_Mixin(RegressionMixin):
     - Init phase: device_type, scale, module_name
     - Setup phase: compute_unit, required_mem_per_node
     """
+
+    measure_memory_usage = False
+#    valid_prog_environs = ['default']
+#    valid_systems = ['*']
+#    time_limit = '30m'
+    scale = parameter(SCALES.keys())
 
     # Helper function to validate if an attribute is present it item_dict.
     # If not, print it's current name, value, and the valid_values
@@ -54,7 +61,7 @@ class EESSI_Mixin(RegressionMixin):
     def validate_init(self):
         """Check that all variables that have to be set for subsequent hooks in the init phase have been set"""
         # List which variables we will need/use in the run_after('init') hooks
-        var_list = ['device_type', 'scale', 'module_name']
+        var_list = ['device_type', 'scale', 'module_name', 'measure_memory_usage']
         for var in var_list:
             if not hasattr(self, var):
                 raise ReframeSyntaxError("The variable '%s' should be defined in any test class that inherits from EESSI_Mixin in the init phase (or earlier), but it wasn't" % var)
@@ -77,6 +84,14 @@ class EESSI_Mixin(RegressionMixin):
 
         # Set scales as tags
         hooks.set_tag_scale(self)
+
+    @run_after('init')
+    def measure_mem_usage(self):
+        if self.measure_memory_usage:
+             hooks.measure_memory_usage(self)
+             # Since we want to do this conditionally on self.measure_mem_usage, we use make_performance_function
+             # instead of the @performance_function decorator
+             self.perf_variables['memory'] = make_performance_function(hooks.extract_memory_usage, 'MiB', self)
 
     @run_after('setup')
     def validate_setup(self):
@@ -116,3 +131,4 @@ class EESSI_Mixin(RegressionMixin):
     @run_after('setup')
     def request_mem(self):
         hooks.req_memory_per_node(self, app_mem_req=self.required_mem_per_node())
+

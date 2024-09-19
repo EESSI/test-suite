@@ -11,14 +11,10 @@ from eessi.testsuite.constants import *  # noqa
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
 class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
-    # scales = list(SCALES.keys())
-    # scales.append('blabla')
-    # scale = parameter(scales)
-    scale = parameter(SCALES.keys())
     valid_prog_environs = ['default']
     valid_systems = ['*']
     time_limit = '30m'
-    #device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU], 'bla'])
+
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
 
     # Parameterize over all modules that start with LAMMPS
