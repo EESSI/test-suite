@@ -1,24 +1,25 @@
-from reframe.core.builtins import variable
+from reframe.core.builtins import variable, parameter, run_after
 from reframe.core.exceptions import ReframeSyntaxError
 from reframe.core.pipeline import RegressionMixin
 from reframe.utility.sanity import make_performance_function
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import DEVICE_TYPES, CPU, GPU, SCALES, COMPUTE_UNIT
+from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNIT
 
 from eessi.testsuite import __version__ as EESSI_TESTSUITE_VERSION
 
 # Hooks from the Mixin class seem to be executed _before_ those of the child class
-# Thus, if the Mixin class needs self.X to be defined in after setup, the child class would have to define it before setup
-# That's a disadvantage and might not always be possible - let's see how far we get
-# It also seems that, like normal inheritance, functions with the same in the child and parent class will mean the child class
-# will overwrite that of the parent class. That is a plus, as we can use the EESSI_Mixin class as a basis, but still overwrite
-# specific functions in case specific tests would require this
-# TODO: for this reason, we probably want to put _each_ hooks.something invocation into a seperate function, so that each 
-# individual one can be overwritten
+# Thus, if the Mixin class needs self.X to be defined in after setup, the child class would have to define it before
+# setup. That's a disadvantage and might not always be possible - let's see how far we get. It also seems that,
+# like normal inheritance, functions with the same in the child and parent class will mean the child class
+# will overwrite that of the parent class. That is a plus, as we can use the EESSI_Mixin class as a basis,
+# but still overwrite specific functions in case specific tests would require this
+# TODO: for this reason, we probably want to put _each_ hooks.something invocation into a seperate function,
+# so that each individual one can be overwritten
 
 # Note that I don't think we can do anything about the things set in the class body, such as the parameter's.
-# Maybe we can move those to an __init__ step of the Mixin, even though that is not typically how ReFrame does it anymore?
+# Maybe we can move those to an __init__ step of the Mixin, even though that is not typically how ReFrame 
+# does it anymore?
 # That way, the child class could define it as class variables, and the parent can use it in its __init__ method?
 class EESSI_Mixin(RegressionMixin):
     """
@@ -61,7 +62,8 @@ class EESSI_Mixin(RegressionMixin):
         value = getattr(self, item) 
         if value not in valid_items:
             valid_items_str = (', '.join("'" + item + "'" for item in valid_items))
-            raise ReframeSyntaxError("The variable '%s' had value '%s', but the only valid values are %s" % (item, value, valid_items_str))
+            msg = "The variable '%s' had value '%s', but the only valid values are %s" % (item, value, valid_items_str)
+            raise ReframeSyntaxError(msg)
    
     # We have to make sure that these gets set in any test that inherits
     # device_type = variable(str)
@@ -75,9 +77,12 @@ class EESSI_Mixin(RegressionMixin):
         var_list = ['device_type', 'scale', 'module_name', 'measure_memory_usage']
         for var in var_list:
             if not hasattr(self, var):
-                raise ReframeSyntaxError("The variable '%s' should be defined in any test class that inherits from EESSI_Mixin in the init phase (or earlier), but it wasn't" % var)
+                msg = "The variable '%s' should be defined in any test class that inherits" % var
+                msg += " from EESSI_Mixin in the init phase (or earlier), but it wasn't"
+                raise ReframeSyntaxError(msg)
 
-        # Check that the value for these variables is valid, i.e. exists in their respetive dict from eessi.testsuite.constants
+        # Check that the value for these variables is valid,
+        # i.e. exists in their respective dict from eessi.testsuite.constants
         self.validate_item_in_dict('device_type', DEVICE_TYPES)
         self.validate_item_in_dict('scale', SCALES, check_keys=True)
 
@@ -110,28 +115,26 @@ class EESSI_Mixin(RegressionMixin):
         var_list = ['compute_unit']
         for var in var_list:
             if not hasattr(self, var):
-                raise ReframeSyntaxError("The variable '%s' should be defined in any test class that inherits from EESSI_Mixin in the setup phase (or earlier), but it wasn't" % var)
+                msg = "The variable '%s' should be defined in any test class that inherits" % var
+                msg += " from EESSI_Mixin in the setup phase (or earlier), but it wasn't"
+                raise ReframeSyntaxError(msg)
 
         # Check if mem_func was defined to compute the required memory per node as function of the number of tasks per node
         if not hasattr(self, 'required_mem_per_node'):
-            msg = "The function 'required_mem_per_node' should be defined in any test class that inherits from EESSI_Mixin in the setup phase (or earlier), "
-            msg += "but it wasn't. Note that this function can use self.num_tasks_per_node, as it will be called after that attribute "
-            msg += "has been set"
+            msg = "The function 'required_mem_per_node' should be defined in any test class that inherits"
+            msg += " from EESSI_Mixin in the setup phase (or earlier), but it wasn't. Note that this function"
+            msg += " can use self.num_tasks_per_node, as it will be called after that attribute"
+            msg += " has been set."
             raise ReframeSyntaxError(msg)
 
-        # Check that the value for these variables is valid, i.e. exists in their respetive dict from eessi.testsuite.constants
+        # Check that the value for these variables is valid
+        # i.e. exists in their respective dict from eessi.testsuite.constants
         self.validate_item_in_dict('compute_unit', COMPUTE_UNIT)
 
     @run_after('setup')
     def assign_tasks_per_compute_unit(self):
         """hooks to run after the setup phase"""
         hooks.assign_tasks_per_compute_unit(test=self, compute_unit=self.compute_unit)
-#         if self.device_type == 'cpu':
-#             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['CPU'])
-#         elif self.device_type == 'gpu':
-#             hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['GPU'])
-#         else:
-#             raise NotImplementedError(f'Failed to set number of tasks and cpus per task for device {self.device_type}')
 
         # Set OMP_NUM_THREADS environment variable
         hooks.set_omp_num_threads(self)
@@ -142,4 +145,3 @@ class EESSI_Mixin(RegressionMixin):
     @run_after('setup')
     def request_mem(self):
         hooks.req_memory_per_node(self, app_mem_req=self.required_mem_per_node())
-
