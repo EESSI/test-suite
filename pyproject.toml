@@ -1,6 +1,6 @@
 [build-system]
 # Setuptools_scm<7 to be compatible with Python 3.6
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]<7", "packaging<=21.3"]
+requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
