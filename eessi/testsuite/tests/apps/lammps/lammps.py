@@ -10,6 +10,7 @@ from eessi.testsuite import hooks, utils
 from eessi.testsuite.constants import *  # noqa
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
+
 class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     valid_prog_environs = ['default']
     valid_systems = ['*']
@@ -59,7 +60,8 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         elif self.device_type == 'gpu':
             self.compute_unit = COMPUTE_UNIT['GPU']
         else:
-            raise NotImplementedError(f'No mapping of device type {self.device_type} to a COMPUTE_UNIT was specified in this test')
+            msg = f"No mapping of device type {self.device_type} to a COMPUTE_UNIT was specified in this test"
+            raise NotImplementedError(msg)
 
 
 @rfm.simple_test

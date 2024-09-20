@@ -8,6 +8,7 @@ from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNIT
 
 from eessi.testsuite import __version__ as EESSI_TESTSUITE_VERSION
 
+
 # Hooks from the Mixin class seem to be executed _before_ those of the child class
 # Thus, if the Mixin class needs self.X to be defined in after setup, the child class would have to define it before
 # setup. That's a disadvantage and might not always be possible - let's see how far we get. It also seems that,
