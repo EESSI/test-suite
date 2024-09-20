@@ -3,7 +3,7 @@ import sys
 
 python_version = sys.version_info
 if python_version < (3, 8):
-    scm_require = ['packaging<=21.3, setuptools_scm<7']
+    scm_require = ['packaging<=21.3', 'setuptools_scm<7']
     scm_arg_key = "write_to"
 else:
     scm_require = ['setuptools_scm>=8']
