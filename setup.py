@@ -1,6 +1,7 @@
 import setuptools
 import pkg_resources
 
+
 # write_to got replaced by version_file starting from setuptools_scm v8.
 def get_setuptools_scm_version():
     try:
@@ -8,6 +9,7 @@ def get_setuptools_scm_version():
         return tuple(map(int, scm_version.split(".")[:2]))  # Convert version string to tuple, e.g., (8, 0)
     except pkg_resources.DistributionNotFound:
         return (0, 0)  # If setuptools_scm is not found, assume version 0.0
+
 
 scm_version = get_setuptools_scm_version()
 
