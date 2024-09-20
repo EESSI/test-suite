@@ -11,7 +11,6 @@ def get_setuptools_scm_version():
 
 scm_version = get_setuptools_scm_version()
 
-python_version = sys.version_info
 if scm_version >= (8, 0):
     scm_arg_key = "version_file"
 else:
