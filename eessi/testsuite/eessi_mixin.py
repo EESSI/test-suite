@@ -16,9 +16,9 @@ from eessi.testsuite import __version__ as EESSI_TESTSUITE_VERSION
 # but still overwrite specific functions in case specific tests would require this
 # TODO: for this reason, we probably want to put _each_ hooks.something invocation into a seperate function,
 # so that each individual one can be overwritten
-
+#
 # Note that I don't think we can do anything about the things set in the class body, such as the parameter's.
-# Maybe we can move those to an __init__ step of the Mixin, even though that is not typically how ReFrame 
+# Maybe we can move those to an __init__ step of the Mixin, even though that is not typically how ReFrame
 # does it anymore?
 # That way, the child class could define it as class variables, and the parent can use it in its __init__ method?
 class EESSI_Mixin(RegressionMixin):
@@ -50,7 +50,7 @@ class EESSI_Mixin(RegressionMixin):
     # If not, print it's current name, value, and the valid_values
     def validate_item_in_dict(self, item, item_dict, check_keys=False):
         """
-        Check if the item 'item' exist in the values of 'item_dict'. 
+        Check if the item 'item' exist in the values of 'item_dict'.
         If check_keys=True, then it will check instead of 'item' exists in the keys of 'item_dict'.
         If item is not found, an error will be raised that will mention the valid values for 'item'.
         """
@@ -59,12 +59,12 @@ class EESSI_Mixin(RegressionMixin):
         else:
             valid_items = list(item_dict.values())
 
-        value = getattr(self, item) 
+        value = getattr(self, item)
         if value not in valid_items:
             valid_items_str = (', '.join("'" + item + "'" for item in valid_items))
             msg = "The variable '%s' had value '%s', but the only valid values are %s" % (item, value, valid_items_str)
             raise ReframeSyntaxError(msg)
-   
+ 
     # We have to make sure that these gets set in any test that inherits
     # device_type = variable(str)
     # scale = variable(str)
@@ -86,7 +86,6 @@ class EESSI_Mixin(RegressionMixin):
         self.validate_item_in_dict('device_type', DEVICE_TYPES)
         self.validate_item_in_dict('scale', SCALES, check_keys=True)
 
-
     @run_after('init')
     def run_after_init(self):
         """Hooks to run after init phase"""
@@ -104,10 +103,10 @@ class EESSI_Mixin(RegressionMixin):
     @run_after('init')
     def measure_mem_usage(self):
         if self.measure_memory_usage:
-             hooks.measure_memory_usage(self)
-             # Since we want to do this conditionally on self.measure_mem_usage, we use make_performance_function
-             # instead of the @performance_function decorator
-             self.perf_variables['memory'] = make_performance_function(hooks.extract_memory_usage, 'MiB', self)
+            hooks.measure_memory_usage(self)
+            # Since we want to do this conditionally on self.measure_mem_usage, we use make_performance_function
+            # instead of the @performance_function decorator
+            self.perf_variables['memory'] = make_performance_function(hooks.extract_memory_usage, 'MiB', self)
 
     @run_after('setup')
     def validate_setup(self):
@@ -119,7 +118,8 @@ class EESSI_Mixin(RegressionMixin):
                 msg += " from EESSI_Mixin in the setup phase (or earlier), but it wasn't"
                 raise ReframeSyntaxError(msg)
 
-        # Check if mem_func was defined to compute the required memory per node as function of the number of tasks per node
+        # Check if mem_func was defined to compute the required memory per node as function of the number of
+        # tasks per node
         if not hasattr(self, 'required_mem_per_node'):
             msg = "The function 'required_mem_per_node' should be defined in any test class that inherits"
             msg += " from EESSI_Mixin in the setup phase (or earlier), but it wasn't. Note that this function"
