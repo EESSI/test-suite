@@ -23,4 +23,3 @@ include = ["eessi*"]
 [tool.setuptools_scm]
 version_scheme = "guess-next-dev"
 local_scheme = "node-and-date"
-version_file = "eessi/testsuite/_version.py"
