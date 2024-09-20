@@ -1,8 +1,6 @@
 import setuptools
 import sys
 
-scm_version = get_setuptools_scm_version()
-
 python_version = sys.version_info
 if python_version < (3, 8):
     scm_require='setuptools_scm<7'
