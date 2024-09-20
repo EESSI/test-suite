@@ -1,7 +1,8 @@
 from importlib.metadata import version, PackageNotFoundError
 # If this is an installed package, setuptools_scm should have written the file _version.py in the current directory
 try:
-    from . import _version
+    print("try importing version")
+    from _version import __version__
 except ImportError:
     # Fallback for when the package is not installed, but git cloned. Note that this requires setuptools_scm to be
     # available as a runtime dependency
