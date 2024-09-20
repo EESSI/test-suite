@@ -2,6 +2,6 @@ import setuptools
 import os
 
 setuptools.setup(
-    use_scm_version=True,
+    use_scm_version={"version_file": "eessi/testsuite/_version.py"},
     setup_requires=['setuptools_scm'],
 )

@@ -1,7 +1,12 @@
 from importlib.metadata import version, PackageNotFoundError
 try:
-    __version__ = version("eessi-testsuite")
-except PackageNotFoundError:
+    from . import _version.py
+except ImportError:
+# We probably no longer needed this: if it is an installed package, we can read the version from _version.py
+# try:
+#     __version__ = version("eessi-testsuite")
+# except PackageNotFoundError:
+    # Fallback for when it is not an installed package, but is a git clone
     try:
         from setuptools_scm import get_version
         # Using a relative path for relative_to doesn't work, because it will be relative to the current working
