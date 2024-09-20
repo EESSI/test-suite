@@ -65,7 +65,7 @@ class EESSI_Mixin(RegressionMixin):
             valid_items_str = (', '.join("'" + item + "'" for item in valid_items))
             msg = "The variable '%s' had value '%s', but the only valid values are %s" % (item, value, valid_items_str)
             raise ReframeSyntaxError(msg)
- 
+
     # We have to make sure that these gets set in any test that inherits
     # device_type = variable(str)
     # scale = variable(str)
