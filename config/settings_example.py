@@ -56,6 +56,11 @@ site_configuration = {
                             'options': ['--mem={size}'],
                         }
                     ],
+                    'extras': {
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 229376  # in MiB
+                    },
                     # list(SCALES.keys()) adds all the scales from eessi.testsuite.constants as valid for thi partition
                     # Can be modified if not all scales can run on this partition, see e.g. the surf_snellius.py config
                     'features': [FEATURES[CPU]] + list(SCALES.keys()),
@@ -98,6 +103,9 @@ site_configuration = {
                         FEATURES[GPU],
                     ] + list(SCALES.keys()),
                     'extras': {
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        'mem_per_node': 229376,  # in MiB
                         GPU_VENDOR: GPU_VENDORS[NVIDIA],
                     },
                 },

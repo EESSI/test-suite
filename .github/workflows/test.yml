@@ -36,7 +36,6 @@ jobs:
             # update $PYTHONPATH so 'import eessi.testsuite.utils' works
             export PYTHONPATH=$PWD:$PYTHONPATH
             echo $PYTHONPATH
-            python -c 'import eessi.testsuite.utils'
 
             # show active ReFrame configuration,
             # enable verbose output to help expose problems with configuration file (if any)
