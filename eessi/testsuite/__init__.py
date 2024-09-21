@@ -1,7 +1,9 @@
-from importlib.metadata import version, PackageNotFoundError
+# If this is an installed package, setuptools_scm should have written the file _version.py in the current directory
 try:
-    __version__ = version("eessi-testsuite")
-except PackageNotFoundError:
+    from ._version import __version__
+except ImportError:
+    # Fallback for when the package is not installed, but git cloned. Note that this requires setuptools_scm to be
+    # available as a runtime dependency
     try:
         from setuptools_scm import get_version
         # Using a relative path for relative_to doesn't work, because it will be relative to the current working

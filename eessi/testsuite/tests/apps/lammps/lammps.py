@@ -10,6 +10,7 @@ from eessi.testsuite import hooks, utils
 from eessi.testsuite.constants import *  # noqa
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
+
 class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     valid_prog_environs = ['default']
     valid_systems = ['*']
@@ -51,44 +52,16 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
         return sn.assert_eq(n_atoms, 32000)
 
-#     @run_after('init')
-#     def run_after_init(self):
-#         """hooks to run after init phase"""
-# 
-#         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
-#         hooks.filter_supported_scales(self)
-# 
-#         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
-# 
-#         hooks.set_modules(self)
-# 
-#         # Set scales as tags
-#         hooks.set_tag_scale(self)
-
     @run_after('init')
     def run_after_setup(self):
         """hooks to run after the setup phase"""
         if self.device_type == 'cpu':
             self.compute_unit = COMPUTE_UNIT['CPU']
-            # hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['CPU'])
         elif self.device_type == 'gpu':
             self.compute_unit = COMPUTE_UNIT['GPU']
-            # hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT['GPU'])
         else:
-            raise NotImplementedError(f'No mapping of device type {self.device_type} to a COMPUTE_UNIT was specified in this test')
-
-        # Set OMP_NUM_THREADS environment variable
-        # hooks.set_omp_num_threads(self)
-
-        # Set compact process binding
-        # hooks.set_compact_process_binding(self)
-
-
-    #@run_after('init')
-    #def request_mem(self):
-        #mem = {'slope': 0.07, 'intercept': 0.5}
-        # self.mem_required = (self.num_tasks_per_node * mem['slope'] + mem['intercept']) * 1024
-        # hooks.req_memory_per_node(self, app_mem_req=mem_required * 1024)
+            msg = f"No mapping of device type {self.device_type} to a COMPUTE_UNIT was specified in this test"
+            raise NotImplementedError(msg)
 
 
 @rfm.simple_test
