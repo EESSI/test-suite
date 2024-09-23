@@ -22,6 +22,7 @@ except ImportError:
         # but SHOULD exist when this is run from a downloaded tarball from git)
 
         # Pyproject.toml should be two levels up from this file
+        import os.path
         pyproject_toml = "%s/../../pyproject.toml" % os.path.dirname(__file__)
 
         # Variables to track if we're in the right section and to store the fallback_version
