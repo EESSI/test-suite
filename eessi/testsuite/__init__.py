@@ -13,4 +13,4 @@ except ImportError:
         # Note that if we ever move this __init__ file relative to the root of the git tree, we'll need to adjust this
         __version__ = get_version(root='../..', relative_to=__file__)
     except ImportError:
-        __version__ = "0.0.0"  # fallback version if setuptools_scm is not available
+        __version__ = "99.99.99"  # fallback version if setuptools_scm is not available
