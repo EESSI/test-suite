@@ -10,7 +10,9 @@ else:
     scm_arg_key = "version_file"
 
 
+from eessi.testsuite import __version__
+
 setuptools.setup(
-    use_scm_version={scm_arg_key: 'eessi/testsuite/_version.py'},
+    use_scm_version={scm_arg_key: 'eessi/testsuite/_version.py', fallback_version = __version__},
     setup_requires=scm_require,
 )
