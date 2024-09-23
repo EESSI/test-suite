@@ -15,7 +15,7 @@ except ImportError:
         # (namely: two levels up)
         # Note that if we ever move this __init__ file relative to the root of the git tree, we'll need to adjust this
         __version__ = get_version(root='../..', relative_to=__file__)
-    except ImportError:
+    except (ImportError, LookupError):
         # If running from a tarball (e.g. release tarball) downloaded from github, we will not have the .git
         # folder available. Thus, setuptools_scm cannot determine the version in any way. Thus, use the
         # fallback_version from the pyproject.toml file (which doesn't exist when this is installed as a package,
