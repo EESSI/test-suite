@@ -22,7 +22,7 @@ except ImportError:
         # but SHOULD exist when this is run from a downloaded tarball from git)
 
         # Pyproject.toml should be two levels up from this file
-        pyproject_toml = "%s/../../pyproject.toml" % __file__
+        pyproject_toml = "%s/../../pyproject.toml" % os.path.dirname(__file__)
 
         # Variables to track if we're in the right section and to store the fallback_version
         in_setuptools_scm_section = False
