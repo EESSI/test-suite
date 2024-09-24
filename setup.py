@@ -11,7 +11,7 @@ python_version = sys.version_info
 current_setuptools_version = pkg_resources.parse_version(pkg_resources.get_distribution("setuptools").version)
 
 # Set the version requirement for setuptools_scm, depending on the combination of Python and setuptools version
-if python_version >= (3, 8) and current_setuptools_version >= pgk_resources.parse_version("61.0.0"):
+if python_version >= (3, 8) and current_setuptools_version >= pkg_resources.parse_version("61.0.0"):
     setuptools_scm_requirement = 'setuptools_scm>8.0.0,<=8.1.0'
     scm_arg_key = "version_file"
 elif python_version >= (3, 7) and current_setuptools_version >= pkg_resources.parse_version("45.0.0"):
