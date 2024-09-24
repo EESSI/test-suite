@@ -34,7 +34,8 @@ jobs:
 
         - name: Install EESSI test suite with 'pip install'
           run: |
-            ls -al 
+            ls -al
+            export SETUPTOOLS_SCM_DEBUG=1
             # install from source distribution tarball, to test release as published on PyPI
             rm -rf dist
             python setup.py sdist
