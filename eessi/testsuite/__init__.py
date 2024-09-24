@@ -44,7 +44,7 @@ except ImportError:
                 with file:
                     for line in file:
                         stripped_line = line.strip()
-    
+
                         # Check if we're entering the [tool.setuptools_scm] section
                         if stripped_line == "[tool.setuptools_scm]":
                             in_setuptools_scm_section = True
