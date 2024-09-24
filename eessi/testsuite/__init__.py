@@ -45,7 +45,7 @@ except ImportError:
                     elif stripped_line.startswith("[") and in_setuptools_scm_section:
                         # We've reached a new section, so stop searching
                         break
- 
+
                     # If we're in the right section, look for the fallback_version key
                     if in_setuptools_scm_section and stripped_line.startswith("fallback_version"):
                         # Extract the value after the '=' sign and strip any surrounding quotes or whitespace
@@ -68,6 +68,10 @@ except ImportError:
         except Exception as e:
             print("When trying to open file %s, an exception was raised: %s." % (pyproject_toml, e))
 
-        # One of the above three methods SHOULD work in any situation. If it doesn't, one will at this point
-        # get an error when trying to import __version__ from this file. That's ok, it's considered a bug
-        # if you reach this point without having a __version__ set
+# One of the above three methods to get __version__ defined SHOULD work in any situation.
+# It's considered a bug you reach this point without having a __version__ set
+if not __version__:
+    msg = "__version__ should have been defined by now, but it is not."
+    msg += " This is considered a bug, please report it in an issue on Github for the"
+    msg += " EESSI test suite."
+    raise ValueError(msg)

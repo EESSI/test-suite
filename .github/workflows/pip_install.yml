@@ -48,6 +48,7 @@ jobs:
             python --version
             python -m pip --version
             python -c 'import setuptools; print("setuptools", setuptools.__version__)'
+            python -c 'import eessi.testsuite; print("eessi.testsuite:", eess.testsuite.__version__)'
 
             python -c 'import eessi.testsuite.utils'
             python -c 'import eessi.testsuite.tests.apps'

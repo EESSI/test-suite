@@ -2,6 +2,7 @@ import setuptools
 import sys
 import pkg_resources
 
+
 def get_version_by_import():
     # Add the fallback version to whatever was set for scm_dict
     sys.path.append('.')
