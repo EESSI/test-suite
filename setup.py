@@ -32,7 +32,6 @@ elif python_version >= (3, 6) and current_setuptools_version >= pkg_resources.pa
     setuptools_scm_requirement = 'setuptools_scm>=5.0.0,<=5.0.2'
 elif python_version >= (3, 6) and current_setuptools_version >= pkg_resources.parse_version("34.4.0"):
     setuptools_scm_requirement = 'setuptools_scm>=4.0.0,<=4.1.2'
-    scm_dict = {'write_to': version_file_path, 'write_to_template': '__version__ = "{version}"'}
 
 # Set the fallback_version for scm based on what eessi.testsuite.__version__ returns
 scm_dict['fallback_version'] = get_version_by_import()
