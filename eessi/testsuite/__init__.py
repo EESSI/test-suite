@@ -32,8 +32,8 @@ except ImportError:
         try:
             file = open(pyproject_toml, 'r')
         except FileNotFoundError:
-            msg = "File %s not found when trying to extract the EESSI test suite version from pyproject.toml."
-            msg += "This should never happen. Please report an issue on GitHub, including information on how you"
+            msg = "File %s not found when trying to extract the EESSI test suite version from" % pyproject_toml
+            msg += " pyproject.toml. This should never happen. Please report an issue on GitHub, including information on how you"
             msg += " installed the EESSI test suite. Defaulting to version 0.0.0"
             print(msg)
             __version__ = "0.0.0"
