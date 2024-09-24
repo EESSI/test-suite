@@ -1,5 +1,9 @@
 # WARNING: this file is imported in setup.py
 # To make sure this works, we should avoid using imports other than from the Python standard library
+
+# Set a fallback, so that failing to get the version from elsewhere doesn't cause a breaking error
+__version__ = "0.0.0"
+
 try:
     # If this is an installed package, setuptools_scm will have written the _version.py file in the current directory
     from ._version import __version__
@@ -29,17 +33,19 @@ except ImportError:
         in_setuptools_scm_section = False
         fallback_version = None
 
+        file = None
         try:
             file = open(pyproject_toml, 'r')
         except FileNotFoundError:
             msg = "File %s not found when trying to extract the EESSI test suite version from" % pyproject_toml
             msg += " pyproject.toml. This should never happen. Please report an issue on GitHub, including information on how you"
-            msg += " installed the EESSI test suite. Defaulting to version 0.0.0"
+            msg += " installed the EESSI test suite. Defaulting to version %s." % __version__
             print(msg)
-            __version__ = "0.0.0"
+        except Exception as e:
+            print("When trying to open file %s, an exception was raised: %s." % (pyproject_toml, e))
 
         # Open the file and parse it manually
-        __version__ = None
+        fallback_version = None
         with file:
             for line in file:
                 stripped_line = line.strip()
@@ -54,13 +60,14 @@ except ImportError:
                 # If we're in the right section, look for the fallback_version key
                 if in_setuptools_scm_section and stripped_line.startswith("fallback_version"):
                     # Extract the value after the '=' sign and strip any surrounding quotes or whitespace
-                    __version__ = stripped_line.split('=', 1)[1].strip().strip('"').strip("'")
+                    fallback_version = stripped_line.split('=', 1)[1].strip().strip('"').strip("'")
                     break
         # Account for the possibility that we failed to extract the fallback_version field from pyproject.toml
-        if not __version__:
+        if fall_back_version:
+            __version__ = fallback_version
+        else:
             msg = "fallback_version not found in file %s" % pyproject_toml
             msg += " when trying the get the EESSI test suite version. This should never happen."
             msg += " Please report an issue on Github, including information on how you installed"
-            msg += " the EESSI test suite. Defaulting to version 0.0.0"
+            msg += " the EESSI test suite. Defaulting to version %s." % __version__
             print(msg)
-            __version__ = "0.0.0"
