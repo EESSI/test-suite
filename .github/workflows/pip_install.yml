@@ -34,6 +34,7 @@ jobs:
 
         - name: Install EESSI test suite with 'pip install'
           run: |
+            ls -al 
             # install from source distribution tarball, to test release as published on PyPI
             rm -rf dist
             python setup.py sdist
@@ -48,6 +49,9 @@ jobs:
             python --version
             python -m pip --version
             python -c 'import setuptools; print("setuptools", setuptools.__version__)'
+            testsuite_init=$(python -c 'import eessi.testsuite; print(eessi.testsuite.__file__)')
+            # Check if the eessi/testsuite/_version.py file was generated
+            ls -al $(dirname testsuite_init)/_version.py
             python -c 'import eessi.testsuite; print("eessi.testsuite:", eessi.testsuite.__version__)'
 
             python -c 'import eessi.testsuite.utils'
