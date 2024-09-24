@@ -38,14 +38,14 @@ except ImportError:
             with file:
                 for line in file:
                     stripped_line = line.strip()
-    
+
                     # Check if we're entering the [tool.setuptools_scm] section
                     if stripped_line == "[tool.setuptools_scm]":
                         in_setuptools_scm_section = True
                     elif stripped_line.startswith("[") and in_setuptools_scm_section:
                         # We've reached a new section, so stop searching
                         break
-    
+ 
                     # If we're in the right section, look for the fallback_version key
                     if in_setuptools_scm_section and stripped_line.startswith("fallback_version"):
                         # Extract the value after the '=' sign and strip any surrounding quotes or whitespace
@@ -62,8 +62,8 @@ except ImportError:
                 print(msg)
         except FileNotFoundError:
             msg = "File %s not found when trying to extract the EESSI test suite version from" % pyproject_toml
-            msg += " pyproject.toml. This should never happen. Please report an issue on GitHub, including information on how you"
-            msg += " installed the EESSI test suite."
+            msg += " pyproject.toml. This should never happen. Please report an issue on GitHub,"
+            msg += " including information on how you installed the EESSI test suite."
             print(msg)
         except Exception as e:
             print("When trying to open file %s, an exception was raised: %s." % (pyproject_toml, e))
