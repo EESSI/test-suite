@@ -63,7 +63,7 @@ except ImportError:
                     fallback_version = stripped_line.split('=', 1)[1].strip().strip('"').strip("'")
                     break
         # Account for the possibility that we failed to extract the fallback_version field from pyproject.toml
-        if fall_back_version:
+        if fallback_version:
             __version__ = fallback_version
         else:
             msg = "fallback_version not found in file %s" % pyproject_toml
