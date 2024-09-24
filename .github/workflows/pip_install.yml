@@ -51,10 +51,10 @@ jobs:
             python --version
             python -m pip --version
             python -c 'import setuptools; print("setuptools", setuptools.__version__)'
-            testsuite_init=$(python -c 'import eessi.testsuite; print(eessi.testsuite.__file__)')
             # Check if the eessi/testsuite/_version.py file was generated
             find .local/lib/python${{ matrix.python-version}}/site-packages/eessi/testsuite -name _version.py
             cat .local/lib/python${{ matrix.python-version}}/site-packages/eessi/testsuite/_version.py
+            testsuite_init=$(python -c 'import eessi.testsuite; print(eessi.testsuite.__file__)')
             ls -al $(dirname "$testsuite_init")/_version.py
             python -c 'import eessi.testsuite; print("eessi.testsuite:", eessi.testsuite.__version__)'
 
