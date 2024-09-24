@@ -52,7 +52,7 @@ jobs:
             python -c 'import setuptools; print("setuptools", setuptools.__version__)'
             testsuite_init=$(python -c 'import eessi.testsuite; print(eessi.testsuite.__file__)')
             # Check if the eessi/testsuite/_version.py file was generated
-            ls -al $(dirname testsuite_init)/_version.py
+            ls -al $(dirname "$testsuite_init")/_version.py
             python -c 'import eessi.testsuite; print("eessi.testsuite:", eessi.testsuite.__version__)'
 
             python -c 'import eessi.testsuite.utils'
