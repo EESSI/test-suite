@@ -58,12 +58,12 @@ except ImportError:
                 msg = "fallback_version not found in file %s" % pyproject_toml
                 msg += " when trying the get the EESSI test suite version. This should never happen."
                 msg += " Please report an issue on Github, including information on how you installed"
-                msg += " the EESSI test suite. Defaulting to version %s." % __version__
+                msg += " the EESSI test suite."
                 print(msg)
         except FileNotFoundError:
             msg = "File %s not found when trying to extract the EESSI test suite version from" % pyproject_toml
             msg += " pyproject.toml. This should never happen. Please report an issue on GitHub, including information on how you"
-            msg += " installed the EESSI test suite. Defaulting to version %s." % __version__
+            msg += " installed the EESSI test suite."
             print(msg)
         except Exception as e:
             print("When trying to open file %s, an exception was raised: %s." % (pyproject_toml, e))
