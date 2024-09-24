@@ -11,21 +11,20 @@ python_version = sys.version_info
 current_setuptools_version = pkg_resources.parse_version(pkg_resources.get_distribution("setuptools").version)
 
 # Set the version requirement for setuptools_scm, depending on the combination of Python and setuptools version
+version_file_path = 'eessi/testsuite/_version.py'
+scm_dict = {'write_to': version_file_path}
 if python_version >= (3, 8) and current_setuptools_version >= pkg_resources.parse_version("61.0.0"):
     setuptools_scm_requirement = 'setuptools_scm>8.0.0,<=8.1.0'
-    scm_arg_key = "version_file"
+    scm_dict = {'version_file': version_file_path}
 elif python_version >= (3, 7) and current_setuptools_version >= pkg_resources.parse_version("45.0.0"):
     setuptools_scm_requirement = 'setuptools_scm>7.0.0,<=7.1.0'
-    scm_arg_key = "write_to"
 elif python_version >= (3, 6) and current_setuptools_version >= pkg_resources.parse_version("45.0.0"):
     setuptools_scm_requirement = 'setuptools_scm>=6.0.0,<=6.4.2'
-    scm_arg_key = "write_to"
 elif python_version >= (3, 6) and current_setuptools_version >= pkg_resources.parse_version("42.0.0"):
     setuptools_scm_requirement = 'setuptools_scm>=5.0.0,<=5.0.2'
-    scm_arg_key = "write_to"
 elif python_version >= (3, 6) and current_setuptools_version >= pkg_resources.parse_version("34.4.0"):
     setuptools_scm_requirement = 'setuptools_scm>=4.0.0,<=4.1.2'
-    scm_arg_key = "write_to"
+    scm_dict = {'write_to': version_file_path, 'write_to_template': '__version__ "{version}"'}
 
 # if python_version < (3, 8):
 #     scm_dict = {'write_to': 'eessi/testsuite/_version.py'}
