@@ -1,6 +1,36 @@
 This file contains a description of the major changes to the EESSI test suite.
 For more detailed information, please see the git log.
 
+v0.4.0 (26 September 2024)
+---------------------
+
+This is a minor release of the EESSI test-suite
+
+New tests:
+
+* PyTorch (with torchvision) (#130)
+* LAMMPS (#131, #169)
+* CP2K (#133)
+
+Bug fixes:
+* Find and report duplicate modules (#167)
+* Specify memory as an extra resource in all ReFrame configs (#180)
+* Make req_memory_per_node hook print a warning if memory resource is not configured in ReFrame config (#182)
+* No longer test import of eessi.testsuite.utils directly in CI, as it fails (by design) for the ReFrame 4.6.2 version deployed in EESSI (#183)
+* Update scorecards action to fix scorecards failure (#184)
+
+Other updates:
+* mpi4py reduction test for tutorial (#149, #172), to accompany [documentation](https://www.eessi.io/docs/test-suite/writing-portable-tests/) on writing portable tests for the EESSI test suite
+* Various updates to Snellius ReFrame config (#165, #168, #187, #188)
+* Make the use of EESSI optional in common_eessi_init, to better support testing of local software stacks (#166)
+* Remove hard-coded SLURM account from karolina and hortense configs in favour of using the `$SBATCH_ACCOUNT` environment variable (#171)
+* Add ReFrame config and CI config for EESSI Azure build cluster (#173, #176, #186)
+* Add hook for measuring memory usage in a job (#174)
+* Bump default ReFrame version used in CI config to 4.6.2 (#175)
+* Use ReFrame warning's to print warnings, amking them easier to spot (#178)
+* Limit runtime of ReFrame command in in CI config (#179)
+
+
 v0.3.2 (29 June 2024)
 ---------------------
 
