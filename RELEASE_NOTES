@@ -29,7 +29,7 @@ Other updates:
 * Bump default ReFrame version used in CI config to 4.6.2 (#175)
 * Use ReFrame warning's to print warnings, amking them easier to spot (#178)
 * Limit runtime of ReFrame command in in CI config (#179)
-
+* Add release notes and bump versions (#189)
 
 v0.3.2 (29 June 2024)
 ---------------------
