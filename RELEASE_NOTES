@@ -17,7 +17,6 @@ Bug fixes:
 * Specify memory as an extra resource in all ReFrame configs (#180)
 * Make req_memory_per_node hook print a warning if memory resource is not configured in ReFrame config (#182)
 * No longer test import of eessi.testsuite.utils directly in CI, as it fails (by design) for the ReFrame 4.6.2 version deployed in EESSI (#183)
-* Update scorecards action to fix scorecards failure (#184)
 
 Other updates:
 * mpi4py reduction test for tutorial (#149, #172), to accompany [documentation](https://www.eessi.io/docs/test-suite/writing-portable-tests/) on writing portable tests for the EESSI test suite
