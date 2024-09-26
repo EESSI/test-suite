@@ -42,7 +42,9 @@ site_configuration = {
                         'export SLURM_EXPORT_ENV=ALL'
                     ],
                     'extras': {
-                        'mem_per_node': 768000
+                        # For some reason, we cannot ask for the full amount configured as RealMemory in
+                        # /etc/slurm/nodes.conf, so we ask slightly less
+                        'mem_per_node': 767480
                     },
                 },
                 {
@@ -57,7 +59,9 @@ site_configuration = {
                         'export SLURM_EXPORT_ENV=ALL'
                     ],
                     'extras': {
-                        'mem_per_node': 64000
+                        # For some reason, we cannot ask for the full amount configured as RealMemory in
+                        # /etc/slurm/nodes.conf, so we ask slightly less
+                        'mem_per_node': 63480
                     },
                 },
             ]
