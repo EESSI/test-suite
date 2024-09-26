@@ -63,7 +63,10 @@ site_configuration = {
                 {
                     'name': 'genoa',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [common_eessi_init()],
+                    'prepare_cmds': [
+                        'export EESSI_SOFTWARE_SUBDIR_OVERRIDE=x86_64/amd/zen4',
+                        common_eessi_init()
+                    ],
                     'launcher': 'mpirun',
                     'access': ['-p genoa', '--export=None'],
                     'environs': ['default'],
