@@ -63,7 +63,12 @@ site_configuration = {
                 {
                     'name': 'genoa',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [common_eessi_init()],
+                    'prepare_cmds': [
+                        # EESSI init script (for now) falls back to zen3, since the zen4 is incomplete
+                        # But, we want to really test the zen4 branch on these nodes
+                        'export EESSI_SOFTWARE_SUBDIR_OVERRIDE=x86_64/amd/zen4',
+                        common_eessi_init()
+                    ],
                     'launcher': 'mpirun',
                     'access': ['-p genoa', '--export=None'],
                     'environs': ['default'],
