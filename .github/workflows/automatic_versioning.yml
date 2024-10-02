@@ -38,16 +38,19 @@ jobs:
             fi
 
         - name: Check python and setuptools versions
+          run: |
             python --version
             python -m pip --version
             python -c 'import setuptools; print("setuptools", setuptools.__version__)'
             python -c 'import setuptools_scm; print("setuptools_scm", setuptools_scm.__version__)'
 
         - name: Download and extract tarball for current commit
+          run: |
             wget "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/archive/$GITHUB_SHA.tar.gz"
             tar -xzf "$GITHUB_SHA.tar.gz"
 
         - name: Check version when running against uninstalled git clone
+          run: |
             uninstalled_version=$(PYTHONPATH="$PWD/tests-suite-$GITHUB_SHA" python3 -c "import eessi.testsuite; print(eessi.testsuite.__version__)")
             echo "Version from uninstalled git clone: $uninstalled_version"
             fallback_version=$(grep -oP 'fallback_version\s*=\s*"\K[^"]+' "test-suite-$GITHUB_SHA/pyproject.toml")
