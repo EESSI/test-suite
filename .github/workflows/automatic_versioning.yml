@@ -56,7 +56,7 @@ jobs:
             fallback_version=$(grep -oP 'fallback_version\s*=\s*"\K[^"]+' "test-suite-$GITHUB_SHA/pyproject.toml")
 
             echo "Testing if this version is the fallback version from pyproject.toml ..."
-            if [[ "$uninstalled_version" -ne "$fallback_version" ]]; then
+            if [[ "$uninstalled_version" != "$fallback_version" ]]; then
                 exit 1
             else
                 echo "... yes!"
@@ -94,14 +94,14 @@ jobs:
             echo "Version from installed testsuite: $installed_version"
 
             echo "Testing if this is the fallback version from pyproject.toml ..."
-            if [[ "$installed_version" -ne "$fallback_version" ]]; then
+            if [[ "$installed_version" != "$fallback_version" ]]; then
                 exit 1
             else
                 echo "... yes!"
             fi
 
             echo "Checking if the version imported from eessi.testsuite matches that from the version file ..."
-            if [[ "$versionfile_version" -ne "$installed_version" ]]; then
+            if [[ "$versionfile_version" != "$installed_version" ]]; then
                 exit 1
             else
                 echo "... yes!"
