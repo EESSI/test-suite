@@ -23,7 +23,7 @@ jobs:
             fallback_version="v$fallback_version"
 
             # Get version from run_reframe.sh
-            run_reframe_testsuite_version=$(grep -oP 'EESSI_TESTSUITE_BRANCH\s*=\s*[^v]*\K[^"\x27]*' "test-suite-$GITHUB_SHA/CI/run_reframe.sh")
+            run_reframe_testsuite_version=$(grep -oP 'EESSI_TESTSUITE_BRANCH\s*=\s*[^v]*\K[^"\x27]*' "CI/run_reframe.sh")
 
             # Grab the tag for the highest version, by sorting by (semantic) version, and then filtering on patterns
             # that match a pattern like v0.1.2. Finally, we grab the last to get the highest version
