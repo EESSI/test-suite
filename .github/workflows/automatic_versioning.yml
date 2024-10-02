@@ -91,7 +91,7 @@ jobs:
             echo "Version from version file: $versionfile_version"
 
             echo "Checking if we can import the __version__ from eessi.testsuite"
-            installed_version=$(python -c 'import eessi.testsuite; print("eessi.testsuite:", eessi.testsuite.__version__)')
+            installed_version=$(python -c 'import eessi.testsuite; print(eessi.testsuite.__version__)')
             echo "Version from installed testsuite: $installed_version"
 
             echo "Testing if this is the fallback version from pyproject.toml ..."

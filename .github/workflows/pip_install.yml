@@ -68,7 +68,7 @@ jobs:
             echo "Version from version file: $versionfile_version"
 
             echo "Checking if we can import the __version__ from eessi.testsuite"
-            testsuite_version=$(python -c 'import eessi.testsuite; print("eessi.testsuite:", eessi.testsuite.__version__)')
+            testsuite_version=$(python -c 'import eessi.testsuite; print(eessi.testsuite.__version__)')
             echo "Version imported from eessi.testsuite: $testsuite_version"
 
             echo "Checking if the version imported from eessi.testsuite matches that from the version file ..."
@@ -107,7 +107,7 @@ jobs:
             echo "Version from version file: $githttps_versionfile_version"
 
             echo "Checking if we can import the __version__ from eessi.testsuite"
-            githttps_testsuite_version=$(python -c 'import eessi.testsuite; print("eessi.testsuite:", eessi.testsuite.__version__)')
+            githttps_testsuite_version=$(python -c 'import eessi.testsuite; print(eessi.testsuite.__version__)')
             echo "Version imported from eessi.testsuite: $githttps_testsuite_version"
 
             echo "Checking if the version imported from eessi.testsuite matches that from the version file ..."
