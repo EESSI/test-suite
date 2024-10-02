@@ -3,7 +3,7 @@ name: Test version for tarball without git metadata
 on: [push, pull_request, workflow_dispatch]
 permissions: read-all
 jobs:
-  test_pip_install:
+  test_versioning_from_tarball:
     # ubuntu <= 20.04 is required for python 3.6
     runs-on: ubuntu-20.04
     strategy:
@@ -51,6 +51,9 @@ jobs:
 
         - name: Check version when running against uninstalled git clone
           run: |
+            echo "importing eessi.testsuite from:"
+            PYTHONPATH="$PWD/tests-suite-$GITHUB_SHA" python3 -c "import eessi.testsuite; print(eessi.testsuite.__file__)"
+
             uninstalled_version=$(PYTHONPATH="$PWD/tests-suite-$GITHUB_SHA" python3 -c "import eessi.testsuite; print(eessi.testsuite.__version__)")
             echo "Version from uninstalled git clone: $uninstalled_version"
             fallback_version=$(grep -oP 'fallback_version\s*=\s*"\K[^"]+' "test-suite-$GITHUB_SHA/pyproject.toml")
