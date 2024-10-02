@@ -54,9 +54,9 @@ jobs:
         - name: Check version when running against uninstalled git clone
           run: |
             echo "importing eessi.testsuite from:"
-            PYTHONPATH="$PWD/tests-suite-$GITHUB_SHA" python3 -c "import eessi.testsuite; print(eessi.testsuite.__file__)"
+            PYTHONPATH="./tests-suite-$GITHUB_SHA" python3 -c "import eessi.testsuite; print(eessi.testsuite.__file__)"
 
-            uninstalled_version=$(PYTHONPATH="$PWD/tests-suite-$GITHUB_SHA" python3 -c "import eessi.testsuite; print(eessi.testsuite.__version__)")
+            uninstalled_version=$(PYTHONPATH=".//tests-suite-$GITHUB_SHA" python3 -c "import eessi.testsuite; print(eessi.testsuite.__version__)")
             echo "Version from uninstalled git clone: $uninstalled_version"
             fallback_version=$(grep -oP 'fallback_version\s*=\s*"\K[^"]+' "test-suite-$GITHUB_SHA/pyproject.toml")
 
