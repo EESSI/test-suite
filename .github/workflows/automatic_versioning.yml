@@ -104,6 +104,8 @@ jobs:
             installed_version=$(python -c 'import eessi.testsuite; print(eessi.testsuite.__version__)')
             echo "Version from installed testsuite: $installed_version"
 
+            # Read the fallback version from the pyproject.toml
+            fallback_version=$(grep -oP 'fallback_version\s*=\s*"\K[^"]+' "test-suite-$GITHUB_SHA/pyproject.toml")
             echo "Testing if this is the fallback version from pyproject.toml ..."
             if [[ "$installed_version" != "$fallback_version" ]]; then
                 echo "Version $installed_version not equal to $fallback_version"
