@@ -48,6 +48,8 @@ jobs:
           run: |
             wget "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/archive/$GITHUB_SHA.tar.gz"
             tar -xzf "$GITHUB_SHA.tar.gz"
+            # Check current directory contents
+            find .
 
         - name: Check version when running against uninstalled git clone
           run: |
