@@ -61,7 +61,7 @@ jobs:
 
             echo "Checking if version can be imported directly from the version file"
             if [[ "${{ matrix.python-version }}" == "3.6" ]]; then
-                versionfile_version=$(python -c 'from eessi.testsuite._version import __version__; print(version)')
+                versionfile_version=$(python -c 'from eessi.testsuite._version import version; print(version)')
             else
                 versionfile_version=$(python -c 'from eessi.testsuite._version import __version__; print(__version__)')
             fi
@@ -99,7 +99,7 @@ jobs:
 
             echo "Checking if version can be imported directly from the version file"
             if [[ "${{ matrix.python-version }}" == "3.6" ]]; then
-                githttps_versionfile_version=$(python -c 'from eessi.testsuite._version import __version__; print(version)')
+                githttps_versionfile_version=$(python -c 'from eessi.testsuite._version import version; print(version)')
             else
                 githttps_versionfile_version=$(python -c 'from eessi.testsuite._version import __version__; print(__version__)')
             fi
