@@ -57,6 +57,7 @@ jobs:
 
             echo "Testing if this version is the fallback version from pyproject.toml ..."
             if [[ "$uninstalled_version" != "$fallback_version" ]]; then
+                echo "Version $uninstalled_version not equal to $fallback_version"
                 exit 1
             else
                 echo "... yes!"
@@ -95,6 +96,7 @@ jobs:
 
             echo "Testing if this is the fallback version from pyproject.toml ..."
             if [[ "$installed_version" != "$fallback_version" ]]; then
+                echo "Version $installed_version not equal to $fallback_version"
                 exit 1
             else
                 echo "... yes!"
@@ -102,6 +104,7 @@ jobs:
 
             echo "Checking if the version imported from eessi.testsuite matches that from the version file ..."
             if [[ "$versionfile_version" != "$installed_version" ]]; then
+                echo "Version $versionfile_version not equal to $installed_version"
                 exit 1
             else
                 echo "... yes!"

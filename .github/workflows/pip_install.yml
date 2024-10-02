@@ -73,6 +73,7 @@ jobs:
 
             echo "Checking if the version imported from eessi.testsuite matches that from the version file ..."
             if [[ "$versionfile_version" != "$testsuite_version" ]]; then
+                echo "Version $versionfile_version not equal to $testsuite_version"
                 exit 1
             else
                 echo "... yes!"
@@ -111,6 +112,7 @@ jobs:
 
             echo "Checking if the version imported from eessi.testsuite matches that from the version file ..."
             if [[ "$githttps_versionfile_version" != "$githttps_testsuite_version" ]]; then
+                echo "Version $githttps_versionfile_version not equal to $githttps_testsuite_version"
                 exit 1
             else
                 echo "... yes!"
@@ -118,6 +120,7 @@ jobs:
 
             echo "Checking if the version import from a regular pip install and the git+https based install are the same ..."
             if [[ "$githttps_testsuite_version" != "$testsuite_version" ]]; then
+                echo "Version $githttps_testsuite_version not equal to $testsuite_version"
                 exit 1
             else
                 echo "... yes!"
