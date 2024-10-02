@@ -60,7 +60,11 @@ jobs:
             cat $HOME/.local/lib/python${{ matrix.python-version}}/site-packages/eessi/testsuite/_version.py
 
             echo "Checking if version can be imported directly from the version file"
-            versionfile_version=$(python -c 'from eessi.testsuite._version import __version__; print(__version__)')
+            if [[ "${{ matrix.python-version }}" == "3.6" ]]; then
+                versionfile_version=$(python -c 'from eessi.testsuite._version import __version__; print(version)')
+            else
+                versionfile_version=$(python -c 'from eessi.testsuite._version import __version__; print(__version__)')
+            fi
             echo "Version from version file: $versionfile_version"
 
             echo "Checking if we can import the __version__ from eessi.testsuite"
@@ -94,7 +98,11 @@ jobs:
             cat $HOME/.local/lib/python${{ matrix.python-version}}/site-packages/eessi/testsuite/_version.py
 
             echo "Checking if version can be imported directly from the version file"
-            githttps_versionfile_version=$(python -c 'from eessi.testsuite._version import __version__; print(__version__)')
+            if [[ "${{ matrix.python-version }}" == "3.6" ]]; then
+                githttps_versionfile_version=$(python -c 'from eessi.testsuite._version import __version__; print(version)')
+            else
+                githttps_versionfile_version=$(python -c 'from eessi.testsuite._version import __version__; print(__version__)')
+            fi
             echo "Version from version file: $githttps_versionfile_version"
 
             echo "Checking if we can import the __version__ from eessi.testsuite"
