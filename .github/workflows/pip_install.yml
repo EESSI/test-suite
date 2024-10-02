@@ -85,11 +85,16 @@ jobs:
             echo "Checking if we can import eessi.testsuite.tests.apps"
             python -c 'import eessi.testsuite.tests.apps'
 
-            echo "Uninstalling testsuite for next step"
-            python -m pip uninstall -y eessi-testsuite
 
         - name: Install EESSI test suite with 'pip install git+https'
           run: |
+            # Get version from the installation in the previous step
+            testsuite_version=$(python -c 'import eessi.testsuite; print(eessi.testsuite.__version__)')
+
+            # Cleanup installation from previous step
+            echo "Uninstalling testsuite for next step"
+            python -m pip uninstall -y eessi-testsuite
+
             pip install --user "git+$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git@$GITHUB_SHA"
 
             echo "Checking contents of .local"
