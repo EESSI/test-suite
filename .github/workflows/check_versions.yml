@@ -18,7 +18,7 @@ jobs:
         - name: Check fallback version and version used in run_reframe.sh
           run: |
             # Get fallback version
-            fallback_version=$(grep -oP 'fallback_version\s*=\s*"\K[^"]+' "test-suite-$GITHUB_SHA/pyproject.toml")
+            fallback_version=$(grep -oP 'fallback_version\s*=\s*"\K[^"]+' "pyproject.toml")
             # Prepend fallback version with 'v', as that is also the case for the other two version strings
             fallback_version="v$fallback_version"
 
