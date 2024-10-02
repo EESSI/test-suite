@@ -54,9 +54,12 @@ jobs:
         - name: Check version when running against uninstalled git clone
           run: |
             echo "importing eessi.testsuite from:"
-            PYTHONPATH="./tests-suite-$GITHUB_SHA" python3 -c "import eessi.testsuite; print(eessi.testsuite.__file__)"
+            original_pythonpath=$PYTHONPATH
+            export PYTHONPATH="$PWD/test-suite-$GITHUB_SHA:$PYTHONPATH"
+            echo "PYTHONPATH: $PYTHONPATH"
+            python3 -c "import eessi.testsuite; print(eessi.testsuite.__file__)"
 
-            uninstalled_version=$(PYTHONPATH=".//tests-suite-$GITHUB_SHA" python3 -c "import eessi.testsuite; print(eessi.testsuite.__version__)")
+            uninstalled_version=$(python3 -c "import eessi.testsuite; print(eessi.testsuite.__version__)")
             echo "Version from uninstalled git clone: $uninstalled_version"
             fallback_version=$(grep -oP 'fallback_version\s*=\s*"\K[^"]+' "test-suite-$GITHUB_SHA/pyproject.toml")
 
@@ -67,6 +70,8 @@ jobs:
             else
                 echo "... yes!"
             fi
+
+            export PYTHONPATH="$original_pythonpath"
 
         - name: Install from extracted tarball
           run: |
