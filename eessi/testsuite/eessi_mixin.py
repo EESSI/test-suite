@@ -1,12 +1,10 @@
-from reframe.core.builtins import variable, parameter, run_after
-from reframe.core.exceptions import ReframeSyntaxError
+from reframe.core.builtins import parameter, run_after
+from reframe.core.exceptions import ReframeFatalError
 from reframe.core.pipeline import RegressionMixin
 from reframe.utility.sanity import make_performance_function
 
 from eessi.testsuite import hooks
 from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNIT
-
-from eessi.testsuite import __version__ as EESSI_TESTSUITE_VERSION
 
 
 # Hooks from the Mixin class seem to be executed _before_ those of the child class
@@ -34,18 +32,21 @@ class EESSI_Mixin(RegressionMixin):
     """
 
     # Current version of the EESSI test suite
-    eessi_testsuite_version = variable(str, value=EESSI_TESTSUITE_VERSION)
 
     measure_memory_usage = False
-#    valid_prog_environs = ['default']
-#    valid_systems = ['*']
-#    time_limit = '30m'
     scale = parameter(SCALES.keys())
 
     # Note that the error for an empty parameter is a bit unclear for ReFrame 4.6.2, but that will hopefully improve
     # see https://github.com/reframe-hpc/reframe/issues/3254
     # If that improves: uncomment the following to force the user to set module_name
     # module_name = parameter()
+
+    def __init_subclass__(cls, **kwargs):
+        " set default values for built-in ReFrame attributes "
+        super().__init_subclass__(**kwargs)
+        cls.valid_prog_environs = ['default']
+        cls.valid_systems = ['*']
+        cls.time_limit = '1h'
 
     # Helper function to validate if an attribute is present it item_dict.
     # If not, print it's current name, value, and the valid_values
@@ -62,9 +63,11 @@ class EESSI_Mixin(RegressionMixin):
 
         value = getattr(self, item)
         if value not in valid_items:
-            valid_items_str = (', '.join("'" + item + "'" for item in valid_items))
-            msg = "The variable '%s' had value '%s', but the only valid values are %s" % (item, value, valid_items_str)
-            raise ReframeSyntaxError(msg)
+            if len(valid_items) == 1:
+                msg = f"The variable '{item}' has value {value}, but the only valid value is {valid_items[0]}"
+            else:
+                msg = f"The variable '{item}' has value {value}, but the only valid values are {valid_items}"
+            raise ReframeFatalError(msg)
 
     # We have to make sure that these gets set in any test that inherits
     # device_type = variable(str)
@@ -80,12 +83,14 @@ class EESSI_Mixin(RegressionMixin):
             if not hasattr(self, var):
                 msg = "The variable '%s' should be defined in any test class that inherits" % var
                 msg += " from EESSI_Mixin in the init phase (or earlier), but it wasn't"
-                raise ReframeSyntaxError(msg)
+                raise ReframeFatalError(msg)
 
         # Check that the value for these variables is valid,
         # i.e. exists in their respective dict from eessi.testsuite.constants
         self.validate_item_in_dict('device_type', DEVICE_TYPES)
         self.validate_item_in_dict('scale', SCALES, check_keys=True)
+        self.validate_item_in_dict('valid_systems', {'valid_systems': ['*']})
+        self.validate_item_in_dict('valid_prog_environs', {'valid_prog_environs': ['default']})
 
     @run_after('init')
     def run_after_init(self):
@@ -117,7 +122,7 @@ class EESSI_Mixin(RegressionMixin):
             if not hasattr(self, var):
                 msg = "The variable '%s' should be defined in any test class that inherits" % var
                 msg += " from EESSI_Mixin in the setup phase (or earlier), but it wasn't"
-                raise ReframeSyntaxError(msg)
+                raise ReframeFatalError(msg)
 
         # Check if mem_func was defined to compute the required memory per node as function of the number of
         # tasks per node
@@ -126,7 +131,7 @@ class EESSI_Mixin(RegressionMixin):
             msg += " from EESSI_Mixin in the setup phase (or earlier), but it wasn't. Note that this function"
             msg += " can use self.num_tasks_per_node, as it will be called after that attribute"
             msg += " has been set."
-            raise ReframeSyntaxError(msg)
+            raise ReframeFatalError(msg)
 
         # Check that the value for these variables is valid
         # i.e. exists in their respective dict from eessi.testsuite.constants
