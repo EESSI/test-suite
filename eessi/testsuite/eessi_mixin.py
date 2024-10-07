@@ -46,7 +46,8 @@ class EESSI_Mixin(RegressionMixin):
         super().__init_subclass__(**kwargs)
         cls.valid_prog_environs = ['default']
         cls.valid_systems = ['*']
-        cls.time_limit = '1h'
+        if not cls.time_limit:
+            cls.time_limit = '1h'
 
     # Helper function to validate if an attribute is present it item_dict.
     # If not, print it's current name, value, and the valid_values
