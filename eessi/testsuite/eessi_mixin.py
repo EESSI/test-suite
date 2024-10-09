@@ -25,14 +25,17 @@ class EESSI_Mixin(RegressionMixin):
     All EESSI tests should derive from this mixin class unless they have a very good reason not to.
     To run correctly, tests inheriting from this class need to define variables and parameters that are used here.
     That definition needs to be done 'on time', i.e. early enough in the execution of the ReFrame pipeline.
-    Here, we list which class attributes need to be defined, and by (the end of) what phase:
+    Here, we list which class attributes need to be defined by the child class, and by (the end of) what phase:
 
     - Init phase: device_type, scale, module_name
     - Setup phase: compute_unit, required_mem_per_node
+
+    The child class may also overwrite the following attributes:
+
+    - Init phase: time_limit, measure_memory_usage
     """
 
-    # Current version of the EESSI test suite
-
+    # Set defaults for these class variables, can be overwritten by child class if desired
     measure_memory_usage = False
     scale = parameter(SCALES.keys())
 
@@ -69,11 +72,6 @@ class EESSI_Mixin(RegressionMixin):
             else:
                 msg = f"The variable '{item}' has value {value}, but the only valid values are {valid_items}"
             raise ReframeFatalError(msg)
-
-    # We have to make sure that these gets set in any test that inherits
-    # device_type = variable(str)
-    # scale = variable(str)
-    # module_name = variable(str)
 
     @run_after('init')
     def validate_init(self):
@@ -140,7 +138,7 @@ class EESSI_Mixin(RegressionMixin):
 
     @run_after('setup')
     def assign_tasks_per_compute_unit(self):
-        """hooks to run after the setup phase"""
+        """Call hooks to assign tasks per compute unit, set OMP_NUM_THREADS, and set compact process binding"""
         hooks.assign_tasks_per_compute_unit(test=self, compute_unit=self.compute_unit)
 
         # Set OMP_NUM_THREADS environment variable
@@ -151,4 +149,5 @@ class EESSI_Mixin(RegressionMixin):
 
     @run_after('setup')
     def request_mem(self):
+        """Call hook to request the required amount of memory per node"""
         hooks.req_memory_per_node(self, app_mem_req=self.required_mem_per_node())
