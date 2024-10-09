@@ -50,8 +50,8 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         return sn.assert_eq(n_atoms, 32000)
 
     @run_after('init')
-    def run_after_setup(self):
-        """hooks to run after the setup phase"""
+    def set_compute_unit(self):
+        """Set the compute unit to which tasks will be assigned """
         if self.device_type == 'cpu':
             self.compute_unit = COMPUTE_UNIT['CPU']
         elif self.device_type == 'gpu':
