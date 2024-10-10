@@ -80,6 +80,14 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
             self.tags.add(TAGS['CI'])
             log(f'tags set to {self.tags}')
 
+    @run_after('init')
+    def set_increased_walltime(self):
+        """Increase the amount of time for the largest benchmark, when running with few cores."""
+        # List of benchmarks that require more time to run
+        large_benchmarks = ['hackathonGPU/benchmark2']
+        if self.num_tasks <= 4 and self.benchmark_info[0] in large_benchmarks:
+            self.time_limit = '120m'
+
     @run_after('setup')
     def run_after_setup(self):
         """Hooks to run after the setup phase"""
