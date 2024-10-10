@@ -109,11 +109,11 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
     @run_after('setup')
     def skip_max_corecnt(self):
         """Skip tests if number of tasks per node exceeds maximum core count."""
-        max_corecnt = 256
+        max_task_cnt = 256
         bench_name = self.benchmark_info[0]
         self.skip_if(
             self.num_tasks > max_corecnt,
-            f'Number of tasks per node {self.num_tasks} exceeds maximum core count {max_corecnt} for {bench_name}'
+            f'Number of tasks {self.num_tasks} exceeds maximum task count {max_task_cnt} for {bench_name}'
         )
 
     @run_after('setup')
