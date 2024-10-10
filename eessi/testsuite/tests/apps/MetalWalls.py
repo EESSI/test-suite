@@ -112,7 +112,7 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
         max_task_cnt = 256
         bench_name = self.benchmark_info[0]
         self.skip_if(
-            self.num_tasks > max_corecnt,
+            self.num_tasks > max_task_cnt,
             f'Number of tasks {self.num_tasks} exceeds maximum task count {max_task_cnt} for {bench_name}'
         )
 
