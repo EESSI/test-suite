@@ -4,7 +4,7 @@ from reframe.core.pipeline import RegressionMixin
 from reframe.utility.sanity import make_performance_function
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNIT
+from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNIT, TAGS
 
 
 # Hooks from the Mixin class seem to be executed _before_ those of the child class
@@ -38,6 +38,8 @@ class EESSI_Mixin(RegressionMixin):
     # Set defaults for these class variables, can be overwritten by child class if desired
     measure_memory_usage = False
     scale = parameter(SCALES.keys())
+    bench_name = None
+    bench_name_ci = None
 
     # Note that the error for an empty parameter is a bit unclear for ReFrame 4.6.2, but that will hopefully improve
     # see https://github.com/reframe-hpc/reframe/issues/3254
@@ -112,6 +114,16 @@ class EESSI_Mixin(RegressionMixin):
             # Since we want to do this conditionally on self.measure_mem_usage, we use make_performance_function
             # instead of the @performance_function decorator
             self.perf_variables['memory'] = make_performance_function(hooks.extract_memory_usage, 'MiB', self)
+
+    @run_after('init', always_last=True)
+    def set_tag_ci(self):
+        "Set CI tag if bench_name_ci and bench_name are set and are equal"
+        if self.bench_name_ci:
+            if not self.bench_name:
+                msg = "Attribute bench_name_ci is set, but bench_name is not set"
+                raise ReframeFatalError(msg)
+            if self.bench_name == self.bench_name_ci:
+                self.tags.add(TAGS['CI'])
 
     @run_after('setup')
     def validate_setup(self):
