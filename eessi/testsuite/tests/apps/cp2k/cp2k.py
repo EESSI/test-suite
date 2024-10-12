@@ -4,10 +4,9 @@ import reframe as rfm
 from reframe.core.builtins import parameter, run_after, performance_function, sanity_function
 import reframe.utility.sanity as sn
 
-from eessi.testsuite import hooks
-from eessi.testsuite.constants import SCALES, TAGS, COMPUTE_UNIT, DEVICE_TYPES, CPU
+from eessi.testsuite.constants import SCALES, COMPUTE_UNIT, DEVICE_TYPES, CPU
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
-from eessi.testsuite.utils import find_modules, log
+from eessi.testsuite.utils import find_modules
 
 
 @rfm.simple_test
