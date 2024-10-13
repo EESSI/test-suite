@@ -4,13 +4,13 @@ import reframe as rfm
 from reframe.core.builtins import parameter, run_after, performance_function, sanity_function
 import reframe.utility.sanity as sn
 
-from eessi.testsuite.constants import SCALES, COMPUTE_UNIT, DEVICE_TYPES, CPU
-from eessi.testsuite.eessi_mixin import EESSI_Mixin
-from eessi.testsuite.utils import find_modules
+from eessi.testsuite import hooks
+from eessi.testsuite.constants import SCALES, TAGS, COMPUTE_UNIT, DEVICE_TYPES, CPU
+from eessi.testsuite.utils import find_modules, log
 
 
 @rfm.simple_test
-class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
+class EESSI_CP2K(rfm.RunOnlyRegressionTest):
 
     benchmark_info = parameter([
         # (bench_name, energy_ref, energy_tol)
@@ -24,18 +24,8 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     executable = 'cp2k.popt'
     time_limit = '2h'
-    device_type = DEVICE_TYPES[CPU]
-    compute_unit = COMPUTE_UNIT[CPU]
-    bench_name_ci = 'QS/H2O-32'  # set CI on smallest benchmark
-
-    def required_mem_per_node(self):
-        mems = {
-            'QS/H2O-32': {'intercept': 0.5, 'slope': 0.15},
-            'QS/H2O-128': {'intercept': 5, 'slope': 0.15},
-            'QS/H2O-512': {'intercept': 34, 'slope': 0.20},
-        }
-        mem = mems[self.bench_name]
-        return (self.num_tasks_per_node * mem['slope'] + mem['intercept']) * 1024
+    valid_systems = ['*']
+    valid_prog_environs = ['default']
 
     @run_after('init')
     def prepare_test(self):
@@ -61,9 +51,39 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     def time(self):
         return sn.extractsingle(r'^ CP2K(\s+[\d\.]+){4}\s+(?P<time>\S+)', self.stdout, 'time', float)
 
+    @run_after('init')
+    def run_after_init(self):
+        """Hooks to run after the init phase"""
+
+        # Filter on which scales are supported by the partitions defined in the ReFrame configuration
+        hooks.filter_supported_scales(self)
+
+        # Make sure that GPU tests run in partitions that support running on a GPU,
+        # and that CPU-only tests run in partitions that support running CPU-only.
+        # Also support setting valid_systems on the cmd line.
+        hooks.filter_valid_systems_by_device_type(self, required_device_type=DEVICE_TYPES[CPU])
+
+        # Support selecting modules on the cmd line.
+        hooks.set_modules(self)
+
+        # Support selecting scales on the cmd line via tags.
+        hooks.set_tag_scale(self)
+
+    @run_after('init')
+    def set_tag_ci(self):
+        """Set tag CI on smallest benchmark, so it can be selected on the cmd line via --tag CI"""
+        if self.bench_name == 'QS/H2O-32':
+            self.tags.add(TAGS['CI'])
+            log(f'tags set to {self.tags}')
+
     @run_after('setup')
-    def skip_tests(self):
-        """Skip tests that are not suited for the requested resources"""
+    def run_after_setup(self):
+        """Hooks to run after the setup phase"""
+
+        # Calculate default requested resources based on the scale:
+        # 1 task per CPU for CPU-only tests, 1 task per GPU for GPU tests.
+        # Also support setting the resources on the cmd line.
+        hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[CPU])
 
         # Skip QS/H2O-512 benchmark if not enough cores requested
         min_cores = 16
@@ -74,3 +94,21 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         max_nodes = 8
         self.skip_if(self.bench_name == 'QS/H2O-512' and self.num_nodes > max_nodes,
                      f'Skipping benchmark {self.bench_name}: more than {max_nodes} nodes requested ({self.num_nodes})')
+
+        # Set OMP_NUM_THREADS environment variable
+        hooks.set_omp_num_threads(self)
+
+        # Set compact process binding
+        hooks.set_compact_process_binding(self)
+
+    @run_after('setup')
+    def request_mem(self):
+        mems = {
+            'QS/H2O-32': {'intercept': 0.5, 'slope': 0.15},
+            'QS/H2O-128': {'intercept': 5, 'slope': 0.15},
+            'QS/H2O-512': {'intercept': 34, 'slope': 0.20},
+        }
+
+        mem = mems[self.bench_name]
+        mem_required = self.num_tasks_per_node * mem['slope'] + mem['intercept']
+        hooks.req_memory_per_node(self, app_mem_req=mem_required * 1024)
