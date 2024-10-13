@@ -48,7 +48,6 @@ class EESSI_GROMACS_base(gromacs_check):
 
 @rfm.simple_test
 class EESSI_GROMACS(EESSI_GROMACS_base, EESSI_Mixin):
-# class EESSI_GROMACS(gromacs_check, EESSI_Mixin):
     scale = parameter(SCALES.keys())
     time_limit = '30m'
     module_name = parameter(find_modules('GROMACS'))
