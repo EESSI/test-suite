@@ -1,4 +1,4 @@
-from reframe.core.builtins import parameter, run_after
+from reframe.core.builtins import parameter, run_after, variable
 from reframe.core.exceptions import ReframeFatalError
 from reframe.core.pipeline import RegressionMixin
 from reframe.utility.sanity import make_performance_function
@@ -25,18 +25,18 @@ class EESSI_Mixin(RegressionMixin):
     All EESSI tests should derive from this mixin class unless they have a very good reason not to.
     To run correctly, tests inheriting from this class need to define variables and parameters that are used here.
     That definition needs to be done 'on time', i.e. early enough in the execution of the ReFrame pipeline.
-    Here, we list which class attributes need to be defined by the child class, and by (the end of) what phase:
+    Here, we list which class attributes must be defined by the child class, and by (the end of) what phase:
 
-    - Init phase: device_type, scale, module_name
+    - Init phase: device_type, scale, module_name, bench_name (if bench_name_ci is set)
     - Setup phase: compute_unit, required_mem_per_node
 
     The child class may also overwrite the following attributes:
 
-    - Init phase: time_limit, measure_memory_usage
+    - Init phase: time_limit, measure_memory_usage, bench_name_ci
     """
 
     # Set defaults for these class variables, can be overwritten by child class if desired
-    measure_memory_usage = False
+    measure_memory_usage = variable(bool, value=False)
     scale = parameter(SCALES.keys())
     bench_name = None
     bench_name_ci = None
