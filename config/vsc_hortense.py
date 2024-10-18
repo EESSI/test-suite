@@ -4,7 +4,8 @@
 # authors: Samuel Moors (VUB-HPC), Kenneth Hoste (HPC-UGent), Lara Peeters (HPC-UGent)
 
 # Use generated topology file by ReFrame for CPU partitions
-# Cannot use autodetection untill `sched_options` is part of the ReFrame release https://github.com/reframe-hpc/reframe/issues/2970
+# Cannot use autodetection untill `sched_options` is part of 
+# the ReFrame release https://github.com/reframe-hpc/reframe/issues/2970
 
 # Instructions on generating topology file
 # ```
@@ -16,7 +17,8 @@
 #    python3 -m pip install --upgrade pip
 #    python3 -m pip install reframe-hpc=="4.6.2"
 #
-#    reframe --detect-host-topology /dodrio/scratch/users/vsc46128/.reframe/topology/hortense-{partition_name}/processor.json
+#    reframe --detect-host-topology \
+#        /dodrio/scratch/users/vsc46128/.reframe/topology/hortense-{partition_name}/processor.json
 # ```
 
 from reframe.core.backends import register_launcher
