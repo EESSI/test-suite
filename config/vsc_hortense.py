@@ -4,7 +4,7 @@
 # authors: Samuel Moors (VUB-HPC), Kenneth Hoste (HPC-UGent), Lara Peeters (HPC-UGent)
 
 # Use generated topology file by ReFrame for CPU partitions
-# Cannot use autodetection untill `sched_options` is part of 
+# Cannot use autodetection untill `sched_options` is part of
 # the ReFrame release https://github.com/reframe-hpc/reframe/issues/2970
 
 # Instructions on generating topology file
