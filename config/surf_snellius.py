@@ -32,7 +32,9 @@ site_configuration = {
             'name': 'snellius',
             'descr': 'Dutch National Supercomputer',
             'modules_system': 'lmod',
-            'hostnames': ['int*', 'tcn*', 'hcn*', 'fcn*', 'gcn*', 'srv*'],
+            # Just accept any hostname. List of hostnames can only get outdated, and this is a single-system config
+            # file anyway.
+            'hostnames': ['*'],
             'prefix': reframe_prefix,
             'stagedir': f'/scratch-shared/{os.environ.get("USER")}/reframe_output/staging',
             'partitions': [
