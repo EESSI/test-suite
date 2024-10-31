@@ -20,6 +20,15 @@ class MyMpirunLauncher(JobLauncher):
     def command(self, job):
         return ['mympirun', '--hybrid', str(job.num_tasks_per_node)]
 
+eessi_cvmfs_repo = os.getenv('EESSI_CVMFS_REPO', None)
+if eessi_cvmfs_repo is not None:
+    prepare_eessi_init = 'module --force purge'
+    launcher = 'mpirun'
+    mpi_module = ''
+else:
+    prepare_eessi_init = ''
+    launcher = 'mympirun'
+    mpi_module = 'vsc-mympirun'
 
 site_configuration = {
     'systems': [
@@ -32,13 +41,13 @@ site_configuration = {
                 {
                     'name': 'cpu_rome_256gb',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [common_eessi_init()],
+                    'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_rome'],
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
                     'max_jobs': 20,
-                    'launcher': 'mympirun',
-                    'modules': ['vsc-mympirun'],
+                    'launcher': launcher,
+                    'modules': [mpi_module],
                     'processor': {
                         'num_cpus': 128,
                         'num_sockets': 2,
@@ -64,13 +73,13 @@ site_configuration = {
                 {
                     'name': 'cpu_rome_512gb',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [common_eessi_init()],
+                    'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_rome_512'],
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
                     'max_jobs': 20,
-                    'launcher': 'mympirun',
-                    'modules': ['vsc-mympirun'],
+                    'launcher': launcher,
+                    'modules': [mpi_module],
                     'processor': {
                         'num_cpus': 128,
                         'num_sockets': 2,
@@ -96,13 +105,13 @@ site_configuration = {
                 {
                     'name': 'cpu_milan',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [common_eessi_init()],
+                    'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_milan'],
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
                     'max_jobs': 20,
-                    'launcher': 'mympirun',
-                    'modules': ['vsc-mympirun'],
+                    'launcher': launcher,
+                    'modules': [mpi_module],
                     'processor': {
                         'num_cpus': 128,
                         'num_sockets': 2,
@@ -128,13 +137,13 @@ site_configuration = {
                 {
                     'name': 'gpu_rome_a100_40gb',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [common_eessi_init()],
+                    'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=gpu_rome_a100_40'],
                     'environs': ['default'],
                     'descr': 'GPU nodes (A100 40GB)',
                     'max_jobs': 20,
-                    'launcher': 'mympirun',
-                    'modules': ['vsc-mympirun'],
+                    'launcher': launcher,
+                    'modules': [mpi_module],
                     'processor': {
                         'num_cpus': 48,
                         'num_sockets': 2,
@@ -172,13 +181,13 @@ site_configuration = {
                 {
                     'name': 'gpu_rome_a100_80gb',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [common_eessi_init()],
+                    'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=gpu_rome_a100_80'],
                     'environs': ['default'],
                     'descr': 'GPU nodes (A100 80GB)',
                     'max_jobs': 20,
-                    'launcher': 'mympirun',
-                    'modules': ['vsc-mympirun'],
+                    'launcher': launcher,
+                    'modules': [mpi_module],
                     'processor': {
                         'num_cpus': 48,
                         'num_sockets': 2,
