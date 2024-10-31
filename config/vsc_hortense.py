@@ -2,6 +2,7 @@
 # https://docs.vscentrum.be/en/latest/gent/tier1_hortense.html
 #
 # authors: Samuel Moors (VUB-HPC), Kenneth Hoste (HPC-UGent)
+import os
 
 from reframe.core.backends import register_launcher
 from reframe.core.launchers import JobLauncher
@@ -19,6 +20,7 @@ hortense_access = ['--export=NONE', '--get-user-env=60L']
 class MyMpirunLauncher(JobLauncher):
     def command(self, job):
         return ['mympirun', '--hybrid', str(job.num_tasks_per_node)]
+
 
 eessi_cvmfs_repo = os.getenv('EESSI_CVMFS_REPO', None)
 if eessi_cvmfs_repo is not None:
