@@ -10,7 +10,7 @@
 # Instructions on generating topology file
 # ```
 #    module swap cluster/{partition}
-#    qsub -l nodes=1:ppn=all -l walltime=00:30:00
+#    qsub -I -l nodes=1:ppn=all -l walltime=00:30:00
 #
 #    python3 -m venv "$TMPDIR"/reframe_venv
 #    source "$TMPDIR"/reframe_venv/bin/activate
