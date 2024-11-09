@@ -18,7 +18,7 @@
 #    python3 -m pip install reframe-hpc=="4.6.2"
 #
 #    reframe --detect-host-topology \
-#        /dodrio/scratch/users/vsc46128/.reframe/topology/hortense-{partition_name}/processor.json
+#        ~/.reframe/topology/hortense-{partition_name}/processor.json
 # ```
 
 from reframe.core.backends import register_launcher
