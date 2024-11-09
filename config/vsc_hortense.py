@@ -17,6 +17,7 @@
 #    python3 -m pip install --upgrade pip
 #    python3 -m pip install reframe-hpc=="4.6.2"
 #
+#    mkdir -p ~/.reframe/topology/hortense-{partition_name}
 #    reframe --detect-host-topology \
 #        ~/.reframe/topology/hortense-{partition_name}/processor.json
 # ```
