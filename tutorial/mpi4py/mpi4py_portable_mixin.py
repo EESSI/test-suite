@@ -10,29 +10,25 @@ from reframe.core.builtins import variable, parameter, run_after, performance_fu
 
 # Import the EESSI_Mixin class so that we can inherit from it
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
-
+from eessi.testsuite.constants import COMPUTE_UNIT, DEVICE_TYPES, CPU
+from eessi.testsuite.utils import find_modules
 
 # This python decorator indicates to ReFrame that this class defines a test
 # Our class inherits from rfm.RunOnlyRegressionTest, since this test does not have a compilation stage
 # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RunOnlyRegressionTest
 @rfm.simple_test
 class EESSI_MPI4PY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
-    # Programming environments are only relevant for tests that compile something
-    # Since we are testing existing modules, we typically don't compile anything and simply define
-    # 'default' as the valid programming environment
-    # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.valid_prog_environs
-    valid_prog_environs = ['default']
 
-    # Typically, we list here the name of our cluster as it is specified in our ReFrame configuration file
-    # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.valid_systems
-    valid_systems = ['snellius']
+    # The device type makes sure this test only gets executed on systems/partitions that can provide this device
+    device_type = DEVICE_TYPES[CPU]
 
-    # ReFrame will generate a test for each module
-    # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.builtins.parameter
-    module_name = parameter(['mpi4py/3.1.4-gompi-2023a', 'mpi4py/3.1.5-gompi-2023b'])
+    # One task is launched per compute unit. In this case, one task per (physical) CPU core
+    compute_unit = COMPUTE_UNIT[CPU]
 
-    # ReFrame will generate a test for each scale
-    scale = parameter([2, 128, 256])
+    # ReFrame will generate a test for each module that matches the regex `mpi4py`
+    # This means we implicitely assume that any module matching this name provides the required functionality
+    # to run this test
+    module_name = parameter(find_modules('mpi4py'))
 
     # Our script has two arguments, --n_iter and --n_warmup. By defining these as ReFrame variables, we can
     # enable the end-user to overwrite their value on the command line when invoking ReFrame.
@@ -57,27 +53,11 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.time_limit
     time_limit = '5m00s'
 
-    # Using this decorator, we tell ReFrame to run this AFTER the init step of the test
-    # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.builtins.run_after
-    # See https://reframe-hpc.readthedocs.io/en/stable/pipeline.html for all steps in the pipeline
-    # that reframe uses to execute tests. Note that after the init step, ReFrame has generated test instances for each
-    # of the combinations of parameters above. Thus, now, there are 6 instances (2 module names * 3 scales). Here,
-    # we set the modules to load equal to one of the module names
-    # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.modules
-    @run_after('init')
-    def set_modules(self):
-        self.modules = [self.module_name]
+    # Define the class method that returns the required memory per node
+    def required_mem_per_node(self):
+        return self.num_tasks_per_node * 100 + 250
 
-    # Similar for the scale, we now set the number of tasks equal to the scale for this instance
-    @run_after('init')
-    def define_task_count(self):
-        # Set the number of tasks, self.scale is now a single number out of the parameter list
-        # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.num_tasks
-        self.num_tasks = self.scale
-        # Set the number of tasks per node to either be equal to the number of tasks, but at most 128,
-        # since we have 128-core nodes
-        # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.num_tasks_per_node
-        self.num_tasks_per_node = min(self.num_tasks, 128)
+         self.num_tasks_per_node = min(self.num_tasks, 128)
 
     # Now, we check if the pattern 'Sum of all ranks: X' with X the correct sum for the amount of ranks is found
     # in the standard output:
@@ -85,7 +65,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     @sanity_function
     def validate(self):
         # Sum of 0, ..., N-1 is (N * (N-1) / 2)
-        sum_of_ranks = round(self.scale * ((self.scale - 1) / 2))
+        sum_of_ranks = round(self.num_tasks * ((self.num_tasks - 1) / 2))
         # https://reframe-hpc.readthedocs.io/en/stable/deferrable_functions_reference.html#reframe.utility.sanity.assert_found
         return sn.assert_found(r'Sum of all ranks: %s' % sum_of_ranks, self.stdout)
 

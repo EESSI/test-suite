@@ -82,7 +82,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
     @sanity_function
     def validate(self):
         # Sum of 0, ..., N-1 is (N * (N-1) / 2)
-        sum_of_ranks = round(self.scale * ((self.scale - 1) / 2))
+        sum_of_ranks = round(self.num_tasks * ((self.num_tasks - 1) / 2))
         # https://reframe-hpc.readthedocs.io/en/stable/deferrable_functions_reference.html#reframe.utility.sanity.assert_found
         return sn.assert_found(r'Sum of all ranks: %s' % sum_of_ranks, self.stdout)
 
