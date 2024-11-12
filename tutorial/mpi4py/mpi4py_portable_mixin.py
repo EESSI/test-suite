@@ -6,12 +6,13 @@ import reframe as rfm
 import reframe.utility.sanity as sn
 
 # added only to make the linter happy
-from reframe.core.builtins import variable, parameter, run_after, performance_function, sanity_function
+from reframe.core.builtins import variable, parameter, performance_function, sanity_function
 
 # Import the EESSI_Mixin class so that we can inherit from it
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.constants import COMPUTE_UNIT, DEVICE_TYPES, CPU
 from eessi.testsuite.utils import find_modules
+
 
 # This python decorator indicates to ReFrame that this class defines a test
 # Our class inherits from rfm.RunOnlyRegressionTest, since this test does not have a compilation stage
