@@ -100,6 +100,7 @@ partition_defaults = {
             'options': ['--mem={size}'],
         }
     ],
+    'max_jobs': 1,
 }
 for system in site_configuration['systems']:
     for partition in system['partitions']:
