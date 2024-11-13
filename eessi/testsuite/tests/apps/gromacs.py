@@ -52,8 +52,7 @@ class EESSI_GROMACS(EESSI_GROMACS_base, EESSI_Mixin):
     time_limit = '30m'
     module_name = parameter(find_modules('GROMACS'))
     bench_name_ci = 'HECBioSim/Crambin'
-    # measure_memory_usage = True
-
+    
     def required_mem_per_node(self):
         return self.num_tasks_per_node * 1024
 
@@ -63,7 +62,10 @@ class EESSI_GROMACS(EESSI_GROMACS_base, EESSI_Mixin):
 
     @run_after('init')
     def set_compute_unit(self):
-        """Set the compute unit to which tasks will be assigned"""
+        """
+        Set the compute unit to which tasks will be assigned:
+        one task per CPU core for CPU runs, and one task per GPU for GPU runs.
+        """
         if self.device_type == DEVICE_TYPES['CPU']:
             self.compute_unit = COMPUTE_UNIT['CPU']
         elif self.device_type == DEVICE_TYPES['GPU']:
