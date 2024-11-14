@@ -10,6 +10,7 @@ from eessi.testsuite import hooks, utils
 from eessi.testsuite.constants import *  # noqa
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
+from eessi.testsuite.tests.apps.lammps.lammps_staging.lammps_stage_input import EESSI_LAMMPS_stage_input
 
 class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     time_limit = '30m'
@@ -125,8 +126,17 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base):
 @rfm.simple_test
 class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base):
     sourcesdir = 'src/rhodo'
-    readonly_files = ["data.rhodo"]
     executable = 'lmp -in in.rhodo'
+
+    stage_input = fixture(EESSI_LAMMPS_stage_input, scope='session')
+
+    @run_after('setup')
+    def symlink_lammps_data(self):
+        '''Create a symlink to the data.rhodo file staged by the EESSI_LAMMPS_stage_input fixture.
+        Lammps needs this in the current working directory'''
+        self.prerun_cmds = [
+            f'ln -s {self.stage_input.stagedir}/rhodo/data.rhodo data.rhodo'
+        ]
 
     @deferrable
     def check_number_neighbors(self):
