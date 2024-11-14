@@ -200,17 +200,19 @@ class EESSI_Mixin(RegressionMixin):
             if repo_name:
                 self.cvmfs_repo_name = f'{repo_name}'
         except SanityError:
-             pass
+            pass
 
         try:
-            software_subdir = sn.extractsingle(r'EESSI_SOFTWARE_SUBDIR: (?P<subdir>.*)$', f'{self.stagedir}/{self.stdout}', 'subdir', str)
+            software_subdir = sn.extractsingle(r'EESSI_SOFTWARE_SUBDIR: (?P<subdir>.*)$', f'{self.stagedir}/{self.stdout}',
+                                               'subdir', str)
             if software_subdir:
                 self.cvmfs_software_subdir = f'{software_subdir}'
         except SanityError:
             pass
 
         try:
-            module_path = sn.extractsingle(r'FULL_MODULEPATH: (?P<modpath>.*)$', f'{self.stagedir}/{self.stdout}', 'modpath', str)
+            module_path = sn.extractsingle(r'FULL_MODULEPATH: (?P<modpath>.*)$', f'{self.stagedir}/{self.stdout}',
+                                           'modpath', str)
             print(f"Full modulepath: {module_path}")
             if module_path:
                 self.full_modulepath = f'{module_path}'
