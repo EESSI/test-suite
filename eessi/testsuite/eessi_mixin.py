@@ -203,8 +203,8 @@ class EESSI_Mixin(RegressionMixin):
             pass
 
         try:
-            software_subdir = sn.extractsingle(r'EESSI_SOFTWARE_SUBDIR: (?P<subdir>.*)$', f'{self.stagedir}/{self.stdout}',
-                                               'subdir', str)
+            software_subdir = sn.extractsingle(r'EESSI_SOFTWARE_SUBDIR: (?P<subdir>.*)$',
+                                               f'{self.stagedir}/{self.stdout}', 'subdir', str)
             if software_subdir:
                 self.cvmfs_software_subdir = f'{software_subdir}'
         except SanityError:
