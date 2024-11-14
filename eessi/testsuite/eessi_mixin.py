@@ -9,6 +9,7 @@ from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNIT, TAGS
 from eessi.testsuite.utils import log
 from eessi.testsuite import __version__ as testsuite_version
 
+
 # Hooks from the Mixin class seem to be executed _before_ those of the child class
 # Thus, if the Mixin class needs self.X to be defined in after setup, the child class would have to define it before
 # setup. That's a disadvantage and might not always be possible - let's see how far we get. It also seems that,
@@ -194,7 +195,8 @@ class EESSI_Mixin(RegressionMixin):
         # If EESSI_CVMFS_REPO environment variable was set, extract it and store it in self.cvmfs_repo_name
         # Try block is needed to surpress sanity error if there is no match
         try:
-            repo_name = sn.extractsingle(r'EESSI_CVMFS_REPO: /cvmfs/(?P<repo>.*)$', f'{self.stagedir}/{self.stdout}', 'repo', str)
+            repo_name = sn.extractsingle(r'EESSI_CVMFS_REPO: /cvmfs/(?P<repo>.*)$', f'{self.stagedir}/{self.stdout}',
+                                         'repo', str)
             if repo_name:
                 self.cvmfs_repo_name = f'{repo_name}'
         except SanityError:
