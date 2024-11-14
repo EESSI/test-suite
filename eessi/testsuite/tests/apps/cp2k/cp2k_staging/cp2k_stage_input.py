@@ -1,6 +1,7 @@
 import reframe as rfm
 from reframe.utility import sanity as sn
 
+
 @rfm.simple_test
 class EESSI_CP2K_stage_input(rfm.RunOnlyRegressionTest):
     '''Stage input files for CP2K'''

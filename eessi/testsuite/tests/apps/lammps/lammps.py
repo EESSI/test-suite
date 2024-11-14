@@ -12,6 +12,7 @@ from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
 from eessi.testsuite.tests.apps.lammps.lammps_staging.lammps_stage_input import EESSI_LAMMPS_stage_input
 
+
 class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     time_limit = '30m'
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])

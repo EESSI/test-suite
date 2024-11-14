@@ -1,6 +1,7 @@
 import reframe as rfm
 from reframe.utility import sanity as sn
 
+
 @rfm.simple_test
 class EESSI_LAMMPS_stage_input(rfm.RunOnlyRegressionTest):
     '''Stage input files for LAMMPS'''
