@@ -27,7 +27,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     compute_unit = COMPUTE_UNIT[CPU]
 
     # ReFrame will generate a test for each module that matches the regex `mpi4py`
-    # This means we implicitely assume that any module matching this name provides the required functionality
+    # This means we implicitly assume that any module matching this name provides the required functionality
     # to run this test
     module_name = parameter(find_modules('mpi4py'))
 
@@ -53,6 +53,14 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     # Define a time limit for the scheduler running this test
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.time_limit
     time_limit = '5m00s'
+    
+    # Define the benchmarks that are available in the test.
+    # In this test (`EESSI_MPI4PY`) there is only one benchmark. If there are more than one,
+    # define them using the `parameter()` function.
+    bench_name = 'mpi4pi'
+    
+    # Specify the benchmark to be tested in CI (will be marked with a `CI` tag).
+    bench_name_ci = 'mpi4pi'
 
     # Define the class method that returns the required memory per node
     def required_mem_per_node(self):
