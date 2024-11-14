@@ -5,6 +5,7 @@ from reframe.utility.sanity import make_performance_function
 
 from eessi.testsuite import hooks
 from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNIT, TAGS
+from eessi.testsuite.utils import log
 
 
 # Hooks from the Mixin class seem to be executed _before_ those of the child class
@@ -124,6 +125,7 @@ class EESSI_Mixin(RegressionMixin):
                 raise ReframeFatalError(msg)
             if self.bench_name == self.bench_name_ci:
                 self.tags.add(TAGS['CI'])
+                log(f'tags set to {self.tags}')
 
     @run_after('setup')
     def validate_setup(self):
