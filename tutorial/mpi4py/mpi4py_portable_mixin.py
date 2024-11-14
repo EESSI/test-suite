@@ -53,12 +53,12 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     # Define a time limit for the scheduler running this test
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.time_limit
     time_limit = '5m00s'
-    
+
     # Define the benchmarks that are available in the test.
     # In this test (`EESSI_MPI4PY`) there is only one benchmark. If there are more than one,
     # define them using the `parameter()` function.
     bench_name = 'mpi4pi'
-    
+
     # Specify the benchmark to be tested in CI (will be marked with a `CI` tag).
     bench_name_ci = 'mpi4pi'
 
