@@ -41,10 +41,7 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     def prepare_test(self):
         self.bench_name, self.energy_ref, self.energy_tol = self.benchmark_info
         self.descr = f'EESSI_CP2K {self.bench_name} benchmark'
-        self.prerun_cmds = [
-            f'cp {os.path.join(os.path.dirname(__file__), "input", self.bench_name)}.inp ./'
-        ]
-        self.executable_opts += ['-i', f'{os.path.basename(self.bench_name)}.inp']
+        self.executable_opts += ['-i', f'{self.bench_name}.inp']
 
     @sanity_function
     def assert_energy(self):
