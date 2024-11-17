@@ -1,5 +1,3 @@
-import os
-
 import reframe as rfm
 from reframe.core.builtins import parameter, run_after, performance_function, sanity_function
 import reframe.utility.sanity as sn
