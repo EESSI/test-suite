@@ -84,7 +84,7 @@ class EESSI_Mixin(RegressionMixin):
         for var in var_list:
             if not hasattr(self, var):
                 msg = "The variable '%s' should be defined in any test class that inherits" % var
-                msg += " from EESSI_Mixin in the init phase (or earlier), but it wasn't"
+                msg += " from EESSI_Mixin before (or in) the init phase, but it wasn't"
                 raise ReframeFatalError(msg)
 
         # Check that the value for these variables is valid,
@@ -134,14 +134,14 @@ class EESSI_Mixin(RegressionMixin):
         for var in var_list:
             if not hasattr(self, var):
                 msg = "The variable '%s' should be defined in any test class that inherits" % var
-                msg += " from EESSI_Mixin in the setup phase (or earlier), but it wasn't"
+                msg += " from EESSI_Mixin before (or in) the setup phase, but it wasn't"
                 raise ReframeFatalError(msg)
 
         # Check if mem_func was defined to compute the required memory per node as function of the number of
         # tasks per node
         if not hasattr(self, 'required_mem_per_node'):
             msg = "The function 'required_mem_per_node' should be defined in any test class that inherits"
-            msg += " from EESSI_Mixin in the setup phase (or earlier), but it wasn't. Note that this function"
+            msg += " from EESSI_Mixin before (or in) the setup phase, but it wasn't. Note that this function"
             msg += " can use self.num_tasks_per_node, as it will be called after that attribute"
             msg += " has been set."
             raise ReframeFatalError(msg)
