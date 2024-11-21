@@ -50,7 +50,7 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         # self.prerun_cmds = [
         #    f'cp {os.path.join(os.path.dirname(__file__), "input", self.bench_name)}.inp ./'
         # ]
-        self.executable_opts += ['-i', f'{self.stage_files.stagedir}/input/QS/{os.path.basename(self.bench_name)}.inp']
+        self.executable_opts += ['-i', f'{self.stage_files.stagedir}/{self.bench_name}.inp']
 
     @sanity_function
     def assert_energy(self):
