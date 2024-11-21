@@ -1,5 +1,3 @@
-import os
-
 import reframe as rfm
 from reframe.core.builtins import parameter, run_after, performance_function, sanity_function, fixture
 import reframe.utility.sanity as sn
@@ -47,10 +45,7 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     @run_after('setup')
     def prepare_test(self):
-        # self.prerun_cmds = [
-        #    f'cp {os.path.join(os.path.dirname(__file__), "input", self.bench_name)}.inp ./'
-        # ]
-        self.executable_opts += ['-i', f'{self.stage_files.stagedir}/input/QS/{os.path.basename(self.bench_name)}.inp']
+        self.executable_opts += ['-i', f'{self.stage_files.stagedir}/{self.bench_name}.inp']
 
     @sanity_function
     def assert_energy(self):
