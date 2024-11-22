@@ -1,16 +1,17 @@
-import os
-
 import reframe as rfm
-from reframe.core.builtins import parameter, run_after, performance_function, sanity_function
+from reframe.core.builtins import parameter, run_after, performance_function, sanity_function, fixture
 import reframe.utility.sanity as sn
 
 from eessi.testsuite.constants import SCALES, COMPUTE_UNIT, DEVICE_TYPES, CPU
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules
+from eessi.testsuite.tests.apps.cp2k.cp2k_staging.cp2k_stage_input import EESSI_CP2K_stage_input
 
 
 @rfm.simple_test
 class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
+
+    stage_files = fixture(EESSI_CP2K_stage_input, scope='session')
 
     benchmark_info = parameter([
         # (bench_name, energy_ref, energy_tol)
@@ -38,13 +39,13 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         return (self.num_tasks_per_node * mem['slope'] + mem['intercept']) * 1024
 
     @run_after('init')
-    def prepare_test(self):
+    def set_bench_name(self):
         self.bench_name, self.energy_ref, self.energy_tol = self.benchmark_info
         self.descr = f'EESSI_CP2K {self.bench_name} benchmark'
-        self.prerun_cmds = [
-            f'cp {os.path.join(os.path.dirname(__file__), "input", self.bench_name)}.inp ./'
-        ]
-        self.executable_opts += ['-i', f'{os.path.basename(self.bench_name)}.inp']
+
+    @run_after('setup')
+    def prepare_test(self):
+        self.executable_opts += ['-i', f'{self.stage_files.stagedir}/{self.bench_name}.inp']
 
     @sanity_function
     def assert_energy(self):
