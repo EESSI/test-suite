@@ -1,17 +1,20 @@
+import os
+
 import reframe as rfm
 from reframe.core.builtins import parameter, run_after, performance_function, sanity_function, fixture
 import reframe.utility.sanity as sn
 
 from eessi.testsuite.constants import SCALES, COMPUTE_UNIT, DEVICE_TYPES, CPU
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
+from eessi.testsuite.eessi_staging import EESSI_Staging
 from eessi.testsuite.utils import find_modules
-from eessi.testsuite.tests.apps.cp2k.cp2k_staging.cp2k_stage_input import EESSI_CP2K_stage_input
 
 
 @rfm.simple_test
 class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
-    stage_files = fixture(EESSI_CP2K_stage_input, scope='session')
+    srcdir = os.path.join(os.getcwd(), 'cp2k_staging', 'src')
+    stage_files = fixture(EESSI_Staging, scope='session', variables={'sourcesdir': srcdir})
 
     benchmark_info = parameter([
         # (bench_name, energy_ref, energy_tol)
