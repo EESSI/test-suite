@@ -16,10 +16,12 @@ class EESSI_Staging(rfm.RunOnlyRegressionTest):
 
     @run_after('init')
     def remove_modules(self):
+        "Remove any modules that have been set on the cmd line: they are not needed for staging"
         self.modules = []
 
     @sanity_function
     def check_stagedir(self):
+        "Check that all input files have been correctly copied to the stagedir"
         ignore = {'rfm_job.sh', 'rfm_job.out', 'rfm_job.err'}
         sourcepath = Path(self.sourcesdir)
         sourcefiles = {x.relative_to(sourcepath).as_posix() for x in sourcepath.rglob('*')}
