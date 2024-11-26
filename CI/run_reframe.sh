@@ -50,11 +50,14 @@ fi
 if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
     EESSI_TESTSUITE_BRANCH='v0.4.0'
 fi
-if [ -z "${EESSI_CVMFS_REPO}" ]; then
-    export EESSI_CVMFS_REPO=/cvmfs/software.eessi.io
-fi
-if [ -z "${EESSI_VERSION}" ]; then
-    export EESSI_VERSION=2023.06
+if [ -z "${USE_EESSI_SOFTWARE_STACK}" ] | [ $USE_EESSI_SOFTWARE_STACK == "True" ]; then
+    export USE_EESSI_SOFTWARE_STACK=True
+    if [ -z "${EESSI_CVMFS_REPO}" ]; then
+        export EESSI_CVMFS_REPO=/cvmfs/software.eessi.io
+    fi
+    if [ -z "${EESSI_VERSION}" ]; then
+        export EESSI_VERSION=2023.06
+    fi
 fi
 if [ -z "${RFM_CONFIG_FILES}" ]; then
     export RFM_CONFIG_FILES="${TEMPDIR}/test-suite/config/${EESSI_CI_SYSTEM_NAME}.py"
@@ -72,6 +75,9 @@ if [ -z "${REFRAME_TIMEOUT}" ]; then
     # 10 minutes short of 1 day, since typically the test suite will be run daily.
     # This will prevent multiple ReFrame runs from piling up and exceeding the quota on our Magic Castle clusters
     export REFRAME_TIMEOUT=1430m
+fi
+if [ -z "${UNSET_MODULEPATH}" ]; then
+    export UNSET_MODULEPATH=True
 fi
 
 # Create virtualenv for ReFrame using system python
@@ -93,9 +99,13 @@ git clone ${EESSI_CLONE_ARGS}
 export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/test-suite/
 
 # Start the EESSI environment
-unset MODULEPATH
-eessi_init_path="${EESSI_CVMFS_REPO}"/versions/"${EESSI_VERSION}"/init/bash
-source "${eessi_init_path}"
+if [ $UNSET_MODULEPATH == "True" ]; then
+    unset MODULEPATH
+fi
+if [ $USE_EESSI_SOFTWARE_STACK == "True" ]; then
+    eessi_init_path="${EESSI_CVMFS_REPO}"/versions/"${EESSI_VERSION}"/init/bash
+    source "${eessi_init_path}"
+fi
 
 # Needed in order to make sure the reframe from our TEMPDIR is first on the PATH,
 # prior to the one shipped with the 2021.12 compat layer
