@@ -4,7 +4,7 @@
 # authors: Samuel Moors (VUB-HPC), Kenneth Hoste (HPC-UGent), Lara Peeters (HPC-UGent)
 
 # Use generated topology file by ReFrame for CPU partitions
-# Cannot use autodetection untill `sched_options` is part of
+# Cannot use autodetection untill new functionality of `sched_options` is part of
 # the ReFrame release https://github.com/reframe-hpc/reframe/issues/2970
 
 # Instructions on generating topology file
@@ -132,13 +132,6 @@ site_configuration = {
                     'max_jobs': 20,
                     'launcher': 'mympirun',
                     'modules': ['vsc-mympirun'],
-                    'processor': {
-                        'num_cpus': 48,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 24,
-                        'num_cpus_per_core': 1,
-                        'arch': 'zen2',
-                    },
                     'features': [
                         FEATURES[GPU],
                     ] + list(SCALES.keys()),
@@ -176,13 +169,6 @@ site_configuration = {
                     'max_jobs': 20,
                     'launcher': 'mympirun',
                     'modules': ['vsc-mympirun'],
-                    'processor': {
-                        'num_cpus': 48,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 24,
-                        'num_cpus_per_core': 1,
-                        'arch': 'zen2',
-                    },
                     'features': [
                         FEATURES[GPU],
                     ] + list(SCALES.keys()),
