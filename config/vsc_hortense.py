@@ -10,15 +10,16 @@
 # Instructions on generating topology file
 # ```
 #    module swap cluster/{partition}
-#    qsub -l nodes=1:ppn=all -l walltime=00:30:00
+#    qsub -I -l nodes=1:ppn=all -l walltime=00:30:00
 #
 #    python3 -m venv "$TMPDIR"/reframe_venv
 #    source "$TMPDIR"/reframe_venv/bin/activate
 #    python3 -m pip install --upgrade pip
 #    python3 -m pip install reframe-hpc=="4.6.2"
 #
+#    mkdir -p ~/.reframe/topology/hortense-{partition_name}
 #    reframe --detect-host-topology \
-#        /dodrio/scratch/users/vsc46128/.reframe/topology/hortense-{partition_name}/processor.json
+#        ~/.reframe/topology/hortense-{partition_name}/processor.json
 # ```
 
 from reframe.core.backends import register_launcher
