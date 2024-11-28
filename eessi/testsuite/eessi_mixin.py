@@ -183,17 +183,15 @@ class EESSI_Mixin(RegressionMixin):
         self.postrun_cmds.append('echo "EESSI_CVMFS_REPO: $EESSI_CVMFS_REPO"')
         self.postrun_cmds.append('echo "EESSI_SOFTWARE_SUBDIR: $EESSI_SOFTWARE_SUBDIR"')
         if self.module_name:
-            # Get full modulepath, stripping leading spaces with sed and trailing colon by string substitution
-            get_full_modpath = f'modpath=$(module show {self.module_name} 2>&1 | '
-            get_full_modpath += 'grep ".lua" | '
-            get_full_modpath += 'sed "s/^[[:space:]]*//") && echo "FULL_MODULEPATH: ${modpath%:*}"'
+            # Get full modulepath
+            get_full_modpath = f'echo "FULL_MODULEPATH: $(module --location show {self.module_name})"'
             self.postrun_cmds.append(get_full_modpath)
 
     @run_after('run')
     def extract_runtime_info_from_log(self):
         """Extracts the printed runtime info from the job log and logs it as reframe variables"""
         # If EESSI_CVMFS_REPO environment variable was set, extract it and store it in self.cvmfs_repo_name
-        # Try block is needed to surpress sanity error if there is no match
+        # Try block is needed to suppress sanity error if there is no match
         try:
             repo_name = sn.extractsingle(r'EESSI_CVMFS_REPO: /cvmfs/(?P<repo>.*)$', f'{self.stagedir}/{self.stdout}',
                                          'repo', str)
