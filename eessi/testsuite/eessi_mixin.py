@@ -191,28 +191,17 @@ class EESSI_Mixin(RegressionMixin):
     def extract_runtime_info_from_log(self):
         """Extracts the printed runtime info from the job log and logs it as reframe variables"""
         # If EESSI_CVMFS_REPO environment variable was set, extract it and store it in self.cvmfs_repo_name
-        # Try block is needed to suppress sanity error if there is no match
-        try:
-            repo_name = sn.extractsingle(r'EESSI_CVMFS_REPO: /cvmfs/(?P<repo>.*)$', f'{self.stagedir}/{self.stdout}',
-                                         'repo', str)
-            if repo_name:
-                self.cvmfs_repo_name = f'{repo_name}'
-        except SanityError:
-            pass
+        repo_name = sn.extractall(r'EESSI_CVMFS_REPO: /cvmfs/(?P<repo>.*)$', f'{self.stagedir}/{self.stdout}',
+                                  'repo', str)
+        if repo_name:
+            self.cvmfs_repo_name = f'{repo_name}'
 
-        try:
-            software_subdir = sn.extractsingle(r'EESSI_SOFTWARE_SUBDIR: (?P<subdir>.*)$',
+        software_subdir = sn.extractall(r'EESSI_SOFTWARE_SUBDIR: (?P<subdir>.*)$',
                                                f'{self.stagedir}/{self.stdout}', 'subdir', str)
-            if software_subdir:
-                self.cvmfs_software_subdir = f'{software_subdir}'
-        except SanityError:
-            pass
+        if software_subdir:
+            self.cvmfs_software_subdir = f'{software_subdir}'
 
-        try:
-            module_path = sn.extractsingle(r'FULL_MODULEPATH: (?P<modpath>.*)$', f'{self.stagedir}/{self.stdout}',
+        module_path = sn.extractall(r'FULL_MODULEPATH: (?P<modpath>.*)$', f'{self.stagedir}/{self.stdout}',
                                            'modpath', str)
-            print(f"Full modulepath: {module_path}")
-            if module_path:
-                self.full_modulepath = f'{module_path}'
-        except SanityError:
-            pass
+        if module_path:
+            self.full_modulepath = f'{module_path}'
