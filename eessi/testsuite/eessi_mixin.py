@@ -1,5 +1,5 @@
 from reframe.core.builtins import parameter, run_after, variable
-from reframe.core.exceptions import ReframeFatalError, SanityError
+from reframe.core.exceptions import ReframeFatalError
 from reframe.core.pipeline import RegressionMixin
 from reframe.utility.sanity import make_performance_function
 import reframe.utility.sanity as sn
@@ -197,11 +197,11 @@ class EESSI_Mixin(RegressionMixin):
             self.cvmfs_repo_name = f'{repo_name}'
 
         software_subdir = sn.extractall(r'EESSI_SOFTWARE_SUBDIR: (?P<subdir>.*)$',
-                                               f'{self.stagedir}/{self.stdout}', 'subdir', str)
+                                        f'{self.stagedir}/{self.stdout}', 'subdir', str)
         if software_subdir:
             self.cvmfs_software_subdir = f'{software_subdir}'
 
         module_path = sn.extractall(r'FULL_MODULEPATH: (?P<modpath>.*)$', f'{self.stagedir}/{self.stdout}',
-                                           'modpath', str)
+                                    'modpath', str)
         if module_path:
             self.full_modulepath = f'{module_path}'
