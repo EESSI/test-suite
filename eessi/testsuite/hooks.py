@@ -3,7 +3,6 @@ Hooks for adding tags, filtering and setting job resources in ReFrame tests
 """
 import math
 import shlex
-import warnings
 
 import reframe as rfm
 import reframe.core.logging as rflog
@@ -435,7 +434,7 @@ def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
         warn_msg = f"valid_systems has multiple ({len(test.valid_systems)}) items,"
         warn_msg += " which is not supported by this hook."
         warn_msg += " Make sure to handle filtering yourself."
-        warnings.warn(warn_msg)
+        rflog.getlogger().warning(warn_msg)
         return
 
 
@@ -529,7 +528,6 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
     # and return from this hook (as setting test.extra_resources will be ignored in that case according to
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.extra_resources
     if 'memory' not in test.current_partition.resources:
-        logger = rflog.getlogger()
         msg = "Your ReFrame configuration file does not specify any resource called 'memory' for this partition "
         msg += f" ({test.current_partition.name})."
         msg += " Without this, an explicit memory request cannot be made from the scheduler. This test will run,"
@@ -538,7 +536,7 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
         msg += " 'memory' in your ReFrame configuration file for this partition."
         msg += " For a SLURM system, one would e.g. define:"
         msg += " 'resources': [{'name': 'memory', 'options': ['--mem={size}']}]"
-        logger.warning(msg)
+        rflog.getlogger().warning(msg)
         # We return, as setting a test.extra_resources is pointless - it would be ignored anyway
         # This way, we also don't add any lines to the log that a specific amount of memory was requested
         return
@@ -580,14 +578,13 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
         log(f"Requested {req_mem_per_task} MiB per task from the torque batch scheduler")
 
     else:
-        logger = rflog.getlogger()
         msg = "hooks.req_memory_per_node does not support the scheduler you configured"
         msg += f" ({test.current_partition.scheduler.registered_name})."
         msg += " The test will run, but since it doesn't request the required amount of memory explicitely,"
         msg += " it may result in an out-of-memory error."
         msg += " Please expand the functionality of hooks.req_memory_per_node for your scheduler."
         # Warnings will, at default loglevel, be printed on stdout when executing the ReFrame command
-        logger.warning(msg)
+        rflog.getlogger().warning(msg)
 
 
 def set_modules(test: rfm.RegressionTest):
@@ -671,14 +668,13 @@ def set_compact_process_binding(test: rfm.RegressionTest):
         log(f'Set environment variable SLURM_DISTRIBUTION to {test.env_vars["SLURM_DISTRIBUTION"]}')
         log(f'Set environment variable SLURM_CPU_BIND to {test.env_vars["SLURM_CPU_BIND"]}')
     else:
-        logger = rflog.getlogger()
         msg = "hooks.set_compact_process_binding does not support the current launcher"
         msg += f" ({test.current_partition.launcher_type().registered_name})."
         msg += " The test will run, but using the default binding strategy of your parallel launcher."
         msg += " This may lead to suboptimal performance."
         msg += " Please expand the functionality of hooks.set_compact_process_binding for your parallel launcher."
         # Warnings will, at default loglevel, be printed on stdout when executing the ReFrame command
-        logger.warning(msg)
+        rflog.getlogger().warning(msg)
 
 
 def set_compact_thread_binding(test: rfm.RegressionTest):
