@@ -32,7 +32,7 @@ import reframe as rfm
 from hpctestlib.sciapps.qespresso.benchmarks import QEspressoPWCheck
 from reframe.core.builtins import parameter, run_after
 
-from eessi.testsuite.constants import COMPUTE_UNIT, CPU, DEVICE_TYPES, GPU, SCALES
+from eessi.testsuite.constants import COMPUTE_UNIT, CPU, DEVICE_TYPES, GPU
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules
 
