@@ -39,7 +39,6 @@ class EESSI_Mixin(RegressionMixin):
     # Set defaults for these class variables, can be overwritten by child class if desired
     measure_memory_usage = variable(bool, value=False)
     scale = parameter(SCALES.keys())
-    bench_name = None
     bench_name_ci = None
 
     # Note that the error for an empty parameter is a bit unclear for ReFrame 4.6.2, but that will hopefully improve
@@ -54,6 +53,8 @@ class EESSI_Mixin(RegressionMixin):
         cls.valid_systems = ['*']
         if not cls.time_limit:
             cls.time_limit = '1h'
+        if 'bench_name' not in dir():
+            cls.bench_name = None
 
     # Helper function to validate if an attribute is present it item_dict.
     # If not, print it's current name, value, and the valid_values
