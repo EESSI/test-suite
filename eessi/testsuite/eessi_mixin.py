@@ -190,6 +190,9 @@ class EESSI_Mixin(RegressionMixin):
     @run_after('run')
     def extract_runtime_info_from_log(self):
         """Extracts the printed runtime info from the job log and logs it as reframe variables"""
+        if self.is_dry_run():
+            return
+
         # If EESSI_CVMFS_REPO environment variable was set, extract it and store it in self.cvmfs_repo_name
         repo_name = sn.extractall(r'EESSI_CVMFS_REPO: /cvmfs/(?P<repo>.*)$', f'{self.stagedir}/{self.stdout}',
                                   'repo', str)
