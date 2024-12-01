@@ -26,7 +26,6 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     @run_after('init')
     def prepare_test(self):
-
         # Set nn_model as executable option
         self.executable_opts = ['pytorch_synthetic_benchmark.py --model %s' % self.nn_model]
         self.bench_name = self.nn_model
@@ -34,19 +33,6 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         # If not a GPU run, disable CUDA
         if self.device_type != DEVICE_TYPES[GPU]:
             self.executable_opts += ['--no-cuda']
-
-    @run_after('init')
-    def set_compute_unit(self):
-        """
-        Set the compute unit to which tasks will be assigned:
-        one task per NUMA node for CPU runs, and one task per GPU for GPU runs.
-        """
-        device_to_compute_unit = {
-            # Hybrid execution with one task per NUMA_NODE is typically the most efficient
-            DEVICE_TYPES[CPU]: COMPUTE_UNIT[NUMA_NODE],
-            DEVICE_TYPES[GPU]: COMPUTE_UNIT[GPU],
-        }
-        self.compute_unit = device_to_compute_unit.get(self.device_type)
 
     @run_after('setup')
     def set_ddp_options(self):
@@ -86,7 +72,7 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     @performance_function('img/sec')
     def througput_per_CPU(self):
-        '''Training througput per CPU'''
+        '''Training througput per device type'''
         if self.device_type == DEVICE_TYPES[CPU]:
             return sn.extractsingle(r'Img/sec per CPU:\s+(?P<perf_per_cpu>\S+)', self.stdout, 'perf_per_cpu', float)
         else:
@@ -96,11 +82,13 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 @rfm.simple_test
 class EESSI_PyTorch_torchvision_CPU(EESSI_PyTorch_torchvision):
     device_type = DEVICE_TYPES[CPU]
+    compute_unit = COMPUTE_UNIT[NUMA_NODE]
 
 
 @rfm.simple_test
 class EESSI_PyTorch_torchvision_GPU(EESSI_PyTorch_torchvision):
     device_type = DEVICE_TYPES[GPU]
+    compute_unit = COMPUTE_UNIT[GPU]
     precision = parameter(['default', 'mixed'])
 
     @run_after('init')
