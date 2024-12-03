@@ -106,6 +106,7 @@ site_configuration = {
                         FEATURES[GPU],
                     ] + list(SCALES.keys()),
                     'extras': {
+                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
                         'mem_per_node': 476.837 * 1024  # in MiB (should be checked, its unclear from slurm.conf)
