@@ -34,7 +34,8 @@ site_configuration = {
                     'access': ['--partition=x86-64-amd-zen4-node', '--export=NONE'],
                     'descr': 'Zen4, 16 cores, 30 GB',
                     'prepare_cmds': [
-                        # Avoid https://www.eessi.io/docs/known_issues/eessi-2023.06/#eessi-production-repository-v202306 
+                        # Avoid 
+                        # https://www.eessi.io/docs/known_issues/eessi-2023.06/#eessi-production-repository-v202306
                         'export OMPI_MCA_btl=^uct,ofi'
                         'export OMPI_MCA_pml=ucx'
                         'export OMPI_MCA_mtl=^ofi'
