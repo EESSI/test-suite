@@ -34,6 +34,12 @@ site_configuration = {
                     'access': ['--partition=x86-64-amd-zen4-node', '--export=NONE'],
                     'descr': 'Zen4, 16 cores, 30 GB',
                     'prepare_cmds': [
+                        # Avoid
+                        # https://www.eessi.io/docs/known_issues/eessi-2023.06/#eessi-production-repository-v202306
+                        'export OMPI_MCA_btl=^uct,ofi'
+                        'export OMPI_MCA_pml=ucx'
+                        'export OMPI_MCA_mtl=^ofi'
+                        # Use override to avoid fallback to zen3
                         'export EESSI_SOFTWARE_SUBDIR_OVERRIDE=x86_64/amd/zen4',
                         common_eessi_init(),
                         # Required when using srun as launcher with --export=NONE in partition access,
