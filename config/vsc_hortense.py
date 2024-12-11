@@ -42,13 +42,15 @@ class MyMpirunLauncher(JobLauncher):
 
 eessi_cvmfs_repo = os.getenv('EESSI_CVMFS_REPO', None)
 if eessi_cvmfs_repo is not None:
-    prepare_eessi_init = 'module --force purge'
-    launcher = 'mpirun'
-    mpi_module = ''
+    prepare_eessi_init = "module --force purge"
+    launcher = "mpirun"
+    env_module = "env/vsc/dodrio/%(partition)s env/slurm/dodrio/%(partition)s"
+    mpi_module = ""
 else:
-    prepare_eessi_init = ''
-    launcher = 'mympirun'
-    mpi_module = 'vsc-mympirun'
+    prepare_eessi_init = ""
+    launcher = "mympirun"
+    mpi_module = "vsc-mympirun"
+    env_module = ""
 
 site_configuration = {
     'systems': [
@@ -67,7 +69,7 @@ site_configuration = {
                     'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module],
+                    'modules': [mpi_module, env_module % {'partition': "cpu_rome"}],
                     'resources': [
                         {
                             'name': 'memory',
@@ -92,7 +94,7 @@ site_configuration = {
                     'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module],
+                    'modules': [mpi_module, env_module % {'partition': "cpu_rome_512"}],
                     'resources': [
                         {
                             'name': 'memory',
@@ -117,7 +119,7 @@ site_configuration = {
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module],
+                    'modules': [mpi_module, env_module % {'partition': "cpu_milan"}],
                     'resources': [
                         {
                             'name': 'memory',
@@ -142,7 +144,7 @@ site_configuration = {
                     'descr': 'GPU nodes (A100 40GB)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module],
+                    'modules': [mpi_module, env_module % {'partition': "gpu_rome_a100_40"}],
                     'features': [
                         FEATURES[GPU],
                     ] + list(SCALES.keys()),
@@ -179,7 +181,7 @@ site_configuration = {
                     'descr': 'GPU nodes (A100 80GB)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module],
+                    'modules': [mpi_module, env_module % {'partition': "gpu_rome_a100_80"}],
                     'features': [
                         FEATURES[GPU],
                     ] + list(SCALES.keys()),
