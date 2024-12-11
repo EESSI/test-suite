@@ -40,6 +40,7 @@ class EESSI_Mixin(RegressionMixin):
 
     # Set defaults for these class variables, can be overwritten by child class if desired
     measure_memory_usage = variable(bool, value=False)
+    exact_memory = variable(bool, value=False)
     scale = parameter(SCALES.keys())
     bench_name = None
     bench_name_ci = None
