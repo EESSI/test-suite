@@ -36,7 +36,7 @@ if [ -z "${REFRAME_ARGS}" ]; then
     REFRAME_ARGS="--tag CI --tag 1_node"
 fi
 if [ -z "${REFRAME_VERSION}"]; then
-    REFRAME_VERSION=4.5.1
+    REFRAME_VERSION=4.6.2
 fi
 if [ -z "${REFRAME_URL}" ]; then
     REFRAME_URL='https://github.com/reframe-hpc/reframe.git'
@@ -48,7 +48,7 @@ if [ -z "${EESSI_TESTSUITE_URL}" ]; then
     EESSI_TESTSUITE_URL='https://github.com/EESSI/test-suite.git'
 fi
 if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
-    EESSI_TESTSUITE_BRANCH='v0.3.2'
+    EESSI_TESTSUITE_BRANCH='v0.4.0'
 fi
 if [ -z "${EESSI_CVMFS_REPO}" ]; then
     export EESSI_CVMFS_REPO=/cvmfs/software.eessi.io
@@ -68,6 +68,11 @@ fi
 if [ -z "${RFM_PREFIX}" ]; then
     export RFM_PREFIX="${HOME}/reframe_CI_runs"
 fi
+if [ -z "${REFRAME_TIMEOUT}" ]; then
+    # 10 minutes short of 1 day, since typically the test suite will be run daily.
+    # This will prevent multiple ReFrame runs from piling up and exceeding the quota on our Magic Castle clusters
+    export REFRAME_TIMEOUT=1430m
+fi
 
 # Create virtualenv for ReFrame using system python
 python3 -m venv "${TEMPDIR}"/reframe_venv
@@ -76,11 +81,15 @@ python3 -m pip install --upgrade pip
 python3 -m pip install reframe-hpc=="${REFRAME_VERSION}"
 
 # Clone reframe repo to have the hpctestlib:
-git clone "${REFRAME_URL}" --branch "${REFRAME_BRANCH}" "${TEMPDIR}"/reframe
+REFRAME_CLONE_ARGS="${REFRAME_URL} --branch ${REFRAME_BRANCH} ${TEMPDIR}/reframe"
+echo "Cloning ReFrame repo: git clone ${REFRAME_CLONE_ARGS}"
+git clone ${REFRAME_CLONE_ARGS}
 export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/reframe
 
 # Clone test suite repo
-git clone "${EESSI_TESTSUITE_URL}" --branch "${EESSI_TESTSUITE_BRANCH}" "${TEMPDIR}"/test-suite
+EESSI_CLONE_ARGS="${EESSI_TESTSUITE_URL} --branch ${EESSI_TESTSUITE_BRANCH} ${TEMPDIR}/test-suite"
+echo "Cloning EESSI repo: git clone ${EESSI_CLONE_ARGS}"
+git clone ${EESSI_CLONE_ARGS}
 export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/test-suite/
 
 # Start the EESSI environment
@@ -100,7 +109,7 @@ echo ""
 echo "TEMPDIR: ${TEMPDIR}"
 echo "PYTHONPATH: ${PYTHONPATH}"
 echo "EESSI test suite URL: ${EESSI_TESTSUITE_URL}"
-echo "EESSI test suite version: ${EESSI_TESTSUITE_VERSION}"
+echo "EESSI test suite version: ${EESSI_TESTSUITE_BRANCH}"
 echo "HPCtestlib from ReFrame URL: ${REFRAME_URL}"
 echo "HPCtestlib from ReFrame branch: ${REFRAME_BRANCH}"
 echo "ReFrame executable: $(which reframe)"
@@ -118,7 +127,7 @@ reframe ${REFRAME_ARGS} --list
 
 # Run
 echo "Run tests:"
-reframe ${REFRAME_ARGS} --run
+timeout -v --preserve-status -s SIGTERM ${REFRAME_TIMEOUT} reframe ${REFRAME_ARGS} --run
 
 # Cleanup
 rm -rf "${TEMPDIR}"

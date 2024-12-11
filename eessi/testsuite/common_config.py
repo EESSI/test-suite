@@ -1,5 +1,7 @@
 import os
 
+import reframe.core.logging as rlog
+
 perflog_format = '|'.join([
     '%(check_job_completion_time)s',
     '%(osuser)s',
@@ -93,11 +95,20 @@ def common_eessi_init(eessi_version=None):
     """
     # Check which EESSI_CVMFS_REPO we are running under
     eessi_cvmfs_repo = os.getenv('EESSI_CVMFS_REPO', None)
+
     if eessi_cvmfs_repo is None:
-        err_msg = "Environment variable 'EESSI_CVMFS_REPO' was not found."
-        err_msg += " Did you initialize the EESSI environment before running the test suite?"
-        raise ValueError(err_msg)
-    if eessi_cvmfs_repo == '/cvmfs/pilot.eessi-hpc.org':
+        rlog.getlogger().warning('\n'.join([
+            "Environment variable 'EESSI_CVMFS_REPO' is not defined.",
+            "If you do not intend to use the EESSI software stack, this is perfectly fine.",
+            "To use EESSI, initialize the EESSI environment before running the test suite.",
+        ]))
+        return ''
+
+    eessi_init = []
+    pilot_repo = '/cvmfs/pilot.eessi-hpc.org'
+
+    if eessi_cvmfs_repo == pilot_repo:
+        eessi_init.append('export EESSI_FORCE_PILOT=1')
         if eessi_version is None:
             # Try also EESSI_VERSION for backwards compatibility with previous common_eessi_init implementation
             eessi_version = os.getenv('EESSI_PILOT_VERSION', os.getenv('EESSI_VERSION', 'latest'))
@@ -112,7 +123,10 @@ def common_eessi_init(eessi_version=None):
             err_msg += " Did you initialize the EESSI environment before running the test suite?"
             raise ValueError(err_msg)
 
-    if eessi_cvmfs_repo == '/cvmfs/pilot.eessi-hpc.org' and eessi_version == 'latest':
-        return '/cvmfs/pilot.eessi-hpc.org/latest/init/bash'
+    if eessi_cvmfs_repo == pilot_repo and eessi_version == 'latest':
+        version_string = eessi_version
     else:
-        return '%s/versions/%s/init/bash' % (eessi_cvmfs_repo, eessi_version)
+        version_string = f'versions/{eessi_version}'
+
+    eessi_init.append(f'source {eessi_cvmfs_repo}/{version_string}/init/bash')
+    return ' && '.join(eessi_init)

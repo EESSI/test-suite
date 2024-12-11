@@ -23,7 +23,7 @@ from eessi.testsuite.constants import *  # noqa: F403
 reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 
 # Jobs that partially fill multiple nodes are not allowed on the GPU partition
-valid_scales_snellius_gpu = [s for s in SCALES if s not in ['1_cpn_2_nodes', '1_cpn_4_nodes']]
+valid_scales_snellius_gpu = [s for s in SCALES if s not in ['1cpn_2nodes', '1cpn_4nodes']]
 
 # This is an example configuration file
 site_configuration = {
@@ -32,14 +32,16 @@ site_configuration = {
             'name': 'snellius',
             'descr': 'Dutch National Supercomputer',
             'modules_system': 'lmod',
-            'hostnames': ['int*', 'tcn*', 'hcn*', 'fcn*', 'gcn*', 'srv*'],
+            # Just accept any hostname. List of hostnames can only get outdated, and this is a single-system config
+            # file anyway.
+            'hostnames': ['.*'],
             'prefix': reframe_prefix,
             'stagedir': f'/scratch-shared/{os.environ.get("USER")}/reframe_output/staging',
             'partitions': [
                 {
                     'name': 'rome',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
                     'access': ['-p rome', '--export=None'],
                     'environs': ['default'],
@@ -63,7 +65,12 @@ site_configuration = {
                 {
                     'name': 'genoa',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [
+                        # EESSI init script (for now) falls back to zen3, since the zen4 is incomplete
+                        # But, we want to really test the zen4 branch on these nodes
+                        'export EESSI_SOFTWARE_SUBDIR_OVERRIDE=x86_64/amd/zen4',
+                        common_eessi_init()
+                    ],
                     'launcher': 'mpirun',
                     'access': ['-p genoa', '--export=None'],
                     'environs': ['default'],
@@ -87,7 +94,7 @@ site_configuration = {
                 {
                     'name': 'gpu_A100',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
                     'access': ['-p gpu_a100', '--export=None'],
                     'environs': ['default'],
@@ -123,7 +130,7 @@ site_configuration = {
                 {
                     'name': 'gpu_H100',
                     'scheduler': 'slurm',
-                    'prepare_cmds': ['source %s' % common_eessi_init()],
+                    'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
                     'access': ['-p gpu_h100', '--export=None'],
                     'environs': ['default'],
