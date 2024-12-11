@@ -99,7 +99,7 @@ git clone ${EESSI_CLONE_ARGS}
 export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/test-suite/
 
 # Start the EESSI environment
-if [ $UNSET_MODULEPATH == "True" ]; then
+if [ "$UNSET_MODULEPATH" == "True" ]; then
     unset MODULEPATH
 fi
 if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
