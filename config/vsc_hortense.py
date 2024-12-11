@@ -21,6 +21,7 @@
 #    reframe --detect-host-topology \
 #        ~/.reframe/topology/hortense-{partition_name}/processor.json
 # ```
+import os
 
 from reframe.core.backends import register_launcher
 from reframe.core.launchers import JobLauncher
@@ -44,13 +45,11 @@ eessi_cvmfs_repo = os.getenv('EESSI_CVMFS_REPO', None)
 if eessi_cvmfs_repo is not None:
     prepare_eessi_init = "module --force purge"
     launcher = "mpirun"
-    env_module = "env/vsc/dodrio/%(partition)s env/slurm/dodrio/%(partition)s"
-    mpi_module = ""
+    mpi_module = "env/vsc/dodrio/%s"
 else:
     prepare_eessi_init = ""
     launcher = "mympirun"
     mpi_module = "vsc-mympirun"
-    env_module = ""
 
 site_configuration = {
     'systems': [
@@ -69,7 +68,7 @@ site_configuration = {
                     'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module, env_module % {'partition': "cpu_rome"}],
+                    'modules': [mpi_module % 'cpu_rome'],
                     'resources': [
                         {
                             'name': 'memory',
@@ -94,7 +93,7 @@ site_configuration = {
                     'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module, env_module % {'partition': "cpu_rome_512"}],
+                    'modules': [mpi_module % 'cpu_rome_512'],
                     'resources': [
                         {
                             'name': 'memory',
@@ -119,7 +118,7 @@ site_configuration = {
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module, env_module % {'partition': "cpu_milan"}],
+                    'modules': [mpi_module % 'cpu_milan'],
                     'resources': [
                         {
                             'name': 'memory',
@@ -144,7 +143,7 @@ site_configuration = {
                     'descr': 'GPU nodes (A100 40GB)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module, env_module % {'partition': "gpu_rome_a100_40"}],
+                    'modules': [mpi_module % 'gpu_rome_a100_40'],
                     'features': [
                         FEATURES[GPU],
                     ] + list(SCALES.keys()),
@@ -181,7 +180,7 @@ site_configuration = {
                     'descr': 'GPU nodes (A100 80GB)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module, env_module % {'partition': "gpu_rome_a100_80"}],
+                    'modules': [mpi_module % 'gpu_rome_a100_80'],
                     'features': [
                         FEATURES[GPU],
                     ] + list(SCALES.keys()),

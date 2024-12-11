@@ -1,14 +1,14 @@
 # Configurable items
 if [ -z "${TEST_SUITE_PARTITION}" ]; then
    echo "You have to indicate on which partition the test-suite will run on vsc-Hortense"
-   echo "This needs to be TEST_SUITE_PARTITION=cpu_rome_256gb"
-   echo "untill new functionality of `sched_options` is part of"
-   echo "# the ReFrame release https://github.com/reframe-hpc/reframe/issues/2970"
+   echo "This environment variable needs to be set TEST_SUITE_PARTITION=cpu_rome_256gb"
+   echo "Can only set to 'cpu_rome_256gb' untill new functionality of 'sched_options' is part of"
+   echo "the ReFrame release https://github.com/reframe-hpc/reframe/issues/2970"
    exit 1
 fi
 
 if [ -z "${REFRAME_ARGS}" ]; then
-    REFRAME_ARGS="--tag CI --tag 1_node|2_nodes --system hortense:${TEST_SUITE_PARTITION}"
+    REFRAME_ARGS="--tag CI --tag 1_core --system hortense:${TEST_SUITE_PARTITION}"
 fi
 
 if [ -z "${UNSET_MODULEPATH}" ]; then
