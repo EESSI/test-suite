@@ -98,6 +98,9 @@ echo "Cloning EESSI repo: git clone ${EESSI_CLONE_ARGS}"
 git clone ${EESSI_CLONE_ARGS}
 export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/test-suite/
 
+# Set local module environment
+if [ $SET_LOCOL_MULE ]
+
 # Start the EESSI environment
 if [ $UNSET_MODULEPATH == "True" ]; then
     unset MODULEPATH
@@ -129,6 +132,8 @@ echo "ReFrame check search path: ${RFM_CHECK_SEARCH_PATH}"
 echo "ReFrame check search recursive: ${RFM_CHECK_SEARCH_RECURSIVE}"
 echo "ReFrame prefix: ${RFM_PREFIX}"
 echo "ReFrame args: ${REFRAME_ARGS}"
+echo "Using EESSI: ${USE_EESSI_SOFTWARE_STACK}"
+echo "MODULEPATH: ${MODULEPATH}"
 echo ""
 
 # List tests
