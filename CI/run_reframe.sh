@@ -50,7 +50,7 @@ fi
 if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
     EESSI_TESTSUITE_BRANCH='v0.4.0'
 fi
-if [ -z "${USE_EESSI_SOFTWARE_STACK}" ] | [ $USE_EESSI_SOFTWARE_STACK == "True" ]; then
+if [ -z "${USE_EESSI_SOFTWARE_STACK}" ] || [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
     export USE_EESSI_SOFTWARE_STACK=True
     if [ -z "${EESSI_CVMFS_REPO}" ]; then
         export EESSI_CVMFS_REPO=/cvmfs/software.eessi.io
