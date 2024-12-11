@@ -23,20 +23,15 @@ if [ -z "${RFM_CONFIG_FILES}" ]; then
     export RFM_CONFIG_FILES="${TEMPDIR}/test-suite/config/vsc_hortense.py"
 fi
 
+if [ -z "${UNSET_MODULEPATH}" ]; then
+    export UNSET_MODULEPATH=False
+    module --force purge
+fi
+
 if [ -z "${SET_LOCAL_MODULE_ENV}"]; then
     export SET_LOCAL_MODULE_ENV=True
 fi
 
 if [ -z "${LOCAL_MODULES}"]; then
-    if [ "$TEST_SUITE_PARTITION" == "cpu_rome_256gb" ]; then
-        export LOCAL_MODULES="cluster/dodrio/cpu_rome"
-    elif [ "$TEST_SUITE_PARTITION" == "cpu_rome_512gb" ]; then
-	export LOCAL_MODULES="cluster/dodrio/cpu_rome_512"
-    elif [ "$TEST_SUITE_PARTITION" == "gpu_rome_a100_40gb" ]; then
-        export LOCAL_MODULES="cluster/dodrio/gpu_rome_a100_40"
-    elif [ "$TEST_SUITE_PARTITION" == "gpu_rome_a100_80gb" ]; then
-        export LOCAL_MODULES="cluster/dodrio/gpu_rome_a100_80"
-    else
-        export LOCAL_MODULES="cluster/dodrio/${TEST_SUITE_PARTITION}"
-    fi
-fi    
+    export LOCAL_MODULES="cluster/dodrio/${TEST_SUITE_PARTITION}"
+fi

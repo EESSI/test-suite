@@ -81,6 +81,9 @@ fi
 if [ -z "${UNSET_MODULEPATH}" ]; then
     export UNSET_MODULEPATH=True
 fi
+if [ -z "${SET_LOCAL_MODULE_ENV}" ]; then
+    export SET_LOCAL_MODULE_ENV=False
+fi
 
 # Create virtualenv for ReFrame using system python
 python3 -m venv "${TEMPDIR}"/reframe_venv
@@ -143,6 +146,7 @@ echo "ReFrame check search recursive: ${RFM_CHECK_SEARCH_RECURSIVE}"
 echo "ReFrame prefix: ${RFM_PREFIX}"
 echo "ReFrame args: ${REFRAME_ARGS}"
 echo "Using EESSI: ${USE_EESSI_SOFTWARE_STACK}"
+echo "Using local software stack ${SET_LOCAL_MODULE_ENV}"
 echo "MODULEPATH: ${MODULEPATH}"
 echo ""
 

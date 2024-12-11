@@ -60,7 +60,7 @@ site_configuration = {
             'modules_system': 'lmod',
             'partitions': [
                 {
-                    'name': 'cpu_rome_256gb',
+                    'name': 'cpu_rome',
                     'scheduler': 'slurm',
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_rome'],
@@ -85,7 +85,7 @@ site_configuration = {
                     },
                 },
                 {
-                    'name': 'cpu_rome_512gb',
+                    'name': 'cpu_rome_512',
                     'scheduler': 'slurm',
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_rome_512'],
@@ -135,7 +135,7 @@ site_configuration = {
                     },
                 },
                 {
-                    'name': 'gpu_rome_a100_40gb',
+                    'name': 'gpu_rome_a100_40',
                     'scheduler': 'slurm',
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=gpu_rome_a100_40'],
@@ -172,7 +172,7 @@ site_configuration = {
 
                 },
                 {
-                    'name': 'gpu_rome_a100_80gb',
+                    'name': 'gpu_rome_a100_80',
                     'scheduler': 'slurm',
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=gpu_rome_a100_80'],

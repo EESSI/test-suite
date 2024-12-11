@@ -29,15 +29,5 @@ if [ -z "${SET_LOCAL_MODULE_ENV}"]; then
 fi
 
 if [ -z "${LOCAL_MODULES}"]; then
-    if [ "$TEST_SUITE_PARTITION" == "cpu_rome_256gb" ]; then
-        export LOCAL_MODULES="env/vsc/dodrio/cpu_rome env/slurm/dodrio/cpu_rome"
-    elif [ "$TEST_SUITE_PARTITION" == "cpu_rome_512gb" ]; then
-        export LOCAL_MODULES="env/vsc/dodrio/cpu_rome_512 env/slurm/dodrio/cpu_rome_512"
-    elif [ "$TEST_SUITE_PARTITION" == "gpu_rome_a100_40gb" ]; then
-        export LOCAL_MODULES="env/vsc/dodrio/gpu_rome_a100_40 env/slurm/dodrio/gpu_rome_a100_40"
-    elif [ "$TEST_SUITE_PARTITION" == "gpu_rome_a100_80gb" ]; then
-        export LOCAL_MODULES="env/vsc/dodrio/gpu_rome_a100_80 env/slurm/dodrio/gpu_rome_a100_80"
-    else
-        export LOCAL_MODULES="env/vsc/dodrio/${TEST_SUITE_PARTITION} env/slurm/dodrio/${TEST_SUITE_PARTITION}"
-    fi
+    export LOCAL_MODULES="env/vsc/dodrio/${TEST_SUITE_PARTITION} env/slurm/dodrio/${TEST_SUITE_PARTITION}"
 fi
