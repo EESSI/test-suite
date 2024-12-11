@@ -1,10 +1,13 @@
-from reframe.core.builtins import parameter, run_after
+from reframe.core.builtins import parameter, run_after, variable
 from reframe.core.exceptions import ReframeFatalError
 from reframe.core.pipeline import RegressionMixin
 from reframe.utility.sanity import make_performance_function
+import reframe.utility.sanity as sn
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNIT
+from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNIT, TAGS
+from eessi.testsuite.utils import log
+from eessi.testsuite import __version__ as testsuite_version
 
 
 # Hooks from the Mixin class seem to be executed _before_ those of the child class
@@ -25,19 +28,29 @@ class EESSI_Mixin(RegressionMixin):
     All EESSI tests should derive from this mixin class unless they have a very good reason not to.
     To run correctly, tests inheriting from this class need to define variables and parameters that are used here.
     That definition needs to be done 'on time', i.e. early enough in the execution of the ReFrame pipeline.
-    Here, we list which class attributes need to be defined by the child class, and by (the end of) what phase:
+    Here, we list which class attributes must be defined by the child class, and by (the end of) what phase:
 
-    - Init phase: device_type, scale, module_name
+    - Init phase: device_type, scale, module_name, bench_name (if bench_name_ci is set)
     - Setup phase: compute_unit, required_mem_per_node
 
     The child class may also overwrite the following attributes:
 
-    - Init phase: time_limit, measure_memory_usage
+    - Init phase: time_limit, measure_memory_usage, bench_name_ci
     """
 
     # Set defaults for these class variables, can be overwritten by child class if desired
-    measure_memory_usage = False
+    measure_memory_usage = variable(bool, value=False)
     scale = parameter(SCALES.keys())
+    bench_name = None
+    bench_name_ci = None
+
+    # Create ReFrame variables for logging runtime environment information
+    cvmfs_repo_name = variable(str, value='None')
+    cvmfs_software_subdir = variable(str, value='None')
+    full_modulepath = variable(str, value='None')
+
+    # Make sure the version of the EESSI test suite gets logged in the ReFrame report
+    eessi_testsuite_version = variable(str, value=testsuite_version)
 
     # Note that the error for an empty parameter is a bit unclear for ReFrame 4.6.2, but that will hopefully improve
     # see https://github.com/reframe-hpc/reframe/issues/3254
@@ -81,7 +94,7 @@ class EESSI_Mixin(RegressionMixin):
         for var in var_list:
             if not hasattr(self, var):
                 msg = "The variable '%s' should be defined in any test class that inherits" % var
-                msg += " from EESSI_Mixin in the init phase (or earlier), but it wasn't"
+                msg += " from EESSI_Mixin before (or in) the init phase, but it wasn't"
                 raise ReframeFatalError(msg)
 
         # Check that the value for these variables is valid,
@@ -113,6 +126,17 @@ class EESSI_Mixin(RegressionMixin):
             # instead of the @performance_function decorator
             self.perf_variables['memory'] = make_performance_function(hooks.extract_memory_usage, 'MiB', self)
 
+    @run_after('init', always_last=True)
+    def set_tag_ci(self):
+        "Set CI tag if bench_name_ci and bench_name are set and are equal"
+        if self.bench_name_ci:
+            if not self.bench_name:
+                msg = "Attribute bench_name_ci is set, but bench_name is not set"
+                raise ReframeFatalError(msg)
+            if self.bench_name == self.bench_name_ci:
+                self.tags.add(TAGS['CI'])
+                log(f'tags set to {self.tags}')
+
     @run_after('setup')
     def validate_setup(self):
         """Check that all variables that have to be set for subsequent hooks in the setup phase have been set"""
@@ -120,14 +144,14 @@ class EESSI_Mixin(RegressionMixin):
         for var in var_list:
             if not hasattr(self, var):
                 msg = "The variable '%s' should be defined in any test class that inherits" % var
-                msg += " from EESSI_Mixin in the setup phase (or earlier), but it wasn't"
+                msg += " from EESSI_Mixin before (or in) the setup phase, but it wasn't"
                 raise ReframeFatalError(msg)
 
         # Check if mem_func was defined to compute the required memory per node as function of the number of
         # tasks per node
         if not hasattr(self, 'required_mem_per_node'):
             msg = "The function 'required_mem_per_node' should be defined in any test class that inherits"
-            msg += " from EESSI_Mixin in the setup phase (or earlier), but it wasn't. Note that this function"
+            msg += " from EESSI_Mixin before (or in) the setup phase, but it wasn't. Note that this function"
             msg += " can use self.num_tasks_per_node, as it will be called after that attribute"
             msg += " has been set."
             raise ReframeFatalError(msg)
@@ -151,3 +175,36 @@ class EESSI_Mixin(RegressionMixin):
     def request_mem(self):
         """Call hook to request the required amount of memory per node"""
         hooks.req_memory_per_node(self, app_mem_req=self.required_mem_per_node())
+
+    @run_after('setup')
+    def log_runtime_info(self):
+        """Log additional runtime information: which CVMFS repo was used (or if it was testing local software),
+        path to the modulefile, EESSI software subdir, EESSI testsuite version"""
+        self.postrun_cmds.append('echo "EESSI_CVMFS_REPO: $EESSI_CVMFS_REPO"')
+        self.postrun_cmds.append('echo "EESSI_SOFTWARE_SUBDIR: $EESSI_SOFTWARE_SUBDIR"')
+        if self.module_name:
+            # Get full modulepath
+            get_full_modpath = f'echo "FULL_MODULEPATH: $(module --location show {self.module_name})"'
+            self.postrun_cmds.append(get_full_modpath)
+
+    @run_after('run')
+    def extract_runtime_info_from_log(self):
+        """Extracts the printed runtime info from the job log and logs it as reframe variables"""
+        if self.is_dry_run():
+            return
+
+        # If EESSI_CVMFS_REPO environment variable was set, extract it and store it in self.cvmfs_repo_name
+        repo_name = sn.extractall(r'EESSI_CVMFS_REPO: /cvmfs/(?P<repo>.*)$', f'{self.stagedir}/{self.stdout}',
+                                  'repo', str)
+        if repo_name:
+            self.cvmfs_repo_name = f'{repo_name}'
+
+        software_subdir = sn.extractall(r'EESSI_SOFTWARE_SUBDIR: (?P<subdir>.*)$',
+                                        f'{self.stagedir}/{self.stdout}', 'subdir', str)
+        if software_subdir:
+            self.cvmfs_software_subdir = f'{software_subdir}'
+
+        module_path = sn.extractall(r'FULL_MODULEPATH: (?P<modpath>.*)$', f'{self.stagedir}/{self.stdout}',
+                                    'modpath', str)
+        if module_path:
+            self.full_modulepath = f'{module_path}'

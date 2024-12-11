@@ -116,6 +116,7 @@ partition_defaults = {
         # All should _at least_ have this amount (30GB * 1E9 / (1024*1024) = 28610 MiB)
         'mem_per_node': 28610
     },
+    'max_jobs': 1,
 }
 for system in site_configuration['systems']:
     for partition in system['partitions']:

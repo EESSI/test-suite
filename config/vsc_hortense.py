@@ -1,8 +1,26 @@
 # ReFrame configuration file for VSC Tier-1 Hortense
 # https://docs.vscentrum.be/en/latest/gent/tier1_hortense.html
 #
-# authors: Samuel Moors (VUB-HPC), Kenneth Hoste (HPC-UGent)
-import os
+# authors: Samuel Moors (VUB-HPC), Kenneth Hoste (HPC-UGent), Lara Peeters (HPC-UGent)
+
+# Use generated topology file by ReFrame for CPU partitions
+# Cannot use autodetection untill new functionality of `sched_options` is part of
+# the ReFrame release https://github.com/reframe-hpc/reframe/issues/2970
+
+# Instructions on generating topology file
+# ```
+#    module swap cluster/{partition}
+#    qsub -I -l nodes=1:ppn=all -l walltime=00:30:00
+#
+#    python3 -m venv "$TMPDIR"/reframe_venv
+#    source "$TMPDIR"/reframe_venv/bin/activate
+#    python3 -m pip install --upgrade pip
+#    python3 -m pip install reframe-hpc=="4.6.2"
+#
+#    mkdir -p ~/.reframe/topology/hortense-{partition_name}
+#    reframe --detect-host-topology \
+#        ~/.reframe/topology/hortense-{partition_name}/processor.json
+# ```
 
 from reframe.core.backends import register_launcher
 from reframe.core.launchers import JobLauncher
@@ -50,13 +68,6 @@ site_configuration = {
                     'max_jobs': 20,
                     'launcher': launcher,
                     'modules': [mpi_module],
-                    'processor': {
-                        'num_cpus': 128,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 64,
-                        'num_cpus_per_core': 1,
-                        'arch': 'zen2',
-                    },
                     'resources': [
                         {
                             'name': 'memory',
@@ -82,13 +93,6 @@ site_configuration = {
                     'max_jobs': 20,
                     'launcher': launcher,
                     'modules': [mpi_module],
-                    'processor': {
-                        'num_cpus': 128,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 64,
-                        'num_cpus_per_core': 1,
-                        'arch': 'zen2',
-                    },
                     'resources': [
                         {
                             'name': 'memory',
@@ -114,13 +118,6 @@ site_configuration = {
                     'max_jobs': 20,
                     'launcher': launcher,
                     'modules': [mpi_module],
-                    'processor': {
-                        'num_cpus': 128,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 64,
-                        'num_cpus_per_core': 1,
-                        'arch': 'zen3',
-                    },
                     'resources': [
                         {
                             'name': 'memory',
@@ -146,13 +143,6 @@ site_configuration = {
                     'max_jobs': 20,
                     'launcher': launcher,
                     'modules': [mpi_module],
-                    'processor': {
-                        'num_cpus': 48,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 24,
-                        'num_cpus_per_core': 1,
-                        'arch': 'zen2',
-                    },
                     'features': [
                         FEATURES[GPU],
                     ] + list(SCALES.keys()),
@@ -190,13 +180,6 @@ site_configuration = {
                     'max_jobs': 20,
                     'launcher': launcher,
                     'modules': [mpi_module],
-                    'processor': {
-                        'num_cpus': 48,
-                        'num_sockets': 2,
-                        'num_cpus_per_socket': 24,
-                        'num_cpus_per_core': 1,
-                        'arch': 'zen2',
-                    },
                     'features': [
                         FEATURES[GPU],
                     ] + list(SCALES.keys()),
