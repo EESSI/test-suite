@@ -102,7 +102,7 @@ export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/test-suite/
 if [ $UNSET_MODULEPATH == "True" ]; then
     unset MODULEPATH
 fi
-if [ $USE_EESSI_SOFTWARE_STACK == "True" ]; then
+if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
     eessi_init_path="${EESSI_CVMFS_REPO}"/versions/"${EESSI_VERSION}"/init/bash
     source "${eessi_init_path}"
 fi
