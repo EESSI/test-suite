@@ -25,13 +25,15 @@ if [ ! -f "${CI_CONFIG}" ]; then
     exit 1
 fi
 
+# Create temporary directory
+if [ -z "${TEMPDIR}" ]; then
+    TEMPDIR=$(mktemp --directory --tmpdir=/tmp  -t rfm.XXXXXXXXXX)
+fi
+
 # Set the CI configuration for this system
 source "${CI_CONFIG}"
 
 # Set default configuration, but let anything set by CI_CONFIG take priority
-if [ -z "${TEMPDIR}" ]; then
-    TEMPDIR=$(mktemp --directory --tmpdir=/tmp  -t rfm.XXXXXXXXXX)
-fi
 if [ -z "${REFRAME_ARGS}" ]; then
     REFRAME_ARGS="--tag CI --tag 1_node"
 fi
@@ -98,13 +100,21 @@ echo "Cloning EESSI repo: git clone ${EESSI_CLONE_ARGS}"
 git clone ${EESSI_CLONE_ARGS}
 export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/test-suite/
 
-# Set local module environment
-if [ $SET_LOCOL_MULE ]
-
-# Start the EESSI environment
+# Unset the ModulePath on systems where it is required
 if [ "$UNSET_MODULEPATH" == "True" ]; then
     unset MODULEPATH
 fi
+
+# Set local module environment
+if [ "$SET_LOCAL_MODULE_ENV" == "True" ]; then
+    if [ -z "${LOCAL_MODULES}" ]; then
+        echo "You have to add the name of the module in the ci_config.sh file of your system"
+        exit 1
+    fi
+    module load "${LOCAL_MODULES}"
+fi
+
+# Start the EESSI environment
 if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
     eessi_init_path="${EESSI_CVMFS_REPO}"/versions/"${EESSI_VERSION}"/init/bash
     source "${eessi_init_path}"
