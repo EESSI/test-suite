@@ -43,8 +43,6 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck, EESSI_Mixin):
     module_name = parameter(find_modules('QuantumESPRESSO'))
     # For now, QE is built for CPU targets only
     device_type = parameter([DEVICE_TYPES[CPU]])
-    bench_name_ci = 'bench_ci'
-    bench_name = None
 
     def required_mem_per_node(self):
         return (self.num_tasks_per_node * 0.9 + 4) * 1024
@@ -55,7 +53,7 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck, EESSI_Mixin):
         min_ecut = min(QEspressoPWCheck.ecut.values)
         min_nbnd = min(QEspressoPWCheck.nbnd.values)
         if self.ecut == min_ecut and self.nbnd == min_nbnd:
-            self.bench_name = self.bench_name_ci
+            self.bench_name = self.bench_name_ci = 'bench_ci'
 
     @run_after('init')
     def set_increased_walltime(self):
