@@ -15,7 +15,6 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     nn_model = parameter(['vgg16', 'resnet50', 'resnet152', 'densenet121', 'mobilenet_v3_large'])
     bench_name_ci = 'resnet50'
     parallel_strategy = parameter([None, 'ddp'])
-    device_type = variable(str)
     # Both torchvision and PyTorch-bundle modules have everything needed to run this test
     module_name = parameter(chain(find_modules('torchvision'), find_modules('PyTorch-bundle')))
     executable = 'python'
