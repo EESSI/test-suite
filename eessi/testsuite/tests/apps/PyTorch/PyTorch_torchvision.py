@@ -2,79 +2,40 @@ from itertools import chain
 
 import reframe as rfm
 import reframe.utility.sanity as sn
-# Added only to make the linter happy
-from reframe.core.builtins import parameter, variable, run_after, sanity_function, performance_function
+from reframe.core.builtins import parameter, run_after, sanity_function, performance_function
 
-from eessi.testsuite import hooks
-from eessi.testsuite.constants import SCALES, TAGS, DEVICE_TYPES, COMPUTE_UNIT, CPU, NUMA_NODE, GPU
+from eessi.testsuite.constants import DEVICE_TYPES, COMPUTE_UNIT, CPU, NUMA_NODE, GPU
+from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules
 
 
-class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
-    nn_model = parameter(['vgg16', 'resnet50', 'resnet152', 'densenet121', 'mobilenet_v3_large'])
-    scale = parameter(SCALES.keys())
-    parallel_strategy = parameter([None, 'ddp'])
-    compute_device = variable(str)
-    # Both torchvision and PyTorch-bundle modules have everything needed to run this test
-    module_name = parameter(chain(find_modules('torchvision'), find_modules('PyTorch-bundle')))
-
+class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     descr = 'Benchmark that runs a selected torchvision model on synthetic data'
 
+    nn_model = parameter(['vgg16', 'resnet50', 'resnet152', 'densenet121', 'mobilenet_v3_large'])
+    bench_name_ci = 'resnet50'
+    parallel_strategy = parameter([None, 'ddp'])
+    # Both torchvision and PyTorch-bundle modules have everything needed to run this test
+    module_name = parameter(chain(find_modules('torchvision'), find_modules('PyTorch-bundle')))
     executable = 'python'
-
-    valid_prog_environs = ['default']
-    valid_systems = ['*']
-
     time_limit = '30m'
+
+    def required_mem_per_node(self):
+        return self.num_tasks_per_node * 1024
 
     @run_after('init')
     def prepare_test(self):
-
         # Set nn_model as executable option
         self.executable_opts = ['pytorch_synthetic_benchmark.py --model %s' % self.nn_model]
+        self.bench_name = self.nn_model
 
         # If not a GPU run, disable CUDA
-        if self.compute_device != DEVICE_TYPES[GPU]:
+        if self.device_type != DEVICE_TYPES[GPU]:
             self.executable_opts += ['--no-cuda']
-
-    @run_after('init')
-    def apply_init_hooks(self):
-        # Filter on which scales are supported by the partitions defined in the ReFrame configuration
-        hooks.filter_supported_scales(self)
-
-        # Make sure that GPU tests run in partitions that support running on a GPU,
-        # and that CPU-only tests run in partitions that support running CPU-only.
-        # Also support setting valid_systems on the cmd line.
-        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.compute_device)
-
-        # Support selecting modules on the cmd line.
-        hooks.set_modules(self)
-
-        # Support selecting scales on the cmd line via tags.
-        hooks.set_tag_scale(self)
-
-    @run_after('init')
-    def set_tag_ci(self):
-        if self.nn_model == 'resnet50':
-            self.tags.add(TAGS['CI'])
-
-    @run_after('setup')
-    def apply_setup_hooks(self):
-        if self.compute_device == DEVICE_TYPES[GPU]:
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[GPU])
-        else:
-            # Hybrid code, for which launching one task per NUMA_NODE is typically the most efficient
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[NUMA_NODE])
-
-        # This is a hybrid test, binding is important for performance
-        hooks.set_compact_process_binding(self)
-
-        # Set OMP_NUM_THREADS based on the number of cores per task
-        self.env_vars["OMP_NUM_THREADS"] = self.num_cpus_per_task
 
     @run_after('setup')
     def set_ddp_options(self):
-        # Set environment variables for PyTorch DDP
+        "Set environment variables for PyTorch DDP"
         if self.parallel_strategy == 'ddp':
             # Set additional options required by DDP
             self.executable_opts += ["--master-port $(python get_free_socket.py)"]
@@ -94,7 +55,7 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
 
     @run_after('setup')
     def pass_parallel_strategy(self):
-        # Set parallelization strategy when using more than one process
+        "Set parallelization strategy when using more than one process"
         if self.num_tasks != 1:
             self.executable_opts += ['--use-%s' % self.parallel_strategy]
 
@@ -110,8 +71,8 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
 
     @performance_function('img/sec')
     def througput_per_CPU(self):
-        '''Training througput per CPU'''
-        if self.compute_device == DEVICE_TYPES[CPU]:
+        '''Training througput per device type'''
+        if self.device_type == DEVICE_TYPES[CPU]:
             return sn.extractsingle(r'Img/sec per CPU:\s+(?P<perf_per_cpu>\S+)', self.stdout, 'perf_per_cpu', float)
         else:
             return sn.extractsingle(r'Img/sec per GPU:\s+(?P<perf_per_gpu>\S+)', self.stdout, 'perf_per_gpu', float)
@@ -119,12 +80,14 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
 
 @rfm.simple_test
 class EESSI_PyTorch_torchvision_CPU(EESSI_PyTorch_torchvision):
-    compute_device = DEVICE_TYPES[CPU]
+    device_type = DEVICE_TYPES[CPU]
+    compute_unit = COMPUTE_UNIT[NUMA_NODE]
 
 
 @rfm.simple_test
 class EESSI_PyTorch_torchvision_GPU(EESSI_PyTorch_torchvision):
-    compute_device = DEVICE_TYPES[GPU]
+    device_type = DEVICE_TYPES[GPU]
+    compute_unit = COMPUTE_UNIT[GPU]
     precision = parameter(['default', 'mixed'])
 
     @run_after('init')
