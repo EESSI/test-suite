@@ -30,52 +30,30 @@ See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 
 import reframe as rfm
 from hpctestlib.sciapps.qespresso.benchmarks import QEspressoPWCheck
-from reframe.core.builtins import (  # added only to make the linter happy
-    parameter, run_after)
+from reframe.core.builtins import parameter, run_after
 
-from eessi.testsuite import hooks
-from eessi.testsuite.constants import (COMPUTE_UNIT, CPU, DEVICE_TYPES, GPU,
-                                       SCALES, TAGS)
-from eessi.testsuite.utils import find_modules, log
+from eessi.testsuite.constants import COMPUTE_UNIT, CPU, DEVICE_TYPES, GPU
+from eessi.testsuite.eessi_mixin import EESSI_Mixin
+from eessi.testsuite.utils import find_modules
 
 
 @rfm.simple_test
-class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck):
-    scale = parameter(SCALES.keys())
-    valid_prog_environs = ['default']
-    valid_systems = ['*']
+class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck, EESSI_Mixin):
     time_limit = '30m'
     module_name = parameter(find_modules('QuantumESPRESSO'))
-    # For now, QE is being build for CPU targets only
-    # compute_device = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
-    compute_device = parameter([DEVICE_TYPES[CPU], ])
+    # For now, QE is built for CPU targets only
+    device_type = parameter([DEVICE_TYPES[CPU]])
+
+    def required_mem_per_node(self):
+        return (self.num_tasks_per_node * 0.9 + 4) * 1024
 
     @run_after('init')
-    def run_after_init(self):
-        """Hooks to run after the init phase"""
-
-        # Filter on which scales are supported by the partitions defined in the ReFrame configuration
-        hooks.filter_supported_scales(self)
-
-        # Make sure that GPU tests run in partitions that support running on a GPU,
-        # and that CPU-only tests run in partitions that support running CPU-only.
-        # Also support setting valid_systems on the cmd line.
-        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.compute_device)
-
-        # Support selecting modules on the cmd line.
-        hooks.set_modules(self)
-
-        # Support selecting scales on the cmd line via tags.
-        hooks.set_tag_scale(self)
-
-    @run_after('init')
-    def set_tag_ci(self):
+    def set_ci(self):
         """Set tag CI on smallest benchmark, so it can be selected on the cmd line via --tag CI"""
         min_ecut = min(QEspressoPWCheck.ecut.values)
         min_nbnd = min(QEspressoPWCheck.nbnd.values)
         if self.ecut == min_ecut and self.nbnd == min_nbnd:
-            self.tags.add(TAGS['CI'])
-            log(f'tags set to {self.tags}')
+            self.bench_name = self.bench_name_ci = 'bench_ci'
 
     @run_after('init')
     def set_increased_walltime(self):
@@ -85,29 +63,14 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck):
         if self.ecut == max_ecut and self.nbnd == max_nbnd:
             self.time_limit = '60m'
 
-    @run_after('setup')
-    def run_after_setup(self):
-        """Hooks to run after the setup phase"""
-
-        # Calculate default requested resources based on the scale:
-        # 1 task per CPU for CPU-only tests, 1 task per GPU for GPU tests.
-        # Also support setting the resources on the cmd line.
-        if self.compute_device == DEVICE_TYPES[GPU]:
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[GPU])
-        else:
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[CPU])
-
-    @run_after('setup')
-    def request_mem(self):
-        memory_required = self.num_tasks_per_node * 0.9 + 4
-        hooks.req_memory_per_node(test=self, app_mem_req=memory_required * 1024)
-
-    @run_after('setup')
-    def set_omp_num_threads(self):
+    @run_after('init')
+    def set_compute_unit(self):
         """
-        Set number of OpenMP threads via OMP_NUM_THREADS.
-        Set default number of OpenMP threads equal to number of CPUs per task.
+        Set the compute unit to which tasks will be assigned:
+        one task per CPU core for CPU runs, and one task per GPU for GPU runs.
         """
-
-        self.env_vars['OMP_NUM_THREADS'] = self.num_cpus_per_task
-        log(f'env_vars set to {self.env_vars}')
+        device_to_compute_unit = {
+            DEVICE_TYPES[CPU]: COMPUTE_UNIT[CPU],
+            DEVICE_TYPES[GPU]: COMPUTE_UNIT[GPU],
+        }
+        self.compute_unit = device_to_compute_unit.get(self.device_type)
