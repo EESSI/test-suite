@@ -2,7 +2,7 @@ from itertools import chain
 
 import reframe as rfm
 import reframe.utility.sanity as sn
-from reframe.core.builtins import parameter, variable, run_after, sanity_function, performance_function
+from reframe.core.builtins import parameter, run_after, sanity_function, performance_function
 
 from eessi.testsuite.constants import DEVICE_TYPES, COMPUTE_UNIT, CPU, NUMA_NODE, GPU
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
