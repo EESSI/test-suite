@@ -81,13 +81,13 @@ python3 -m pip install --upgrade pip
 python3 -m pip install reframe-hpc=="${REFRAME_VERSION}"
 
 # Clone reframe repo to have the hpctestlib:
-REFRAME_CLONE_ARGS="${REFRAME_URL} --branch ${REFRAME_BRANCH} ${TEMPDIR}/reframe"
+REFRAME_CLONE_ARGS="${REFRAME_URL} --branch ${REFRAME_BRANCH} --depth 1 ${TEMPDIR}/reframe"
 echo "Cloning ReFrame repo: git clone ${REFRAME_CLONE_ARGS}"
 git clone ${REFRAME_CLONE_ARGS}
 export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/reframe
 
 # Clone test suite repo
-EESSI_CLONE_ARGS="${EESSI_TESTSUITE_URL} --branch ${EESSI_TESTSUITE_BRANCH} ${TEMPDIR}/test-suite"
+EESSI_CLONE_ARGS="${EESSI_TESTSUITE_URL} --branch ${EESSI_TESTSUITE_BRANCH} --depth 1 ${TEMPDIR}/test-suite"
 echo "Cloning EESSI repo: git clone ${EESSI_CLONE_ARGS}"
 git clone ${EESSI_CLONE_ARGS}
 export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/test-suite/
