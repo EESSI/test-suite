@@ -118,7 +118,7 @@ site_configuration = {
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module % 'cpu_milan'],
+                    'modules': [mpi_module.format('cpu_milan')],
                     'resources': [
                         {
                             'name': 'memory',
