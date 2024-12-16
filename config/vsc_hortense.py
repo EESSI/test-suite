@@ -45,7 +45,7 @@ eessi_cvmfs_repo = os.getenv('EESSI_CVMFS_REPO', None)
 if eessi_cvmfs_repo is not None:
     prepare_eessi_init = "module --force purge"
     launcher = "mpirun"
-    mpi_module = "env/vsc/dodrio/%s"
+    mpi_module = "env/vsc/dodrio/{}"
 else:
     prepare_eessi_init = ""
     launcher = "mympirun"
