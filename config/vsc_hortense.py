@@ -68,7 +68,7 @@ site_configuration = {
                     'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module % 'cpu_rome'],
+                    'modules': [mpi_module.format('cpu_rome')],
                     'resources': [
                         {
                             'name': 'memory',
