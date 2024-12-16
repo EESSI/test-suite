@@ -180,7 +180,7 @@ site_configuration = {
                     'descr': 'GPU nodes (A100 80GB)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module % 'gpu_rome_a100_80'],
+                    'modules': [mpi_module.format('gpu_rome_a100_80')],
                     'features': [
                         FEATURES[GPU],
                     ] + list(SCALES.keys()),
