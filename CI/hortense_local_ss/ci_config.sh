@@ -11,10 +11,6 @@ if [ -z "${REFRAME_ARGS}" ]; then
     REFRAME_ARGS="--tag CI --tag 1_node|2_nodes --system hortense:${TEST_SUITE_PARTITION}"
 fi
 
-if [ -z "${UNSET_MODULEPATH}" ]; then
-    export UNSET_MODULEPATH=False
-fi
-
 if [ -z "${USE_EESSI_SOFTWARE_STACK}" ]; then
     export USE_EESSI_SOFTWARE_STACK=False
 fi
