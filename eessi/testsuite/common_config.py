@@ -1,6 +1,6 @@
 import os
 
-import reframe.core.logging as rlog
+import reframe.core.logging as rflog
 
 perflog_format = '|'.join([
     '%(check_job_completion_time)s',
@@ -97,7 +97,7 @@ def common_eessi_init(eessi_version=None):
     eessi_cvmfs_repo = os.getenv('EESSI_CVMFS_REPO', None)
 
     if eessi_cvmfs_repo is None:
-        rlog.getlogger().warning('\n'.join([
+        rflog.getlogger().warning(' '.join([
             "Environment variable 'EESSI_CVMFS_REPO' is not defined.",
             "If you do not intend to use the EESSI software stack, this is perfectly fine.",
             "To use EESSI, initialize the EESSI environment before running the test suite.",
