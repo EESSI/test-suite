@@ -49,6 +49,7 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck):
     # For now, QE is being build for CPU targets only
     # compute_device = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
     compute_device = parameter([DEVICE_TYPES[CPU], ])
+    readonly_files = ['']
 
     @run_after('init')
     def run_after_init(self):
