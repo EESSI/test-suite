@@ -52,6 +52,7 @@ class EESSI_GROMACS(EESSI_GROMACS_base, EESSI_Mixin):
     time_limit = '30m'
     module_name = parameter(find_modules('GROMACS'))
     bench_name_ci = 'HECBioSim/Crambin'
+    readonly_files = ['']
 
     def required_mem_per_node(self):
         return self.num_tasks_per_node * 1024

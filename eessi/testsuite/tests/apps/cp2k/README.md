@@ -1,4 +1,4 @@
-# Input files for the CP2K test
+# Input files for the CP2K test in src/QS
 
 The following input files have been copied from the v2024.1 sources under benchmarks/QS,
 but with `&SCF` option `IGNORE_CONVERGENCE_FAILURE` commented out as this option is only supported in versions >= 2023.1
