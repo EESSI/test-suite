@@ -26,6 +26,7 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest):
     valid_systems = ['*']
 
     time_limit = '30m'
+    readonly_files = ['get_free_socket.py', 'pytorch_synthetic_benchmark.py']
 
     @run_after('init')
     def prepare_test(self):
