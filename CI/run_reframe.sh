@@ -1,8 +1,11 @@
 #!/bin/bash
 # Author: Caspar van Leeuwen
 # Description: This script can be used to do regular runs of the ReFrame test suite, e.g. from a cronjob.
-# Setup instructions: make sure you have your github access key configured in your .ssh/config
-# i.e. configure an entry with HostName github.com and IdentityFile pointing to the ssh key registered with Github
+# Setup instructions:
+# 1) make sure you have your github access key configured in your .ssh/config
+#    i.e. configure an entry with HostName github.com and IdentityFile pointing to the ssh key registered with Github
+# 2) set environment variable EESSI_CI_TEMPROOT, a path in a shared filesystem in which the temporary directory will be created
+#    if $EESSI_CI_TEMPROOT is not set, $HOME will be used.
 
 # Print on which host this CI is running
 echo "Running CI on host $(hostname)"
@@ -27,7 +30,7 @@ fi
 
 # Create temporary directory
 if [ -z "${TEMPDIR}" ]; then
-    TEMPDIR=$(mktemp --directory --tmpdir=/tmp  -t rfm.XXXXXXXXXX)
+    TEMPDIR=$(mktemp --directory --tmpdir=${EESSI_CI_TEMPROOT:-HOME}  -t rfm.XXXXXXXXXX)
 fi
 
 # Set the CI configuration for this system
