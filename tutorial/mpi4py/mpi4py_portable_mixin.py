@@ -66,6 +66,9 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     def required_mem_per_node(self):
         return self.num_tasks_per_node * 100 + 250
 
+    # Define the files and/or dirs inside sourcesdir (default=src) that should be symlinked into the stage dir
+    readonly_files = ['mpi4py_reduce.py']
+
     # Now, we check if the pattern 'Sum of all ranks: X' with X the correct sum for the amount of ranks is found
     # in the standard output:
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.builtins.sanity_function
