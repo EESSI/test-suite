@@ -41,13 +41,11 @@ def filter_scales_coll():
     ]
 
 
-@rfm.simple_test
-class EESSI_OSU_Base(osu_benchmark, EESSI_Mixin):
+class EESSI_OSU_Base(osu_benchmark):
     """ base class for OSU tests """
     time_limit = '30m'
     module_name = parameter(find_modules('OSU-Micro-Benchmarks'))
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
-    compute_unit = None
 
     # reset num_tasks_per_node from the hpctestlib: we handle it ourselves
     num_tasks_per_node = None
@@ -97,7 +95,7 @@ class EESSI_OSU_Base(osu_benchmark, EESSI_Mixin):
 
 
 @rfm.simple_test
-class EESSI_OSU_Micro_Benchmarks_pt2pt(EESSI_OSU_Base):
+class EESSI_OSU_Micro_Benchmarks_pt2pt(EESSI_OSU_Base, EESSI_Mixin):
     ''' point-to-point OSU test '''
     scale = parameter(filter_scales_pt2pt())
     compute_unit = COMPUTE_UNIT[NODE]
@@ -132,7 +130,7 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(EESSI_OSU_Base):
 
 
 @rfm.simple_test
-class EESSI_OSU_Micro_Benchmarks_coll(EESSI_OSU_Base):
+class EESSI_OSU_Micro_Benchmarks_coll(EESSI_OSU_Base, EESSI_Mixin):
     ''' collective OSU test '''
     scale = parameter(filter_scales_coll())
 
