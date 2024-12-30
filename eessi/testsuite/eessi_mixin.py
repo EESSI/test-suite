@@ -1,4 +1,4 @@
-from reframe.core.builtins import parameter, run_after, variable
+from reframe.core.builtins import parameter, run_after, run_before, variable
 from reframe.core.exceptions import ReframeFatalError
 from reframe.core.pipeline import RegressionMixin
 from reframe.utility.sanity import make_performance_function
