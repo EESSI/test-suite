@@ -47,6 +47,7 @@ class EESSI_OSU_Base(osu_benchmark, EESSI_Mixin):
     time_limit = '30m'
     module_name = parameter(find_modules('OSU-Micro-Benchmarks'))
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
+    compute_unit = None
 
     # reset num_tasks_per_node from the hpctestlib: we handle it ourselves
     num_tasks_per_node = None
