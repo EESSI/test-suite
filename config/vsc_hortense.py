@@ -3,8 +3,6 @@
 #
 # authors: Samuel Moors (VUB-HPC), Kenneth Hoste (HPC-UGent), Lara Peeters (HPC-UGent)
 
-# ReFrame version needs to be 4.7 or older to use the `shed_access_in_submit` option
-
 # Use generated topology file by ReFrame for CPU partitions
 # `shed_access_in_submit` does not work with setting `'remote_detect': True,`
 
@@ -16,7 +14,7 @@
 #    python3 -m venv "$TMPDIR"/reframe_venv
 #    source "$TMPDIR"/reframe_venv/bin/activate
 #    python3 -m pip install --upgrade pip
-#    python3 -m pip install reframe-hpc=="4.7.2"
+#    python3 -m pip install reframe-hpc=="4.6.2"
 #
 #    mkdir -p ~/.reframe/topology/hortense-{partition_name}
 #    reframe --detect-host-topology \
