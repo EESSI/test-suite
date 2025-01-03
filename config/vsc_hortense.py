@@ -94,9 +94,6 @@ site_configuration = {
                     'sched_options': {
                         'shed_access_in_submit': True,
                     },
-                    'sched_options': {
-                        'shed_access_in_submit': True,
-                    },
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
                     'max_jobs': 20,
