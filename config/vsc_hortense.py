@@ -4,8 +4,7 @@
 # authors: Samuel Moors (VUB-HPC), Kenneth Hoste (HPC-UGent), Lara Peeters (HPC-UGent)
 
 # Use generated topology file by ReFrame for CPU partitions
-# Cannot use autodetection untill new functionality of `sched_options` is part of
-# the ReFrame release https://github.com/reframe-hpc/reframe/issues/2970
+# `shed_access_in_submit` does not work with setting `'remote_detect': True,`
 
 # Instructions on generating topology file
 # ```
@@ -64,6 +63,9 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_rome'],
+                    'sched_options': {
+                        'shed_access_in_submit': True,
+                    },
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
                     'max_jobs': 20,
@@ -89,6 +91,9 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_rome_512'],
+                    'sched_options': {
+                        'shed_access_in_submit': True,
+                    },
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
                     'max_jobs': 20,
@@ -114,6 +119,9 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_milan'],
+                    'sched_options': {
+                        'shed_access_in_submit': True,
+                    },
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
                     'max_jobs': 20,
@@ -139,6 +147,9 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=gpu_rome_a100_40'],
+                    'sched_options': {
+                        'shed_access_in_submit': True,
+                    },
                     'environs': ['default'],
                     'descr': 'GPU nodes (A100 40GB)',
                     'max_jobs': 20,
@@ -176,6 +187,9 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=gpu_rome_a100_80'],
+                    'sched_options': {
+                        'shed_access_in_submit': True,
+                    },
                     'environs': ['default'],
                     'descr': 'GPU nodes (A100 80GB)',
                     'max_jobs': 20,
