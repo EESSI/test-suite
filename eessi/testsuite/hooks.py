@@ -431,10 +431,10 @@ def _set_or_append_valid_systems(test: rfm.RegressionTest, valid_systems: str):
     elif len(test.valid_systems) == 1:
         test.valid_systems[0] = f'{test.valid_systems[0]} {valid_systems}'
     else:
-        warn_msg = f"valid_systems has multiple ({len(test.valid_systems)}) items,"
-        warn_msg += " which is not supported by this hook."
-        warn_msg += " Make sure to handle filtering yourself."
-        rflog.getlogger().warning(warn_msg)
+        msg = f"valid_systems has multiple ({len(test.valid_systems)}) items,"
+        msg += " which is not supported by this hook."
+        msg += " Make sure to handle filtering yourself."
+        rflog.getlogger().warning(msg)
         return
 
 
@@ -555,8 +555,12 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
         log(f"Memory requested by application: {app_mem_req} MiB")
         log(f"Memory proportional to the core count: {proportional_mem} MiB")
 
-        # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
-        req_mem_per_node = max(proportional_mem, app_mem_req)
+        if test.exact_memory:
+            # Request the exact amount of required memory
+            req_mem_per_node = app_mem_req
+        else:
+            # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
+            req_mem_per_node = max(proportional_mem, app_mem_req)
 
         test.extra_resources = {'memory': {'size': f'{req_mem_per_node}M'}}
         log(f"Requested {req_mem_per_node} MiB per node from the SLURM batch scheduler")
