@@ -56,7 +56,7 @@ class EESSI_OSU_Base(osu_benchmark):
     num_iters = 10
 
     def required_mem_per_node(self):
-        return 1024
+        return self.num_tasks_per_node * 1024
 
     @run_after('init')
     def filter_scales_2gpus(self):
