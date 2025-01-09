@@ -25,13 +25,15 @@ if [ ! -f "${CI_CONFIG}" ]; then
     exit 1
 fi
 
+# Create temporary directory
+if [ -z "${TEMPDIR}" ]; then
+    TEMPDIR=$(mktemp --directory --tmpdir=/tmp  -t rfm.XXXXXXXXXX)
+fi
+
 # Set the CI configuration for this system
 source "${CI_CONFIG}"
 
 # Set default configuration, but let anything set by CI_CONFIG take priority
-if [ -z "${TEMPDIR}" ]; then
-    TEMPDIR=$(mktemp --directory --tmpdir=/tmp  -t rfm.XXXXXXXXXX)
-fi
 if [ -z "${REFRAME_ARGS}" ]; then
     REFRAME_ARGS="--tag CI --tag 1_node"
 fi
@@ -50,11 +52,14 @@ fi
 if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
     EESSI_TESTSUITE_BRANCH='v0.4.0'
 fi
-if [ -z "${EESSI_CVMFS_REPO}" ]; then
-    export EESSI_CVMFS_REPO=/cvmfs/software.eessi.io
-fi
-if [ -z "${EESSI_VERSION}" ]; then
-    export EESSI_VERSION=2023.06
+if [ -z "${USE_EESSI_SOFTWARE_STACK}" ] || [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
+    export USE_EESSI_SOFTWARE_STACK=True
+    if [ -z "${EESSI_CVMFS_REPO}" ]; then
+        export EESSI_CVMFS_REPO=/cvmfs/software.eessi.io
+    fi
+    if [ -z "${EESSI_VERSION}" ]; then
+        export EESSI_VERSION=2023.06
+    fi
 fi
 if [ -z "${RFM_CONFIG_FILES}" ]; then
     export RFM_CONFIG_FILES="${TEMPDIR}/test-suite/config/${EESSI_CI_SYSTEM_NAME}.py"
@@ -73,6 +78,12 @@ if [ -z "${REFRAME_TIMEOUT}" ]; then
     # This will prevent multiple ReFrame runs from piling up and exceeding the quota on our Magic Castle clusters
     export REFRAME_TIMEOUT=1430m
 fi
+if [ -z "${UNSET_MODULEPATH}" ]; then
+    export UNSET_MODULEPATH=True
+fi
+if [ -z "${SET_LOCAL_MODULE_ENV}" ]; then
+    export SET_LOCAL_MODULE_ENV=False
+fi
 
 # Create virtualenv for ReFrame using system python
 python3 -m venv "${TEMPDIR}"/reframe_venv
@@ -81,21 +92,36 @@ python3 -m pip install --upgrade pip
 python3 -m pip install reframe-hpc=="${REFRAME_VERSION}"
 
 # Clone reframe repo to have the hpctestlib:
-REFRAME_CLONE_ARGS="${REFRAME_URL} --branch ${REFRAME_BRANCH} ${TEMPDIR}/reframe"
+REFRAME_CLONE_ARGS="${REFRAME_URL} --branch ${REFRAME_BRANCH} --depth 1 ${TEMPDIR}/reframe"
 echo "Cloning ReFrame repo: git clone ${REFRAME_CLONE_ARGS}"
 git clone ${REFRAME_CLONE_ARGS}
 export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/reframe
 
 # Clone test suite repo
-EESSI_CLONE_ARGS="${EESSI_TESTSUITE_URL} --branch ${EESSI_TESTSUITE_BRANCH} ${TEMPDIR}/test-suite"
+EESSI_CLONE_ARGS="${EESSI_TESTSUITE_URL} --branch ${EESSI_TESTSUITE_BRANCH} --depth 1 ${TEMPDIR}/test-suite"
 echo "Cloning EESSI repo: git clone ${EESSI_CLONE_ARGS}"
 git clone ${EESSI_CLONE_ARGS}
 export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/test-suite/
 
+# Unset the ModulePath on systems where it is required
+if [ "$UNSET_MODULEPATH" == "True" ]; then
+    unset MODULEPATH
+fi
+
+# Set local module environment
+if [ "$SET_LOCAL_MODULE_ENV" == "True" ]; then
+    if [ -z "${LOCAL_MODULES}" ]; then
+        echo "You have to add the name of the module in the ci_config.sh file of your system"
+        exit 1
+    fi
+    module load "${LOCAL_MODULES}"
+fi
+
 # Start the EESSI environment
-unset MODULEPATH
-eessi_init_path="${EESSI_CVMFS_REPO}"/versions/"${EESSI_VERSION}"/init/bash
-source "${eessi_init_path}"
+if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
+    eessi_init_path="${EESSI_CVMFS_REPO}"/versions/"${EESSI_VERSION}"/init/bash
+    source "${eessi_init_path}"
+fi
 
 # Needed in order to make sure the reframe from our TEMPDIR is first on the PATH,
 # prior to the one shipped with the 2021.12 compat layer
@@ -119,6 +145,9 @@ echo "ReFrame check search path: ${RFM_CHECK_SEARCH_PATH}"
 echo "ReFrame check search recursive: ${RFM_CHECK_SEARCH_RECURSIVE}"
 echo "ReFrame prefix: ${RFM_PREFIX}"
 echo "ReFrame args: ${REFRAME_ARGS}"
+echo "Using EESSI: ${USE_EESSI_SOFTWARE_STACK}"
+echo "Using local software stack ${SET_LOCAL_MODULE_ENV}"
+echo "MODULEPATH: ${MODULEPATH}"
 echo ""
 
 # List tests
