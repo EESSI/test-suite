@@ -16,14 +16,27 @@ from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules, log
 
 
-def filter_scales_pt2pt():
+def filter_scales_pt2pt_cpu():
     """
-    Filtering function for filtering scales for the pt2pt OSU test
+    Filtering function for filtering scales for the pt2pt OSU test on CPUs
     returns all scales with either 2 cores, 1 full node, or 2 full nodes
     """
     return [
         k for (k, v) in SCALES.items()
         if v['num_nodes'] * v.get('num_cpus_per_node', 0) == 2
+        or (v['num_nodes'] == 2 and v.get('node_part', 0) == 1)
+        or (v['num_nodes'] == 1 and v.get('node_part', 0) == 1)
+    ]
+
+
+def filter_scales_pt2pt_gpu():
+    """
+    Filtering function for filtering scales for the pt2pt OSU test on GPUs
+    returns all scales with either a partial node, 1 full node, or 2 full nodes
+    """
+    return [
+        k for (k, v) in SCALES.items()
+        if (v['num_nodes'] == 1 and v.get('node_part', 0) > 1)
         or (v['num_nodes'] == 2 and v.get('node_part', 0) == 1)
         or (v['num_nodes'] == 1 and v.get('node_part', 0) == 1)
     ]
@@ -45,7 +58,6 @@ class EESSI_OSU_Base(osu_benchmark):
     """ base class for OSU tests """
     time_limit = '30m'
     module_name = parameter(find_modules('OSU-Micro-Benchmarks'))
-    device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
 
     # reset num_tasks_per_node from the hpctestlib: we handle it ourselves
     num_tasks_per_node = None
@@ -87,17 +99,9 @@ class EESSI_OSU_Base(osu_benchmark):
         self.bench_name = self.benchmark_info[0]
         self.tags.add(self.bench_name.split('.')[-1])
 
-    @run_after('setup', always_last=True)
-    def skip_test_1gpu(self):
-        if self.device_type == DEVICE_TYPES[GPU]:
-            num_gpus = self.num_gpus_per_node * self.num_nodes
-            self.skip_if(num_gpus < 2, "Skipping GPU test : only 1 GPU available for this test case")
 
-
-@rfm.simple_test
-class EESSI_OSU_Micro_Benchmarks_pt2pt(EESSI_OSU_Base, EESSI_Mixin):
-    ''' point-to-point OSU test '''
-    scale = parameter(filter_scales_pt2pt())
+class EESSI_OSU_pt2pt_Base(EESSI_OSU_Base):
+    ''' point-to-point OSU test base class '''
     compute_unit = COMPUTE_UNIT[NODE]
 
     @run_after('init')
@@ -130,9 +134,32 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(EESSI_OSU_Base, EESSI_Mixin):
 
 
 @rfm.simple_test
-class EESSI_OSU_Micro_Benchmarks_coll(EESSI_OSU_Base, EESSI_Mixin):
+class EESSI_OSU_pt2pt_CPU(EESSI_OSU_pt2pt_Base, EESSI_Mixin):
+    ''' point-to-point OSU test on CPUs'''
+    scale = parameter(filter_scales_pt2pt_cpu())
+    device_type = DEVICE_TYPES[CPU]
+
+
+@rfm.simple_test
+class EESSI_OSU_pt2pt_GPU(EESSI_OSU_pt2pt_Base, EESSI_Mixin):
+    ''' point-to-point OSU test on GPUs'''
+    scale = parameter(filter_scales_pt2pt_gpu())
+    device_type = DEVICE_TYPES[GPU]
+
+    @run_after('setup')
+    def skip_test_1gpu(self):
+        num_gpus = self.num_gpus_per_node * self.num_nodes
+        self.skip_if(
+            num_gpus != 2 and self.scale not in ['1_node', '2_nodes'],
+            f"Skipping test : {num_gpus} GPU(s) available for this test case, need exactly 2"
+        )
+
+
+@rfm.simple_test
+class EESSI_OSU_coll(EESSI_OSU_Base, EESSI_Mixin):
     ''' collective OSU test '''
     scale = parameter(filter_scales_coll())
+    device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
 
     @run_after('init')
     def filter_benchmark_coll(self):
@@ -157,3 +184,9 @@ class EESSI_OSU_Micro_Benchmarks_coll(EESSI_OSU_Base, EESSI_Mixin):
             DEVICE_TYPES[GPU]: COMPUTE_UNIT[GPU],
         }
         self.compute_unit = device_to_compute_unit.get(self.device_type)
+
+    @run_after('setup')
+    def skip_test_1gpu(self):
+        if self.device_type == DEVICE_TYPES[GPU]:
+            num_gpus = self.num_gpus_per_node * self.num_nodes
+            self.skip_if(num_gpus < 2, "Skipping GPU test : only 1 GPU available for this test case")
