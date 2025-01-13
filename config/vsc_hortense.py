@@ -4,7 +4,7 @@
 # authors: Samuel Moors (VUB-HPC), Kenneth Hoste (HPC-UGent), Lara Peeters (HPC-UGent)
 
 # Use generated topology file by ReFrame for CPU partitions
-# `shed_access_in_submit` does not work with setting `'remote_detect': True,`
+# `sched_access_in_submit` does not work with setting `'remote_detect': True,`
 
 # Instructions on generating topology file
 # ```
@@ -64,7 +64,7 @@ site_configuration = {
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_rome'],
                     'sched_options': {
-                        'shed_access_in_submit': True,
+                        'sched_access_in_submit': True,
                     },
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
@@ -92,7 +92,7 @@ site_configuration = {
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_rome_512'],
                     'sched_options': {
-                        'shed_access_in_submit': True,
+                        'sched_access_in_submit': True,
                     },
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
@@ -120,7 +120,7 @@ site_configuration = {
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=cpu_milan'],
                     'sched_options': {
-                        'shed_access_in_submit': True,
+                        'sched_access_in_submit': True,
                     },
                     'environs': ['default'],
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
@@ -148,7 +148,7 @@ site_configuration = {
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=gpu_rome_a100_40'],
                     'sched_options': {
-                        'shed_access_in_submit': True,
+                        'sched_access_in_submit': True,
                     },
                     'environs': ['default'],
                     'descr': 'GPU nodes (A100 40GB)',
@@ -188,7 +188,7 @@ site_configuration = {
                     'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
                     'access': hortense_access + ['--partition=gpu_rome_a100_80'],
                     'sched_options': {
-                        'shed_access_in_submit': True,
+                        'sched_access_in_submit': True,
                     },
                     'environs': ['default'],
                     'descr': 'GPU nodes (A100 80GB)',
@@ -255,6 +255,7 @@ site_configuration = {
     ],
     'general': [
         {
+            'remote_detect': True,
             'purge_environment': True,
             'resolve_module_conflicts': False,  # avoid loading the module before submitting the job
             **common_general_config()
