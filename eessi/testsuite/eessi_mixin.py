@@ -65,6 +65,14 @@ class EESSI_Mixin(RegressionMixin):
         cls.valid_systems = ['*']
         if not cls.time_limit:
             cls.time_limit = '1h'
+        if not cls.readonly_files:
+            msg = ' '.join([
+                "Built-in attribute `readonly_files` is empty. To avoid excessive copying, it's highly recommended",
+                "to add all files and/or dirs in `sourcesdir` that are needed but not modified during the test,",
+                "thus can be symlinked into the stage dirs. If you are sure there are no such files,",
+                "set `readonly_files = ['']`.",
+            ])
+            raise ReframeFatalError(msg)
 
     # Helper function to validate if an attribute is present it item_dict.
     # If not, print it's current name, value, and the valid_values

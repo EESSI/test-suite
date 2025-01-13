@@ -49,6 +49,8 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
     valid_systems = ['*']
     valid_prog_environs = ['default']
     time_limit = '60m'
+    # input files are downloaded
+    readonly_files = ['']
 
     module_name = parameter(find_modules('MetalWalls'))
     # For now, MetalWalls is being build for CPU targets only

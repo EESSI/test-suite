@@ -19,6 +19,7 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     module_name = parameter(chain(find_modules('torchvision'), find_modules('PyTorch-bundle')))
     executable = 'python'
     time_limit = '30m'
+    readonly_files = ['get_free_socket.py', 'pytorch_synthetic_benchmark.py']
 
     def required_mem_per_node(self):
         return self.num_tasks_per_node * 1024

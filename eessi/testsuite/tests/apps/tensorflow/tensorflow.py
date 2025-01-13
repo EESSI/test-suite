@@ -23,6 +23,7 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
 
     executable = 'python tf_test.py'
+    readonly_files = ['mnist_setup.py', 'tf_test.py']
 
     time_limit = '30m'
 
