@@ -1,17 +1,14 @@
 import reframe as rfm
-from reframe.core.builtins import parameter, run_after, performance_function, sanity_function, fixture
+from reframe.core.builtins import parameter, run_after, performance_function, sanity_function
 import reframe.utility.sanity as sn
 
 from eessi.testsuite.constants import SCALES, COMPUTE_UNIT, DEVICE_TYPES, CPU
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules
-from eessi.testsuite.tests.apps.cp2k.cp2k_staging.cp2k_stage_input import EESSI_CP2K_stage_input
 
 
 @rfm.simple_test
 class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
-
-    stage_files = fixture(EESSI_CP2K_stage_input, scope='session')
 
     benchmark_info = parameter([
         # (bench_name, energy_ref, energy_tol)
@@ -28,6 +25,7 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     device_type = DEVICE_TYPES[CPU]
     compute_unit = COMPUTE_UNIT[CPU]
     bench_name_ci = 'QS/H2O-32'  # set CI on smallest benchmark
+    readonly_files = ['QS']
 
     def required_mem_per_node(self):
         mems = {
@@ -45,7 +43,7 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     @run_after('setup')
     def prepare_test(self):
-        self.executable_opts += ['-i', f'{self.stage_files.stagedir}/{self.bench_name}.inp']
+        self.executable_opts += ['-i', f'{self.bench_name}.inp']
 
     @sanity_function
     def assert_energy(self):

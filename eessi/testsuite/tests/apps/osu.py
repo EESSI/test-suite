@@ -52,6 +52,7 @@ class EESSI_OSU_Micro_Benchmarks_pt2pt(osu_benchmark):
     device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
     # unset num_tasks_per_node from the hpctestlib.
     num_tasks_per_node = None
+    readonly_files = ['']
 
     # Set num_warmup_iters to 5 to reduce execution time, especially on slower interconnects
     num_warmup_iters = 5

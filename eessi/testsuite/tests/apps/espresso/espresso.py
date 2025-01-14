@@ -110,6 +110,8 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(EESSI_ESPRESSO):
     time_limit = '300m'
 
     executable = 'python3 madelung.py'
+    sourcesdir = 'src/p3m'
+    readonly_files = ['madelung.py']
 
     default_weak_scaling_system_size = 6
 
@@ -161,6 +163,8 @@ class EESSI_ESPRESSO_LJ_PARTICLES(EESSI_ESPRESSO):
     time_limit = '300m'
 
     executable = 'python3 lj.py'
+    sourcesdir = 'src/lj'
+    readonly_files = ['lj.py']
 
     @run_after('init')
     def set_tag_ci(self):
