@@ -30,7 +30,7 @@ fi
 
 # Create temporary directory
 if [ -z "${TEMPDIR}" ]; then
-    TEMPDIR=$(mktemp --directory --tmpdir=${EESSI_CI_TEMPROOT:-HOME}  -t rfm.XXXXXXXXXX)
+    TEMPDIR=$(mktemp --directory --tmpdir=${EESSI_CI_TEMPROOT:-$HOME}  -t rfm.XXXXXXXXXX)
 fi
 
 # Set the CI configuration for this system
