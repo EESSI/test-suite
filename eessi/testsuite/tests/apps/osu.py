@@ -145,14 +145,20 @@ class EESSI_OSU_pt2pt_GPU(EESSI_OSU_pt2pt_Base, EESSI_Mixin):
     ''' point-to-point OSU test on GPUs'''
     scale = parameter(filter_scales_pt2pt_gpu())
     device_type = DEVICE_TYPES[GPU]
+    always_request_gpus = True
 
     @run_after('setup')
-    def skip_test_1gpu(self):
+    def skip_test_gpus(self):
         num_gpus = self.num_gpus_per_node * self.num_nodes
-        self.skip_if(
-            num_gpus != 2 and self.scale not in ['1_node', '2_nodes'],
-            f"Skipping test : {num_gpus} GPU(s) available for this test case, need exactly 2"
-        )
+        if self.scale not in ['1_node', '2_nodes']:
+            # On a partial node allocation, run this test only if exactly 2 GPUs are allocated
+            self.skip_if(
+                num_gpus != 2,
+                f"Skipping test : {num_gpus} GPU(s) available for this test case, need exactly 2"
+            )
+        elif self.scale == '1_node':
+            # Make sure there are at least 2 GPUs
+            self.skip_if(num_gpus < 2, "Skipping GPU test : only 1 GPU available for this test case")
 
 
 @rfm.simple_test

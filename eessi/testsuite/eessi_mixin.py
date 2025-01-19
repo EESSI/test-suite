@@ -45,6 +45,7 @@ class EESSI_Mixin(RegressionMixin):
     bench_name = None
     bench_name_ci = None
     num_tasks_per_compute_unit = 1
+    always_request_gpus = None
 
     # Create ReFrame variables for logging runtime environment information
     cvmfs_repo_name = variable(str, value='None')
