@@ -1,4 +1,4 @@
-from reframe.core.builtins import parameter, run_after, variable
+from reframe.core.builtins import parameter, run_after, run_before, variable
 from reframe.core.exceptions import ReframeFatalError
 from reframe.core.pipeline import RegressionMixin
 from reframe.utility.sanity import make_performance_function
@@ -44,6 +44,8 @@ class EESSI_Mixin(RegressionMixin):
     scale = parameter(SCALES.keys())
     bench_name = None
     bench_name_ci = None
+    num_tasks_per_compute_unit = 1
+    always_request_gpus = None
 
     # Create ReFrame variables for logging runtime environment information
     cvmfs_repo_name = variable(str, value='None')
@@ -127,7 +129,7 @@ class EESSI_Mixin(RegressionMixin):
         # Set scales as tags
         hooks.set_tag_scale(self)
 
-    @run_after('init')
+    @run_before('setup', always_last=True)
     def measure_mem_usage(self):
         if self.measure_memory_usage:
             hooks.measure_memory_usage(self)
@@ -172,7 +174,8 @@ class EESSI_Mixin(RegressionMixin):
     @run_after('setup')
     def assign_tasks_per_compute_unit(self):
         """Call hooks to assign tasks per compute unit, set OMP_NUM_THREADS, and set compact process binding"""
-        hooks.assign_tasks_per_compute_unit(test=self, compute_unit=self.compute_unit)
+        hooks.assign_tasks_per_compute_unit(test=self, compute_unit=self.compute_unit,
+                                            num_per=self.num_tasks_per_compute_unit)
 
         # Set OMP_NUM_THREADS environment variable
         hooks.set_omp_num_threads(self)
