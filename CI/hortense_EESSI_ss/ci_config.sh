@@ -21,7 +21,7 @@ if [ -z "${USE_EESSI_SOFTWARE_STACK}" ]; then
 fi
 
 if [ -z "${RFM_CONFIG_FILES}" ]; then
-    export RFM_CONFIG_FILES="${TEMPDIR}/test-suite/config/vsc_hortense.py"
+    export RFM_CONFIG_FILES="${TEMPDIR}/configs/config/vsc_hortense.py"
 fi
 
 if [ -z "${SET_LOCAL_MODULE_ENV}"]; then

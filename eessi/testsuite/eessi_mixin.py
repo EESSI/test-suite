@@ -51,6 +51,9 @@ class EESSI_Mixin(RegressionMixin):
     cvmfs_repo_name = variable(str, value='None')
     cvmfs_software_subdir = variable(str, value='None')
     full_modulepath = variable(str, value='None')
+    # These are optionally set in CI on the command line
+    EESSI_CONFIGS_URL = variable(str, value='None')
+    EESSI_CONFIGS_BRANCH = variable(str, value='None')
 
     # Make sure the version of the EESSI test suite gets logged in the ReFrame report
     eessi_testsuite_version = variable(str, value=testsuite_version)
