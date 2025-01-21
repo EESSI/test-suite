@@ -57,6 +57,8 @@ def _assign_default_num_gpus_per_node(test: rfm.RegressionTest):
         # no default set yet, so setting one
         test.default_num_gpus_per_node = math.ceil(test.max_avail_gpus_per_node / test.node_part)
 
+    log(f'default_num_gpus_per_node set to {test.default_num_gpus_per_node}')
+
 
 def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, num_per: int = 1):
     """
@@ -83,6 +85,8 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
     - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET]) will launch 2 tasks with 64 threads per task
 
     """
+    log(f'assign_tasks_per_compute_unit called with compute_unit: {compute_unit} and num_per: {num_per}')
+
     if num_per != 1 and compute_unit not in [COMPUTE_UNIT[NODE]]:
         raise NotImplementedError(
             f'Non-default num_per {num_per} is not implemented for compute_unit {compute_unit}.')
@@ -713,7 +717,8 @@ def _check_always_request_gpus(test: rfm.RegressionTest):
     """
     Make sure we always request enough GPUs if required for the current GPU partition (cluster-specific policy)
     """
-    if FEATURES[ALWAYS_REQUEST_GPUS] in test.current_partition.features and not test.num_gpus_per_node:
+    always_request_gpus = FEATURES[ALWAYS_REQUEST_GPUS] in test.current_partition.features or test.always_request_gpus
+    if always_request_gpus and not test.num_gpus_per_node:
         test.num_gpus_per_node = test.default_num_gpus_per_node
         log(f'num_gpus_per_node set to {test.num_gpus_per_node} for partition {test.current_partition.name}')
 

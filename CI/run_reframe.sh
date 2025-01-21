@@ -30,7 +30,7 @@ fi
 
 # Create temporary directory
 if [ -z "${TEMPDIR}" ]; then
-    TEMPDIR=$(mktemp --directory --tmpdir=${EESSI_CI_TEMPROOT:-HOME}  -t rfm.XXXXXXXXXX)
+    TEMPDIR=$(mktemp --directory --tmpdir=${EESSI_CI_TEMPROOT:-$HOME}  -t rfm.XXXXXXXXXX)
 fi
 
 # Set the CI configuration for this system
@@ -55,6 +55,12 @@ fi
 if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
     EESSI_TESTSUITE_BRANCH='v0.4.0'
 fi
+if [ -z "${EESSI_CONFIGS_TESTSUITE_URL}" ]; then
+    EESSI_CONFIGS_TESTSUITE_URL="${EESSI_TESTSUITE_URL}"
+fi
+if [ -z "${EESSI_CONFIGS_TESTSUITE_BRANCH}" ]; then
+    EESSI_CONFIGS_TESTSUITE_BRANCH="${EESSI_TESTSUITE_BRANCH}"
+fi
 if [ -z "${USE_EESSI_SOFTWARE_STACK}" ] || [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
     export USE_EESSI_SOFTWARE_STACK=True
     if [ -z "${EESSI_CVMFS_REPO}" ]; then
@@ -65,7 +71,7 @@ if [ -z "${USE_EESSI_SOFTWARE_STACK}" ] || [ "$USE_EESSI_SOFTWARE_STACK" == "Tru
     fi
 fi
 if [ -z "${RFM_CONFIG_FILES}" ]; then
-    export RFM_CONFIG_FILES="${TEMPDIR}/test-suite/config/${EESSI_CI_SYSTEM_NAME}.py"
+    export RFM_CONFIG_FILES="${TEMPDIR}/configs/config/${EESSI_CI_SYSTEM_NAME}.py"
 fi
 if [ -z "${RFM_CHECK_SEARCH_PATH}" ]; then
     export RFM_CHECK_SEARCH_PATH="${TEMPDIR}/test-suite/eessi/testsuite/tests/"
@@ -99,6 +105,22 @@ REFRAME_CLONE_ARGS="${REFRAME_URL} --branch ${REFRAME_BRANCH} --depth 1 ${TEMPDI
 echo "Cloning ReFrame repo: git clone ${REFRAME_CLONE_ARGS}"
 git clone ${REFRAME_CLONE_ARGS}
 export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/reframe
+
+# Clone configs from test suite repo
+EESSI_CONFIGS_CLONE_ARGS="-n --filter=tree:0 ${EESSI_CONFIGS_TESTSUITE_URL} --branch ${EESSI_CONFIGS_TESTSUITE_BRANCH} --depth 1 ${TEMPDIR}/configs"
+echo "Cloning configs from EESSI test suite repo:"
+echo "git clone ${EESSI_CONFIGS_CLONE_ARGS}"
+git clone ${EESSI_CONFIGS_CLONE_ARGS}
+echo "cd ${TEMPDIR}/configs"
+cd ${TEMPDIR}/configs
+echo "git sparse-checkout set --no-cone config"
+git sparse-checkout set --no-cone config
+echo "git checkout"
+git checkout
+# Return to TEMPDIR
+echo "cd ${TEMPDIR}"
+cd ${TEMPDIR}
+
 
 # Clone test suite repo
 EESSI_CLONE_ARGS="${EESSI_TESTSUITE_URL} --branch ${EESSI_TESTSUITE_BRANCH} --depth 1 ${TEMPDIR}/test-suite"
@@ -139,6 +161,8 @@ echo "TEMPDIR: ${TEMPDIR}"
 echo "PYTHONPATH: ${PYTHONPATH}"
 echo "EESSI test suite URL: ${EESSI_TESTSUITE_URL}"
 echo "EESSI test suite version: ${EESSI_TESTSUITE_BRANCH}"
+echo "EESSI test suite URL for configs: ${EESSI_CONFIGS_TESTSUITE_URL}"
+echo "EESSI test suite version for configs: ${EESSI_CONFIGS_TESTSUITE_BRANCH}"
 echo "HPCtestlib from ReFrame URL: ${REFRAME_URL}"
 echo "HPCtestlib from ReFrame branch: ${REFRAME_BRANCH}"
 echo "ReFrame executable: $(which reframe)"
@@ -159,7 +183,7 @@ reframe ${REFRAME_ARGS} --list
 
 # Run
 echo "Run tests:"
-timeout -v --preserve-status -s SIGTERM ${REFRAME_TIMEOUT} reframe ${REFRAME_ARGS} --run
+timeout -v --preserve-status -s SIGTERM ${REFRAME_TIMEOUT} reframe ${REFRAME_ARGS} --run --setvar EESSI_CONFIGS_URL=${EESSI_CONFIGS_TESTSUITE_URL} --setvar EESSI_CONFIGS_BRANCH=${EESSI_CONFIGS_TESTSUITE_BRANCH}
 
 # Cleanup
 rm -rf "${TEMPDIR}"
