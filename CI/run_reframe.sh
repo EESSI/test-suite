@@ -53,7 +53,7 @@ if [ -z "${EESSI_TESTSUITE_URL}" ]; then
     EESSI_TESTSUITE_URL='https://github.com/EESSI/test-suite.git'
 fi
 if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
-    EESSI_TESTSUITE_BRANCH='v0.4.1'
+    EESSI_TESTSUITE_BRANCH='v0.5.0'
 fi
 if [ -z "${EESSI_CONFIGS_TESTSUITE_URL}" ]; then
     EESSI_CONFIGS_TESTSUITE_URL="${EESSI_TESTSUITE_URL}"
