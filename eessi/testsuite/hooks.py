@@ -717,6 +717,8 @@ def _check_always_request_gpus(test: rfm.RegressionTest):
     """
     Make sure we always request enough GPUs if required for the current GPU partition (cluster-specific policy)
     """
+    if not hasattr(test, 'always_request_gpus'):
+        test.always_request_gpus = False
     always_request_gpus = FEATURES[ALWAYS_REQUEST_GPUS] in test.current_partition.features or test.always_request_gpus
     if always_request_gpus and not test.num_gpus_per_node:
         test.num_gpus_per_node = test.default_num_gpus_per_node
