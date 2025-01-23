@@ -1,6 +1,38 @@
 This file contains a description of the major changes to the EESSI test suite.
 For more detailed information, please see the git log.
 
+v0.5.0 (23 January 2025)
+--------------------------
+
+This is a minor release of the EESSI test-suite
+
+New tests:
+
+* MetalWalls (#164) (N.B. requires ReFrame >=4.7.0)
+
+New features:
+* Created `eessi_mixin` class for tests to inherit from. This class makes it easier to create portable tests, and also keeps the structure of those tests more uniform. (#177)
+* Automatic versioning with setuptools_scm (#185)
+* Ported tests to use the eessi_mixin class: CP2K (#193), MPI4py (#203), QuantumESPRESSO (#212), PyTorch (#213), TensorFlow (#221), OSU (#222)
+* Improved support for doing periodic test suite runs on a local software stack using `CI/run_reframe.sh` (#200)
+* Support for setting the exact required memory (#214)
+* For periodic tests using `CI/run_reframe.sh`, allow using a different version of the test-suite repository for the ReFrame config files (#226)
+
+Bug fixes:
+* Fixed failing `mktemp` command in `CI/run_reframe.sh` when EESSI_CI_TEMPROOT isn't set (#227)
+* Make tests that _don't_ use `eessi_mixin` always request GPUs if this is specified in the test.
+
+Other updates:
+* Update lammps hook name to be more descriptive (#177)
+* Add empty __init__ files to allow auto-generating API docs (#192)
+* Updates to ReFrame configs (#195, #198, #199, #202, #215, #216, #223, #225)
+* Log if the CI tag gets set (#204)
+* Reduce the amount of data that gets copied during ReFrame staging (#205, #220)
+* Log CVMFS_REPO_NAME, CVMFS_SOFTWARE_SUBDIR, MODULEPATH and EESSI test-suite version (#206)
+* Clarify error messages from EESSI mixin that warn test developers if certain variables aren't set on time in the child class (#208)
+* For periodic tests using `CI/run_reframe.sh`, avoid cloning the full history (#218)
+* Update release instructions (#230)
+
 v0.4.0 (26 September 2024)
 --------------------------
 
