@@ -33,7 +33,7 @@ It should define:
 - `EESSI_TESTSUITE_URL` (optional): the URL that will be used to `git clone` the `EESSI/test-suite` repository. Typically this points to the official repository, but you may want to use another URL from a fork for development purposes. Default: `https://github.com/EESSI/test-suite.git`.
 - `EESSI_TESTSUITE_VERSION` (optional): the version of the EESSI test-suite repository you want to use in the CI pipeline. Default: latest release.
 - `EESSI_CONFIGS_TESTSUITE_URL` (optional): the URL that will be used to `git clone` the `test-suite/config` directory. Allows e.g. to use the tests from the latest release, but the configs from a feature branch in a different repository. Default: `EESSI_TESTSUITE_URL`.
-- `EESSI_CONFIGS_TESTSUITE_BRANCH` (optional): the branch that will be checkout out with `git clone` when checking out the `test-suite/config` directory. Allows e.g. to use the tests from the latest release, but the configs from the main branch. Default: `EESSI_TESTSUITE_VERSION`.
+- `EESSI_CONFIGS_TESTSUITE_BRANCH` (optional): the branch that will be checked out when cloning the `test-suite/config` directory. Allows e.g. to use the tests from the latest release, but the configs from the main branch. Default: `EESSI_TESTSUITE_VERSION`.
 - `RFM_CONFIG_FILES` (optional): the location of the ReFrame configuration file to be used for this system. Default: `${TEMPDIR}/test-suite/config/${EESSI_CI_SYSTEM_NAME}.py`.
 - `RFM_CHECK_SEARCH_PATH` (optional): the search path where ReFrame should search for tests to run in this CI pipeline. Default: `${TEMPDIR}/test-suite/eessi/testsuite/tests/`.
 - `RFM_CHECK_SEARCH_RECURSIVE` (optional): whether ReFrame should search `RFM_CHECK_SEARCH_PATH` recursively. Default: `1`.
