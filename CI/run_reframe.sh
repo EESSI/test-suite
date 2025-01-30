@@ -53,7 +53,14 @@ if [ -z "${EESSI_TESTSUITE_URL}" ]; then
     EESSI_TESTSUITE_URL='https://github.com/EESSI/test-suite.git'
 fi
 if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
-    EESSI_TESTSUITE_BRANCH='v0.5.0'
+    git clone -n --depth=1 --filter=tree:0 ${EESSI_TESTSUITE_URL} "${TEMPDIR}/test-suite-version-checkout"
+    cd "${TEMPDIR}/test-suite-version-checkout"
+    git fetch --tags
+    # This assumes we stick to a version-tagging scheme vX.Y.Z
+    LATEST_VERSION=$(git tag | grep '^v[0-9]\+\.[0-9]\+\.[0-9]\+$' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1)
+    # Use the latest release by default
+    EESSI_TESTSUITE_BRANCH="${LATEST_VERSION}"
+    cd ${TEMPDIR}
 fi
 if [ -z "${EESSI_CONFIGS_TESTSUITE_URL}" ]; then
     EESSI_CONFIGS_TESTSUITE_URL="${EESSI_TESTSUITE_URL}"
