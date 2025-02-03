@@ -1,6 +1,17 @@
 This file contains a description of the major changes to the EESSI test suite.
 For more detailed information, please see the git log.
 
+v0.5.1 (30 January 2025)
+--------------------------
+
+This is a bug fix release of the EESSI test-suite
+
+Other updates:
+* Update to release workflow instructions (#232)
+* Document how to use a different version of the config files when using `CI/run_reframe.sh` (#235)
+* Bump the use of the default ReFrame version for period tests that use `CI/run_reframe.sh` to ReFrame 4.7.3 (#236)
+* Make `CI/run_reframe.sh` use the latest release of the test suite as default version (#237)
+
 v0.5.0 (23 January 2025)
 --------------------------
 
