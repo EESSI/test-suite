@@ -104,7 +104,6 @@ are ok with that_ before doing so!
 When a release of the EESSI test suite is made, the following things must be taken care of:
 
 - Version bump the `fallback_version` in `pyproject.toml`;
-- Version bump the default `EESSI_TESTSUITE_BRANCH` in `CI/run_reframe.sh`;
 - Create release notes PR: an easy way to get an overview of PRs since the latest release is using figuring out the date of the latest tag, and check all merged PRs since then (e.g. `is:pr is:closed merged:2024-09-25..2025-01-23`) (cfr. https://github.com/EESSI/test-suite/pull/231)
 - Merge release notes PR (N.B. the CI test checking the fallback_version against the latest tagged version will fail, this is a chicken-and-egg problem, so we just have to merge anyway)
 - Click 'Draft a new release' on https://github.com/EESSI/test-suite/releases . In the process, create a new tag, and copy the release nodes into the text box. Save as draft, check it, then publish the release.

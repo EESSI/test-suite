@@ -22,20 +22,9 @@ jobs:
             # Prepend fallback version with 'v', as that is also the case for the other two version strings
             fallback_version="v$fallback_version"
 
-            # Get version from run_reframe.sh
-            run_reframe_testsuite_version=$(grep -oP 'EESSI_TESTSUITE_BRANCH\s*=\s*[^v]*\K[^"\x27]*' "CI/run_reframe.sh")
-
             # Grab the tag for the highest version, by sorting by (semantic) version, and then filtering on patterns
             # that match a pattern like v0.1.2. Finally, we grab the last to get the highest version
             most_recent_version=$(git tag --sort=version:refname | grep -P "v[0-9]+\.[0-9]+\.[0-9]+" | tail -n 1)
-
-            echo "Testing if fallback version and EESSI_TESTSUITE_BRANCH version in CI/run_reframe.sh are the same"
-            if [[ "$fallback_version" != "$run_reframe_testsuite_version" ]]; then
-                echo "Version $fallback_version not equal to $run_reframe_testsuite_version"
-                exit 1
-            else
-                echo "... yes!"
-            fi
 
             echo "Testing if fallback version and most recent version tag are the same"
             if [[ "$fallback_version" != "$most_recent_version" ]]; then
