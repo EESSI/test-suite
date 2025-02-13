@@ -40,8 +40,8 @@ site_configuration = {
             'cc': 'cc',
             'cxx': '',
             'ftn': ''
-            }
-        ],
+        }
+    ],
     'general': [
         {
             'purge_environment': True,
