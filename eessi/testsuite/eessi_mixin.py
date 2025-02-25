@@ -1,4 +1,4 @@
-from reframe.core.builtins import parameter, run_after, variable
+from reframe.core.builtins import parameter, run_after, run_before, variable
 from reframe.core.exceptions import ReframeFatalError
 from reframe.core.pipeline import RegressionMixin
 from reframe.utility.sanity import make_performance_function
@@ -40,14 +40,20 @@ class EESSI_Mixin(RegressionMixin):
 
     # Set defaults for these class variables, can be overwritten by child class if desired
     measure_memory_usage = variable(bool, value=False)
+    exact_memory = variable(bool, value=False)
     scale = parameter(SCALES.keys())
     bench_name = None
     bench_name_ci = None
+    num_tasks_per_compute_unit = 1
+    always_request_gpus = None
 
     # Create ReFrame variables for logging runtime environment information
     cvmfs_repo_name = variable(str, value='None')
     cvmfs_software_subdir = variable(str, value='None')
     full_modulepath = variable(str, value='None')
+    # These are optionally set in CI on the command line
+    EESSI_CONFIGS_URL = variable(str, value='None')
+    EESSI_CONFIGS_BRANCH = variable(str, value='None')
 
     # Make sure the version of the EESSI test suite gets logged in the ReFrame report
     eessi_testsuite_version = variable(str, value=testsuite_version)
@@ -64,6 +70,14 @@ class EESSI_Mixin(RegressionMixin):
         cls.valid_systems = ['*']
         if not cls.time_limit:
             cls.time_limit = '1h'
+        if not cls.readonly_files:
+            msg = ' '.join([
+                "Built-in attribute `readonly_files` is empty. To avoid excessive copying, it's highly recommended",
+                "to add all files and/or dirs in `sourcesdir` that are needed but not modified during the test,",
+                "thus can be symlinked into the stage dirs. If you are sure there are no such files,",
+                "set `readonly_files = ['']`.",
+            ])
+            raise ReframeFatalError(msg)
 
     # Helper function to validate if an attribute is present it item_dict.
     # If not, print it's current name, value, and the valid_values
@@ -118,7 +132,7 @@ class EESSI_Mixin(RegressionMixin):
         # Set scales as tags
         hooks.set_tag_scale(self)
 
-    @run_after('init')
+    @run_before('setup', always_last=True)
     def measure_mem_usage(self):
         if self.measure_memory_usage:
             hooks.measure_memory_usage(self)
@@ -163,7 +177,8 @@ class EESSI_Mixin(RegressionMixin):
     @run_after('setup')
     def assign_tasks_per_compute_unit(self):
         """Call hooks to assign tasks per compute unit, set OMP_NUM_THREADS, and set compact process binding"""
-        hooks.assign_tasks_per_compute_unit(test=self, compute_unit=self.compute_unit)
+        hooks.assign_tasks_per_compute_unit(test=self, compute_unit=self.compute_unit,
+                                            num_per=self.num_tasks_per_compute_unit)
 
         # Set OMP_NUM_THREADS environment variable
         hooks.set_omp_num_threads(self)

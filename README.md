@@ -103,13 +103,18 @@ are ok with that_ before doing so!
 
 When a release of the EESSI test suite is made, the following things must be taken care of:
 
-- Version bump: in both `pyproject.toml` and `setup.cfg`;
-- Version bump the default `EESSI_TESTSUITE_BRANCH` in `CI/run_reframe.sh`;
-- Release notes: in `RELEASE_NOTES` + in GitHub release (cfr. https://github.com/EESSI/test-suite/releases/tag/v0.2.0);
-- Tag release on GitHub + publish release (incl. release notes);
+- Version bump the `fallback_version` in `pyproject.toml`;
+- Create release notes PR: an easy way to get an overview of PRs since the latest release is using figuring out the date of the latest tag, and check all merged PRs since then (e.g. `is:pr is:closed merged:2024-09-25..2025-01-23`) (cfr. https://github.com/EESSI/test-suite/pull/231)
+- Merge release notes PR (N.B. the CI test checking the fallback_version against the latest tagged version will fail, this is a chicken-and-egg problem, so we just have to merge anyway)
+- Click 'Draft a new release' on https://github.com/EESSI/test-suite/releases . In the process, create a new tag, and copy the release nodes into the text box. Save as draft, check it, then publish the release.
 - Publishing release to PyPI:
   ```
-  # example for version 0.2.0
+  # example for version 0.5.0
+  git clone https://github.com/EESSI/test-suite.git --branch v0.5.0
   python setup.py sdist
-  twine upload dist/eessi_testsuite-0.2.0.tar.gz
   ```
+  Note that it is important that this step is done _after_ the tag is created in the repository, since `setuptools_scm` uses it to determine the version. Check that the automatically generated version matches with the tag you just created. Then, upload to pypi:
+  ```
+  twine upload dist/eessi_testsuite-0.5.0.tar.gz
+  ```
+  Note that for this, you need to have a pipy account, be registered as a maintainer of `eessi-testsuite` on PyPI (see 'Maintainers' at https://pypi.org/project/eessi-testsuite/). You also need an API token to be created under https://pypi.org/manage/account/ and put it in a `.pypirc` file (see e.g. https://kynan.github.io/blog/2020/05/23/how-to-upload-your-package-to-the-python-package-index-pypi-test-server for instructions).

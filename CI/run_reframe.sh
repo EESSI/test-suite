@@ -1,8 +1,11 @@
 #!/bin/bash
 # Author: Caspar van Leeuwen
 # Description: This script can be used to do regular runs of the ReFrame test suite, e.g. from a cronjob.
-# Setup instructions: make sure you have your github access key configured in your .ssh/config
-# i.e. configure an entry with HostName github.com and IdentityFile pointing to the ssh key registered with Github
+# Setup instructions:
+# 1) make sure you have your github access key configured in your .ssh/config
+#    i.e. configure an entry with HostName github.com and IdentityFile pointing to the ssh key registered with Github
+# 2) set environment variable EESSI_CI_TEMPROOT, a path in a shared filesystem in which the temporary directory will be created
+#    if $EESSI_CI_TEMPROOT is not set, $HOME will be used.
 
 # Print on which host this CI is running
 echo "Running CI on host $(hostname)"
@@ -25,18 +28,20 @@ if [ ! -f "${CI_CONFIG}" ]; then
     exit 1
 fi
 
+# Create temporary directory
+if [ -z "${TEMPDIR}" ]; then
+    TEMPDIR=$(mktemp --directory --tmpdir=${EESSI_CI_TEMPROOT:-$HOME}  -t rfm.XXXXXXXXXX)
+fi
+
 # Set the CI configuration for this system
 source "${CI_CONFIG}"
 
 # Set default configuration, but let anything set by CI_CONFIG take priority
-if [ -z "${TEMPDIR}" ]; then
-    TEMPDIR=$(mktemp --directory --tmpdir=/tmp  -t rfm.XXXXXXXXXX)
-fi
 if [ -z "${REFRAME_ARGS}" ]; then
     REFRAME_ARGS="--tag CI --tag 1_node"
 fi
 if [ -z "${REFRAME_VERSION}"]; then
-    REFRAME_VERSION=4.6.2
+    REFRAME_VERSION=4.7.3
 fi
 if [ -z "${REFRAME_URL}" ]; then
     REFRAME_URL='https://github.com/reframe-hpc/reframe.git'
@@ -48,16 +53,32 @@ if [ -z "${EESSI_TESTSUITE_URL}" ]; then
     EESSI_TESTSUITE_URL='https://github.com/EESSI/test-suite.git'
 fi
 if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
-    EESSI_TESTSUITE_BRANCH='v0.4.0'
+    git clone -n --depth=1 --filter=tree:0 ${EESSI_TESTSUITE_URL} "${TEMPDIR}/test-suite-version-checkout"
+    cd "${TEMPDIR}/test-suite-version-checkout"
+    git fetch --tags
+    # This assumes we stick to a version-tagging scheme vX.Y.Z
+    LATEST_VERSION=$(git tag | grep '^v[0-9]\+\.[0-9]\+\.[0-9]\+$' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1)
+    # Use the latest release by default
+    EESSI_TESTSUITE_BRANCH="${LATEST_VERSION}"
+    cd ${TEMPDIR}
 fi
-if [ -z "${EESSI_CVMFS_REPO}" ]; then
-    export EESSI_CVMFS_REPO=/cvmfs/software.eessi.io
+if [ -z "${EESSI_CONFIGS_TESTSUITE_URL}" ]; then
+    EESSI_CONFIGS_TESTSUITE_URL="${EESSI_TESTSUITE_URL}"
 fi
-if [ -z "${EESSI_VERSION}" ]; then
-    export EESSI_VERSION=2023.06
+if [ -z "${EESSI_CONFIGS_TESTSUITE_BRANCH}" ]; then
+    EESSI_CONFIGS_TESTSUITE_BRANCH="${EESSI_TESTSUITE_BRANCH}"
+fi
+if [ -z "${USE_EESSI_SOFTWARE_STACK}" ] || [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
+    export USE_EESSI_SOFTWARE_STACK=True
+    if [ -z "${EESSI_CVMFS_REPO}" ]; then
+        export EESSI_CVMFS_REPO=/cvmfs/software.eessi.io
+    fi
+    if [ -z "${EESSI_VERSION}" ]; then
+        export EESSI_VERSION=2023.06
+    fi
 fi
 if [ -z "${RFM_CONFIG_FILES}" ]; then
-    export RFM_CONFIG_FILES="${TEMPDIR}/test-suite/config/${EESSI_CI_SYSTEM_NAME}.py"
+    export RFM_CONFIG_FILES="${TEMPDIR}/configs/config/${EESSI_CI_SYSTEM_NAME}.py"
 fi
 if [ -z "${RFM_CHECK_SEARCH_PATH}" ]; then
     export RFM_CHECK_SEARCH_PATH="${TEMPDIR}/test-suite/eessi/testsuite/tests/"
@@ -73,6 +94,12 @@ if [ -z "${REFRAME_TIMEOUT}" ]; then
     # This will prevent multiple ReFrame runs from piling up and exceeding the quota on our Magic Castle clusters
     export REFRAME_TIMEOUT=1430m
 fi
+if [ -z "${UNSET_MODULEPATH}" ]; then
+    export UNSET_MODULEPATH=True
+fi
+if [ -z "${SET_LOCAL_MODULE_ENV}" ]; then
+    export SET_LOCAL_MODULE_ENV=False
+fi
 
 # Create virtualenv for ReFrame using system python
 python3 -m venv "${TEMPDIR}"/reframe_venv
@@ -81,21 +108,52 @@ python3 -m pip install --upgrade pip
 python3 -m pip install reframe-hpc=="${REFRAME_VERSION}"
 
 # Clone reframe repo to have the hpctestlib:
-REFRAME_CLONE_ARGS="${REFRAME_URL} --branch ${REFRAME_BRANCH} ${TEMPDIR}/reframe"
+REFRAME_CLONE_ARGS="${REFRAME_URL} --branch ${REFRAME_BRANCH} --depth 1 ${TEMPDIR}/reframe"
 echo "Cloning ReFrame repo: git clone ${REFRAME_CLONE_ARGS}"
 git clone ${REFRAME_CLONE_ARGS}
 export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/reframe
 
+# Clone configs from test suite repo
+EESSI_CONFIGS_CLONE_ARGS="-n --filter=tree:0 ${EESSI_CONFIGS_TESTSUITE_URL} --branch ${EESSI_CONFIGS_TESTSUITE_BRANCH} --depth 1 ${TEMPDIR}/configs"
+echo "Cloning configs from EESSI test suite repo:"
+echo "git clone ${EESSI_CONFIGS_CLONE_ARGS}"
+git clone ${EESSI_CONFIGS_CLONE_ARGS}
+echo "cd ${TEMPDIR}/configs"
+cd ${TEMPDIR}/configs
+echo "git sparse-checkout set --no-cone config"
+git sparse-checkout set --no-cone config
+echo "git checkout"
+git checkout
+# Return to TEMPDIR
+echo "cd ${TEMPDIR}"
+cd ${TEMPDIR}
+
+
 # Clone test suite repo
-EESSI_CLONE_ARGS="${EESSI_TESTSUITE_URL} --branch ${EESSI_TESTSUITE_BRANCH} ${TEMPDIR}/test-suite"
+EESSI_CLONE_ARGS="${EESSI_TESTSUITE_URL} --branch ${EESSI_TESTSUITE_BRANCH} --depth 1 ${TEMPDIR}/test-suite"
 echo "Cloning EESSI repo: git clone ${EESSI_CLONE_ARGS}"
 git clone ${EESSI_CLONE_ARGS}
 export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/test-suite/
 
+# Unset the ModulePath on systems where it is required
+if [ "$UNSET_MODULEPATH" == "True" ]; then
+    unset MODULEPATH
+fi
+
+# Set local module environment
+if [ "$SET_LOCAL_MODULE_ENV" == "True" ]; then
+    if [ -z "${LOCAL_MODULES}" ]; then
+        echo "You have to add the name of the module in the ci_config.sh file of your system"
+        exit 1
+    fi
+    module load "${LOCAL_MODULES}"
+fi
+
 # Start the EESSI environment
-unset MODULEPATH
-eessi_init_path="${EESSI_CVMFS_REPO}"/versions/"${EESSI_VERSION}"/init/bash
-source "${eessi_init_path}"
+if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
+    eessi_init_path="${EESSI_CVMFS_REPO}"/versions/"${EESSI_VERSION}"/init/bash
+    source "${eessi_init_path}"
+fi
 
 # Needed in order to make sure the reframe from our TEMPDIR is first on the PATH,
 # prior to the one shipped with the 2021.12 compat layer
@@ -110,6 +168,8 @@ echo "TEMPDIR: ${TEMPDIR}"
 echo "PYTHONPATH: ${PYTHONPATH}"
 echo "EESSI test suite URL: ${EESSI_TESTSUITE_URL}"
 echo "EESSI test suite version: ${EESSI_TESTSUITE_BRANCH}"
+echo "EESSI test suite URL for configs: ${EESSI_CONFIGS_TESTSUITE_URL}"
+echo "EESSI test suite version for configs: ${EESSI_CONFIGS_TESTSUITE_BRANCH}"
 echo "HPCtestlib from ReFrame URL: ${REFRAME_URL}"
 echo "HPCtestlib from ReFrame branch: ${REFRAME_BRANCH}"
 echo "ReFrame executable: $(which reframe)"
@@ -119,6 +179,9 @@ echo "ReFrame check search path: ${RFM_CHECK_SEARCH_PATH}"
 echo "ReFrame check search recursive: ${RFM_CHECK_SEARCH_RECURSIVE}"
 echo "ReFrame prefix: ${RFM_PREFIX}"
 echo "ReFrame args: ${REFRAME_ARGS}"
+echo "Using EESSI: ${USE_EESSI_SOFTWARE_STACK}"
+echo "Using local software stack ${SET_LOCAL_MODULE_ENV}"
+echo "MODULEPATH: ${MODULEPATH}"
 echo ""
 
 # List tests
@@ -127,7 +190,7 @@ reframe ${REFRAME_ARGS} --list
 
 # Run
 echo "Run tests:"
-timeout -v --preserve-status -s SIGTERM ${REFRAME_TIMEOUT} reframe ${REFRAME_ARGS} --run
+timeout -v --preserve-status -s SIGTERM ${REFRAME_TIMEOUT} reframe ${REFRAME_ARGS} --run --setvar EESSI_CONFIGS_URL=${EESSI_CONFIGS_TESTSUITE_URL} --setvar EESSI_CONFIGS_BRANCH=${EESSI_CONFIGS_TESTSUITE_BRANCH}
 
 # Cleanup
 rm -rf "${TEMPDIR}"
