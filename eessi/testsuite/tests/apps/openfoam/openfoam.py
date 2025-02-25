@@ -1,17 +1,94 @@
 """
-OpenFOAM Snappyhexmesh test
+This module tests the binary icofoam in available modules containing substring 'OPENFOAM'.
+This line of tests target binaries from OpenFOAM from https://www.openfoam.com/ .
+
+ReFrame terminology:
+
+"pipeline stages":
+https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#pipeline-hooks
+
+"test parameter": a list of values, which will generate different test variants.
+https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.builtins.parameter
+
+"test variant": a version of a test with a specific value for each test parameter
+https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#test-variants
+
+"concrete test cases": all test combinations that will actually run:
+- test variants
+- valid system:partition+programming environment combinations
+https://reframe-hpc.readthedocs.io/en/stable/tutorial_deps.html#listing-dependencies
+
+Tests can be filtered by name, tag, programming environment, system, partition, or maintainer,
+see https://reframe-hpc.readthedocs.io/en/stable/manpage.html#test-filtering
+
+Hooks acting on all possible test combinations (before filtering) are called after the 'init' stage.
+Hooks acting on concrete test cases (after filtering) are called after the 'setup' stage.
+
+See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 """
 
 import reframe as rfm
-from reframe.core.builtins import parameter, run_after
+from reframe.core.builtins import parameter, run_after  # added only to make the linter happy
+
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import *
+from eessi.testsuite.constants import COMPUTE_UNIT, DEVICE_TYPES, SCALES
+from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules, log
 
 
 @rfm.simple_test
-class EESSI_OPENFOAM_SNAPPYHEXMESH():
-    scale 
+class EESSI_OPENFOAM(EESSI_OPENFOAM_base, EESSI_Mixin):
+    scale = parameter(SCALES.keys())
+    time_limit = '30m'
+    module_name = parameter(find_modules('OpenFOAM/v'))
+    bench_name_ci = 'lid_driven_cavity'
+    # input files are downloaded
+    readonly_files = ['']
 
+    def required_mem_per_node(self):
+        return self.num_tasks_per_node * 1024
 
+    @run_after('init')
+    def set_compute_unit(self):
+        """
+        Set the compute unit to which tasks will be assigned:
+        one task per CPU core for CPU runs, and one task per GPU for GPU runs.
+        """
+        if self.device_type == DEVICE_TYPES['CPU']:
+            self.compute_unit = COMPUTE_UNIT['CPU']
+        else:
+            msg = f"No mapping of device type {self.device_type} to a COMPUTE_UNIT was specified in this test"
+            raise NotImplementedError(msg)
+
+    @run_after('setup')
+    def set_executable_opts(self):
+        """
+        Add extra executable_opts, unless specified via --setvar executable_opts=<x>
+        Set default executable_opts and support setting custom executable_opts on the cmd line.
+        """
+
+        num_default = 4  # normalized number of executable opts added by parent class (gromacs_check)
+        hooks.check_custom_executable_opts(self, num_default=num_default)
+        if not self.has_custom_executable_opts:
+            self.executable_opts += ['-dlb', 'yes', '-npme', '-1']
+            log(f'executable_opts set to {self.executable_opts}')
+
+    @run_after('setup')
+    def set_omp_num_threads(self):
+        """
+        Set number of OpenMP threads.
+        Set both OMP_NUM_THREADS and -ntomp explicitly to avoid conflicting values.
+        Set default number of OpenMP threads equal to number of CPUs per task.
+        Also support setting OpenMP threads on the cmd line via custom executable option '-ntomp'.
+        """
+
+        if '-ntomp' in self.executable_opts:
+            omp_num_threads = self.executable_opts[self.executable_opts.index('-ntomp') + 1]
+        else:
+            omp_num_threads = self.num_cpus_per_task
+            self.executable_opts += ['-ntomp', str(omp_num_threads)]
+            log(f'executable_opts set to {self.executable_opts}')
+
+        self.env_vars['OMP_NUM_THREADS'] = omp_num_threads
+        log(f'env_vars set to {self.env_vars}')
