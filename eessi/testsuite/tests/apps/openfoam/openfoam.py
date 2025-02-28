@@ -28,6 +28,7 @@ See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 """
 
 import reframe as rfm
+import os
 from reframe.core.builtins import parameter, run_after  # added only to make the linter happy
 
 
@@ -36,9 +37,49 @@ from eessi.testsuite.constants import COMPUTE_UNIT, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules, log
 
+class EESSI_OPENFOAM_base():
+    """ Base class for the OpenFOAM test case."""
+    executable = 'cp'
+    executable_opts = ['-r','./cavity3D/8M/fixedTol',f'{self.stagedir}']
+    local = True
+
+    @sanity_function
+    def validate_copy(self):
+        return sn.assert_eq(self.job.exitcode, 0)
+
+class EESSI_OPENFOAM_create_blockMesh(EESSI_Mixin):
+    """ This class will be used as a fixture for creating a block mesh. """
+    ldc_8M = fixture(EESSI_OPENFOAM_base, scope='partition')
+    exectuable = 'blockMesh'
+    executable_opts = ['2>&1', '|', 'tee log.blockMesh']
+    local = True
+
+    @run_before('run')
+    def prepare_environment(self):
+        fullpath = os.path.join(self.ldc_8M.stagedir, 'fixedTol')
+        self.prerun_cmds=[
+            f'cp -r {fullpath} {self.stagedir}',
+            f'cd {self.stagedir}',
+            'source $FOAM_BASH',
+            f'foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} system/decomposeParDict'
+                ]
+
+    @sanity_function
+    def validate_blockMesh():
+        """ blockMesh output finalize."""
+
+
+class EESSI_OPENFOAM_decomposeMesh():
+    """ This class will be used as a fixture to decompose the mesh across the MPI processes."""
+
+class EESSI_OPENFOAM_renumberMesh():
+    """ This class will be used as a fixture to re-number the mesh so that the coefficient matrix is efficiently stored
+    in memory."""
 
 @rfm.simple_test
 class EESSI_OPENFOAM(EESSI_OPENFOAM_base, EESSI_Mixin):
+    """ This class executes the icofoam test case which essentially stands for incompressible flow solver for the
+    Navier-Stokes equations. The system that is setup is Lid-Driven Cavity."""
     scale = parameter(SCALES.keys())
     time_limit = '30m'
     module_name = parameter(find_modules('OpenFOAM/v'))
