@@ -103,24 +103,19 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
     @run_after('setup')
     def set_executable_opts(self):
         """Set executable opts based on device_type parameter"""
-        num_default = 0  # If this test already has executable opts, they must have come from the command line
-        hooks.check_custom_executable_opts(self, num_default=num_default)
-        if not self.has_custom_executable_opts:
-            # should also check if the lammps is installed with kokkos.
-            # Because this exutable opt is only for that case.
-            if self.device_type == "gpu":
-                if 'kokkos' in self.module_name:
-                    self.executable_opts += [
-                        f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
-                        '-suffix kk',
-                        '-package kokkos newton on neigh half',
-                    ]
-                    utils.log(f'executable_opts set to {self.executable_opts}')
-                else:
-                    self.executable_opts += [
-                        f'-suffix gpu -package gpu {self.num_gpus_per_node}',
-                    ]
-                    utils.log(f'executable_opts set to {self.executable_opts}')
+        # should also check if the lammps is installed with kokkos.
+        # Because this executable opt is only for that case.
+        if self.device_type == "gpu":
+            if 'kokkos' in self.module_name:
+                self.executable_opts += [
+                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
+                    '-suffix kk',
+                    '-package kokkos newton on neigh half',
+                ]
+                utils.log(f'executable_opts set to {self.executable_opts}')
+            else:
+                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
+                utils.log(f'executable_opts set to {self.executable_opts}')
 
 
 @rfm.simple_test
@@ -163,21 +158,16 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
     @run_after('setup')
     def set_executable_opts(self):
         """Set executable opts based on device_type parameter"""
-        num_default = 0  # If this test already has executable opts, they must have come from the command line
-        hooks.check_custom_executable_opts(self, num_default=num_default)
-        if not self.has_custom_executable_opts:
-            # should also check if the lammps is installed with kokkos.
-            # Because this exutable opt is only for that case.
-            if self.device_type == "gpu":
-                if 'kokkos' in self.module_name:
-                    self.executable_opts += [
-                        f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
-                        '-suffix kk',
-                        '-package kokkos newton on neigh half',
-                    ]
-                    utils.log(f'executable_opts set to {self.executable_opts}')
-                else:
-                    self.executable_opts += [
-                        f'-suffix gpu -package gpu {self.num_gpus_per_node}',
-                    ]
-                    utils.log(f'executable_opts set to {self.executable_opts}')
+        # should also check if the lammps is installed with kokkos.
+        # Because this executable opt is only for that case.
+        if self.device_type == "gpu":
+            if 'kokkos' in self.module_name:
+                self.executable_opts += [
+                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
+                    '-suffix kk',
+                    '-package kokkos newton on neigh half',
+                ]
+                utils.log(f'executable_opts set to {self.executable_opts}')
+            else:
+                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
+                utils.log(f'executable_opts set to {self.executable_opts}')

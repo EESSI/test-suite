@@ -41,6 +41,7 @@ class EESSI_Mixin(RegressionMixin):
     # Set defaults for these class variables, can be overwritten by child class if desired
     measure_memory_usage = variable(bool, value=False)
     exact_memory = variable(bool, value=False)
+    user_executable_opts = variable(str, value='')
     scale = parameter(SCALES.keys())
     bench_name = None
     bench_name_ci = None
@@ -201,6 +202,13 @@ class EESSI_Mixin(RegressionMixin):
             # Get full modulepath
             get_full_modpath = f'echo "FULL_MODULEPATH: $(module --location show {self.module_name})"'
             self.postrun_cmds.append(get_full_modpath)
+
+    @run_before('run', always_last=True)
+    def mixin_set_user_executable_opts(self):
+        "Override executable_opts with user_executable_opts if set on the cmd line"
+        if self.user_executable_opts:
+            self.executable_opts = [self.user_executable_opts]
+            log(f'executable_opts set to {self.executable_opts}')
 
     @run_after('run')
     def extract_runtime_info_from_log(self):
