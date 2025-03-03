@@ -6,7 +6,7 @@ The tests come from the lammps github repository (https://github.com/lammps/lamm
 import reframe as rfm
 import reframe.utility.sanity as sn
 
-from eessi.testsuite import hooks, utils
+from eessi.testsuite import utils
 from eessi.testsuite.constants import *  # noqa
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 

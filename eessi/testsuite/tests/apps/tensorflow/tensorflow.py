@@ -8,7 +8,7 @@ import reframe as rfm
 from reframe.core.builtins import deferrable, parameter, run_after, sanity_function, performance_function
 import reframe.utility.sanity as sn
 
-from eessi.testsuite import hooks, utils
+from eessi.testsuite import utils
 from eessi.testsuite.constants import COMPUTE_UNIT, CPU, CPU_SOCKET, DEVICE_TYPES, GPU
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
