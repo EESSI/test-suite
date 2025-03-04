@@ -85,13 +85,9 @@ class EESSI_GROMACS(EESSI_GROMACS_base, EESSI_Mixin):
         Set default number of OpenMP threads equal to number of CPUs per task.
         Also support setting OpenMP threads on the cmd line via custom executable option '-ntomp'.
         """
-
-        if '-ntomp' in self.executable_opts:
-            omp_num_threads = self.executable_opts[self.executable_opts.index('-ntomp') + 1]
-        else:
-            omp_num_threads = self.num_cpus_per_task
-            self.executable_opts += ['-ntomp', str(omp_num_threads)]
-            log(f'executable_opts set to {self.executable_opts}')
+        omp_num_threads = self.num_cpus_per_task
+        self.executable_opts += ['-ntomp', str(omp_num_threads)]
+        log(f'executable_opts set to {self.executable_opts}')
 
         self.env_vars['OMP_NUM_THREADS'] = omp_num_threads
         log(f'env_vars set to {self.env_vars}')
