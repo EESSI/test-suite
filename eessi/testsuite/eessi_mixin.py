@@ -113,10 +113,10 @@ class EESSI_Mixin(RegressionMixin):
 
         # Check that the value for these variables is valid,
         # i.e. exists in their respective dict from eessi.testsuite.constants
-        self.mixin_validate_item_in_dict('device_type', DEVICE_TYPES)
-        self.mixin_validate_item_in_dict('scale', SCALES, check_keys=True)
-        self.mixin_validate_item_in_dict('valid_systems', {'valid_systems': ['*']})
-        self.mixin_validate_item_in_dict('valid_prog_environs', {'valid_prog_environs': ['default']})
+        self.EESSI_mixin_validate_item_in_dict('device_type', DEVICE_TYPES)
+        self.EESSI_mixin_validate_item_in_dict('scale', SCALES, check_keys=True)
+        self.EESSI_mixin_validate_item_in_dict('valid_systems', {'valid_systems': ['*']})
+        self.EESSI_mixin_validate_item_in_dict('valid_prog_environs', {'valid_prog_environs': ['default']})
 
     @run_after('init')
     def EESSI_mixin_run_after_init(self):
@@ -172,7 +172,7 @@ class EESSI_Mixin(RegressionMixin):
 
         # Check that the value for these variables is valid
         # i.e. exists in their respective dict from eessi.testsuite.constants
-        self.mixin_validate_item_in_dict('compute_unit', COMPUTE_UNIT)
+        self.EESSI_mixin_validate_item_in_dict('compute_unit', COMPUTE_UNIT)
 
     @run_after('setup')
     def EESSI_mixin_assign_tasks_per_compute_unit(self):
