@@ -256,7 +256,7 @@ site_configuration = {
     'general': [
         {
             'remote_detect': True,
-            # Needs to be false see https://github.com/EESSI/test-suite/issues/242
+            # Purge_environment needs to be false see https://github.com/EESSI/test-suite/issues/242
             'purge_environment': False,
             'resolve_module_conflicts': False,  # avoid loading the module before submitting the job
             **common_general_config()
