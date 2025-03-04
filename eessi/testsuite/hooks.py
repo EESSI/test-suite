@@ -619,18 +619,6 @@ def set_tag_scale(test: rfm.RegressionTest):
     log(f'tags set to {test.tags}')
 
 
-def check_custom_executable_opts(test: rfm.RegressionTest, num_default: int = 0):
-    """"
-    Check if custom executable options were added with --setvar executable_opts=<x>.
-    """
-    # normalize options
-    test.executable_opts = shlex.split(' '.join(test.executable_opts))
-    test.has_custom_executable_opts = False
-    if len(test.executable_opts) > num_default:
-        test.has_custom_executable_opts = True
-    log(f'has_custom_executable_opts set to {test.has_custom_executable_opts}')
-
-
 def set_compact_process_binding(test: rfm.RegressionTest):
     """
     This hook sets a binding policy for process binding.
