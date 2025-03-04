@@ -211,7 +211,6 @@ class EESSI_Mixin(RegressionMixin):
                 'specified on cmd line {[self.user_executable_opts]}')
             self.executable_opts = [self.user_executable_opts]
 
-
     @run_after('run')
     def extract_runtime_info_from_log(self):
         """Extracts the printed runtime info from the job log and logs it as reframe variables"""
