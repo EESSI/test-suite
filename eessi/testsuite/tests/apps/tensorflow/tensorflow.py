@@ -8,7 +8,7 @@ import reframe as rfm
 from reframe.core.builtins import deferrable, parameter, run_after, sanity_function, performance_function
 import reframe.utility.sanity as sn
 
-from eessi.testsuite import hooks, utils
+from eessi.testsuite import utils
 from eessi.testsuite.constants import COMPUTE_UNIT, CPU, CPU_SOCKET, DEVICE_TYPES, GPU
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
@@ -72,11 +72,8 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     @run_after('init')
     def set_executable_opts(self):
         """Set executable opts based on device_type parameter"""
-        num_default = 0  # If this test already has executable opts, they must have come from the command line
-        hooks.check_custom_executable_opts(self, num_default=num_default)
-        if not self.has_custom_executable_opts:
-            self.executable_opts += ['--device', self.device_type]
-            utils.log(f'executable_opts set to {self.executable_opts}')
+        self.executable_opts += ['--device', self.device_type]
+        utils.log(f'executable_opts set to {self.executable_opts}')
 
     @run_after('init')
     def set_test_descr(self):
@@ -97,7 +94,6 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     @run_after('setup')
     def set_thread_count_args(self):
         """Set executable opts defining the thread count"""
-        if not self.has_custom_executable_opts:
-            self.executable_opts += ['--intra-op-parallelism', '%s' % self.num_cpus_per_task]
-            self.executable_opts += ['--inter-op-parallelism', '1']
-            utils.log(f'executable_opts set to {self.executable_opts}')
+        self.executable_opts += ['--intra-op-parallelism', '%s' % self.num_cpus_per_task]
+        self.executable_opts += ['--inter-op-parallelism', '1']
+        utils.log(f'executable_opts set to {self.executable_opts}')

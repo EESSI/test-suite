@@ -127,8 +127,6 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(EESSI_ESPRESSO):
     @run_after('init')
     def set_executable_opts(self):
         """Set executable opts based on device_type parameter"""
-        num_default = 0  # If this test already has executable opts, they must have come from the command line
-        hooks.check_custom_executable_opts(self, num_default=num_default)
         # By default we run weak scaling since the strong scaling sizes need to change based on max node size and a
         # corresponding min node size has to be chozen.
         self.executable_opts += ['--size', str(self.default_weak_scaling_system_size), '--weak-scaling']
@@ -174,12 +172,6 @@ class EESSI_ESPRESSO_LJ_PARTICLES(EESSI_ESPRESSO):
             log(f'tags set to {self.tags}')
 
         self.tags.add('particles_lj')
-
-    @run_after('init')
-    def set_executable_opts(self):
-        """Allow executable opts to be overwritten from command line"""
-        num_default = 0  # If this test already has executable opts, they must have come from the command line
-        hooks.check_custom_executable_opts(self, num_default=num_default)
 
     @run_after('setup')
     def set_mem(self):
