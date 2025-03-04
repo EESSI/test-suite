@@ -204,11 +204,13 @@ class EESSI_Mixin(RegressionMixin):
             self.postrun_cmds.append(get_full_modpath)
 
     @run_before('run', always_last=True)
-    def mixin_set_user_executable_opts(self):
+    def EESSI_mixin_set_user_executable_opts(self):
         "Override executable_opts with user_executable_opts if set on the cmd line"
         if self.user_executable_opts:
+            log(f'Overwriting executable_opts {self.executable_opts} by executable_opts '
+                'specified on cmd line {[self.user_executable_opts]}')
             self.executable_opts = [self.user_executable_opts]
-            log(f'executable_opts set to {self.executable_opts}')
+
 
     @run_after('run')
     def extract_runtime_info_from_log(self):
