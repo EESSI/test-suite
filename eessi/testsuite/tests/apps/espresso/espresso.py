@@ -13,7 +13,6 @@ import reframe.utility.sanity as sn
 from reframe.core.builtins import deferrable, parameter, performance_function, run_after, sanity_function
 from reframe.utility import reframe
 
-from eessi.testsuite import hooks
 from eessi.testsuite.constants import CPU, DEVICE_TYPES, SCALES, COMPUTE_UNIT
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules, log
