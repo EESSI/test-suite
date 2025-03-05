@@ -559,6 +559,10 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
         log(f"Memory requested by application: {app_mem_req} MiB")
         log(f"Memory proportional to the core count: {proportional_mem} MiB")
 
+        # make sure exact_memory is always defined for tests that don't (yet) use the EESSI_Mixin class
+        if not hasattr(test, 'exact_memory'):
+            test.exact_memory = False
+
         if test.exact_memory:
             # Request the exact amount of required memory
             req_mem_per_node = app_mem_req
@@ -717,8 +721,10 @@ def _check_always_request_gpus(test: rfm.RegressionTest):
     """
     Make sure we always request enough GPUs if required for the current GPU partition (cluster-specific policy)
     """
+    # make sure always_request_gpus is always defined for tests that don't (yet) use the EESSI_Mixin class
     if not hasattr(test, 'always_request_gpus'):
         test.always_request_gpus = False
+
     always_request_gpus = FEATURES[ALWAYS_REQUEST_GPUS] in test.current_partition.features or test.always_request_gpus
     if always_request_gpus and not test.num_gpus_per_node:
         test.num_gpus_per_node = test.default_num_gpus_per_node
