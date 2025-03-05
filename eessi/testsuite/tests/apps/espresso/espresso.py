@@ -78,12 +78,9 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(EESSI_ESPRESSO_base, EESSI_Mixin):
     @run_after('init')
     def set_executable_opts(self):
         """Set executable opts based on device_type parameter"""
-        num_default = 0  # If this test already has executable opts, they must have come from the command line
-        hooks.check_custom_executable_opts(self, num_default=num_default)
-        if not self.has_custom_executable_opts:
-            # Weak scaling (Gustafson's law: constant work per core): size scales with number of cores
-            self.executable_opts += ['--size', str(self.default_weak_scaling_system_size), '--weak-scaling']
-            log(f'executable_opts set to {self.executable_opts}')
+        # Weak scaling (Gustafson's law: constant work per core): size scales with number of cores
+        self.executable_opts += ['--size', str(self.default_weak_scaling_system_size), '--weak-scaling']
+        log(f'executable_opts set to {self.executable_opts}')
 
     @deferrable
     def assert_completion(self):
