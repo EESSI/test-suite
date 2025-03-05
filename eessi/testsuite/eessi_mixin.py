@@ -146,16 +146,18 @@ class EESSI_Mixin(RegressionMixin):
         Set CI tag if bench_name_ci and bench_name are set and are equal
         Also set tag on bench_name if set
         """
-        orig_tags = self.tags
+        tags_added = False
         if self.bench_name_ci:
             if not self.bench_name:
                 msg = "Attribute bench_name_ci is set, but bench_name is not set"
                 raise ReframeFatalError(msg)
             if self.bench_name == self.bench_name_ci:
                 self.tags.add(TAGS['CI'])
+                tags_added = True
         if self.bench_name:
             self.tags.add(self.bench_name)
-        if orig_tags != self.tags:
+            tags_added = True
+        if tags_added:
             log(f'tags set to {self.tags}')
 
     @run_after('setup')
