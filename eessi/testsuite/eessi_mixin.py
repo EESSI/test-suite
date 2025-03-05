@@ -81,7 +81,7 @@ class EESSI_Mixin(RegressionMixin):
 
     # Helper function to validate if an attribute is present it item_dict.
     # If not, print it's current name, value, and the valid_values
-    def validate_item_in_dict(self, item, item_dict, check_keys=False):
+    def EESSI_mixin_validate_item_in_dict(self, item, item_dict, check_keys=False):
         """
         Check if the item 'item' exist in the values of 'item_dict'.
         If check_keys=True, then it will check instead of 'item' exists in the keys of 'item_dict'.
@@ -101,7 +101,7 @@ class EESSI_Mixin(RegressionMixin):
             raise ReframeFatalError(msg)
 
     @run_after('init')
-    def validate_init(self):
+    def EESSI_mixin_validate_init(self):
         """Check that all variables that have to be set for subsequent hooks in the init phase have been set"""
         # List which variables we will need/use in the run_after('init') hooks
         var_list = ['device_type', 'scale', 'module_name', 'measure_memory_usage']
@@ -113,13 +113,13 @@ class EESSI_Mixin(RegressionMixin):
 
         # Check that the value for these variables is valid,
         # i.e. exists in their respective dict from eessi.testsuite.constants
-        self.validate_item_in_dict('device_type', DEVICE_TYPES)
-        self.validate_item_in_dict('scale', SCALES, check_keys=True)
-        self.validate_item_in_dict('valid_systems', {'valid_systems': ['*']})
-        self.validate_item_in_dict('valid_prog_environs', {'valid_prog_environs': ['default']})
+        self.EESSI_mixin_validate_item_in_dict('device_type', DEVICE_TYPES)
+        self.EESSI_mixin_validate_item_in_dict('scale', SCALES, check_keys=True)
+        self.EESSI_mixin_validate_item_in_dict('valid_systems', {'valid_systems': ['*']})
+        self.EESSI_mixin_validate_item_in_dict('valid_prog_environs', {'valid_prog_environs': ['default']})
 
     @run_after('init')
-    def run_after_init(self):
+    def EESSI_mixin_run_after_init(self):
         """Hooks to run after init phase"""
 
         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
@@ -133,7 +133,7 @@ class EESSI_Mixin(RegressionMixin):
         hooks.set_tag_scale(self)
 
     @run_before('setup', always_last=True)
-    def measure_mem_usage(self):
+    def EESSI_mixin_measure_mem_usage(self):
         if self.measure_memory_usage:
             hooks.measure_memory_usage(self)
             # Since we want to do this conditionally on self.measure_mem_usage, we use make_performance_function
@@ -141,7 +141,7 @@ class EESSI_Mixin(RegressionMixin):
             self.perf_variables['memory'] = make_performance_function(hooks.extract_memory_usage, 'MiB', self)
 
     @run_after('init', always_last=True)
-    def set_tag_ci(self):
+    def EESSI_mixin_set_tag_ci(self):
         "Set CI tag if bench_name_ci and bench_name are set and are equal"
         if self.bench_name_ci:
             if not self.bench_name:
@@ -152,7 +152,7 @@ class EESSI_Mixin(RegressionMixin):
                 log(f'tags set to {self.tags}')
 
     @run_after('setup')
-    def validate_setup(self):
+    def EESSI_mixin_validate_setup(self):
         """Check that all variables that have to be set for subsequent hooks in the setup phase have been set"""
         var_list = ['compute_unit']
         for var in var_list:
@@ -172,10 +172,10 @@ class EESSI_Mixin(RegressionMixin):
 
         # Check that the value for these variables is valid
         # i.e. exists in their respective dict from eessi.testsuite.constants
-        self.validate_item_in_dict('compute_unit', COMPUTE_UNIT)
+        self.EESSI_mixin_validate_item_in_dict('compute_unit', COMPUTE_UNIT)
 
     @run_after('setup')
-    def assign_tasks_per_compute_unit(self):
+    def EESSI_mixin_assign_tasks_per_compute_unit(self):
         """Call hooks to assign tasks per compute unit, set OMP_NUM_THREADS, and set compact process binding"""
         hooks.assign_tasks_per_compute_unit(test=self, compute_unit=self.compute_unit,
                                             num_per=self.num_tasks_per_compute_unit)
@@ -187,12 +187,12 @@ class EESSI_Mixin(RegressionMixin):
         hooks.set_compact_process_binding(self)
 
     @run_after('setup')
-    def request_mem(self):
+    def EESSI_mixin_request_mem(self):
         """Call hook to request the required amount of memory per node"""
         hooks.req_memory_per_node(self, app_mem_req=self.required_mem_per_node())
 
     @run_after('setup')
-    def log_runtime_info(self):
+    def EESSI_mixin_log_runtime_info(self):
         """Log additional runtime information: which CVMFS repo was used (or if it was testing local software),
         path to the modulefile, EESSI software subdir, EESSI testsuite version"""
         self.postrun_cmds.append('echo "EESSI_CVMFS_REPO: $EESSI_CVMFS_REPO"')
@@ -203,7 +203,7 @@ class EESSI_Mixin(RegressionMixin):
             self.postrun_cmds.append(get_full_modpath)
 
     @run_after('run')
-    def extract_runtime_info_from_log(self):
+    def EESSI_mixin_extract_runtime_info_from_log(self):
         """Extracts the printed runtime info from the job log and logs it as reframe variables"""
         if self.is_dry_run():
             return
