@@ -4,10 +4,11 @@ The tests come from the lammps github repository (https://github.com/lammps/lamm
 """
 
 import reframe as rfm
+from reframe.core.builtins import deferrable, parameter, performance_function, run_after, sanity_function
 import reframe.utility.sanity as sn
 
 from eessi.testsuite import utils
-from eessi.testsuite.constants import *  # noqa
+from eessi.testsuite.constants import CI, COMPUTE_UNIT, CPU, DEVICE_TYPES, GPU, TAGS
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
 
@@ -63,7 +64,7 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
 
 @rfm.simple_test
 class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
-    tags = {TAGS['CI']}
+    tags = {TAGS[CI]}
 
     sourcesdir = 'src/lj'
     readonly_files = ['in.lj']

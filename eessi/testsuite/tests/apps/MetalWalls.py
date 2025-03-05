@@ -33,7 +33,7 @@ from reframe.core.builtins import run_after
 from reframe.core.parameters import TestParam as parameter
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import (COMPUTE_UNIT, CPU, DEVICE_TYPES, GPU,
+from eessi.testsuite.constants import (COMPUTE_UNIT, CPU, DEVICE_TYPES, GPU, CI,
                                        SCALES, TAGS)
 from eessi.testsuite.utils import find_modules, log
 
@@ -79,7 +79,7 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
     def set_tag_ci(self):
         """Set tag CI on smallest benchmark, so it can be selected on the cmd line via --tag CI"""
         if self.benchmark_info[0] == 'hackathonGPU/benchmark':
-            self.tags.add(TAGS['CI'])
+            self.tags.add(TAGS[CI])
             log(f'tags set to {self.tags}')
 
     @run_after('init')
