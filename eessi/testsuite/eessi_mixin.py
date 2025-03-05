@@ -5,7 +5,7 @@ from reframe.utility.sanity import make_performance_function
 import reframe.utility.sanity as sn
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNIT, TAGS
+from eessi.testsuite.constants import CI, DEVICE_TYPES, SCALES, COMPUTE_UNIT, TAGS
 from eessi.testsuite.utils import log
 from eessi.testsuite import __version__ as testsuite_version
 
@@ -148,7 +148,7 @@ class EESSI_Mixin(RegressionMixin):
                 msg = "Attribute bench_name_ci is set, but bench_name is not set"
                 raise ReframeFatalError(msg)
             if self.bench_name == self.bench_name_ci:
-                self.tags.add(TAGS['CI'])
+                self.tags.add(TAGS[CI])
                 log(f'tags set to {self.tags}')
 
     @run_after('setup')
