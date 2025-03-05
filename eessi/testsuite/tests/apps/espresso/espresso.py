@@ -14,7 +14,7 @@ from reframe.core.builtins import deferrable, parameter, performance_function, r
 from reframe.utility import reframe
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import CI, CPU, DEVICE_TYPES, SCALES, COMPUTE_UNIT, TAGS
+from eessi.testsuite.constants import CPU, DEVICE_TYPES, SCALES, COMPUTE_UNIT
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules, log
 
@@ -38,6 +38,16 @@ class EESSI_ESPRESSO_base(rfm.RunOnlyRegressionTest):
     compute_unit = COMPUTE_UNIT[CPU]
     time_limit = '300m'
 
+    @run_after('init')
+    def set_ci_tag(self):
+        """ Setting tests under CI tag. """
+        # this test runs longer at larger scales due to mesh tuning
+        # thus, we only set CI tag on scales < 2 nodes to limit execution time
+        # TODO: revisit this for more recent versions of ESPResSo
+        # see also: https://github.com/EESSI/test-suite/issues/154
+        if SCALES[self.scale]['num_nodes'] < 2:
+            self.bench_name_ci = self.bench_name
+
     @sanity_function
     def assert_sanity(self):
         '''Check all sanity criteria'''
@@ -53,21 +63,17 @@ class EESSI_ESPRESSO_base(rfm.RunOnlyRegressionTest):
 
 @rfm.simple_test
 class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(EESSI_ESPRESSO_base, EESSI_Mixin):
-    tags = {TAGS[CI]}
     scale = parameter(filter_scales())
 
     executable = 'python3 madelung.py'
     sourcesdir = 'src/p3m'
     readonly_files = ['madelung.py']
+    bench_name = 'ionic_crystals_p3m'
 
     default_weak_scaling_system_size = 6
 
     def required_mem_per_node(self):
         return (self.num_tasks_per_node * 0.9) * 1024
-
-    @run_after('init')
-    def set_tag(self):
-        self.tags.add('ionic_crystals_p3m')
 
     @run_after('init')
     def set_executable_opts(self):
@@ -95,20 +101,16 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(EESSI_ESPRESSO_base, EESSI_Mixin):
 
 @rfm.simple_test
 class EESSI_ESPRESSO_LJ_PARTICLES(EESSI_ESPRESSO_base, EESSI_Mixin):
-    tags = {TAGS[CI]}
     scale = parameter(filter_scales())
 
     executable = 'python3 lj.py'
     sourcesdir = 'src/lj'
     readonly_files = ['lj.py']
+    bench_name = 'particles_lj'
 
     def required_mem_per_node(self):
         "LJ requires 200 MB per core"
         return (self.num_tasks_per_node * 0.3) * 1024
-
-    @run_after('init')
-    def set_tag(self):
-        self.tags.add('particles_lj')
 
     @deferrable
     def assert_completion(self):
