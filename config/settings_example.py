@@ -57,6 +57,8 @@ site_configuration = {
                         }
                     ],
                     'extras': {
+                        # If you have slurm, check with scontrol show node <nodename> for the amount of RealMemory
+                        # on nodes in this partition
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
                         'mem_per_node': 229376  # in MiB
@@ -71,7 +73,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access': ['-p gpu', '--export=None'],
-                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
+                    'prepare_cmds': [common_eessi_init()],
                     'environs': ['default'],
                     'max_jobs': 4,
                     # We recommend to rely on ReFrame's CPU autodetection,
@@ -103,6 +105,8 @@ site_configuration = {
                         FEATURES[GPU],
                     ] + list(SCALES.keys()),
                     'extras': {
+                        # If you have slurm, check with scontrol show node <nodename> for the amount of RealMemory
+                        # on nodes in this partition
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
                         'mem_per_node': 229376,  # in MiB
