@@ -82,6 +82,7 @@ def common_general_config(prefix=None):
     os.makedirs(reportdir, exist_ok=True)
 
     return {
+        'check_search_recursive': 'True',
         'report_file': os.path.join(reportdir, 'run-report-{sessionid}.json')
     }
 
