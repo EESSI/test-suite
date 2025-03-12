@@ -19,7 +19,7 @@ Example configuration file
 """
 import os
 
-from eessi.testsuite.common_config import common_logging_config, common_general_config, format_perfvars, perflog_format
+from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
 from eessi.testsuite.constants import FEATURES, CPU, GPU, SCALES, DEVICE_TYPES, GPU_VENDOR, GPU_VENDORS, NVIDIA
 
 
@@ -39,7 +39,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access': ['-p cpu', '--export=None'],
-                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
+                    'prepare_cmds': [common_eessi_init()],
                     'environs': ['default'],
                     'max_jobs': 4,
                     # We recommend to rely on ReFrame's CPU autodetection,
@@ -130,13 +130,3 @@ site_configuration = {
         }
     ],
 }
-
-# optional logging to syslog
-site_configuration['logging'][0]['handlers_perflog'].append({
-    'type': 'syslog',
-    'address': '/dev/log',
-    'level': 'info',
-    'format': f'reframe: {perflog_format}',
-    'format_perfvars': format_perfvars,
-    'append': True,
-})
