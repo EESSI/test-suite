@@ -20,7 +20,7 @@ Example configuration file
 import os
 
 from eessi.testsuite.common_config import common_logging_config, common_general_config, format_perfvars, perflog_format
-from eessi.testsuite.constants import *
+from eessi.testsuite.constants import FEATURES, CPU, GPU, SCALES, DEVICE_TYPES, GPU_VENDOR, GPU_VENDORS, NVIDIA
 
 
 site_configuration = {
