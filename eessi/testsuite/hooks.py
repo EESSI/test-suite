@@ -2,7 +2,6 @@
 Hooks for adding tags, filtering and setting job resources in ReFrame tests
 """
 import math
-import shlex
 
 import reframe as rfm
 import reframe.core.logging as rflog
@@ -559,6 +558,10 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
         log(f"Memory requested by application: {app_mem_req} MiB")
         log(f"Memory proportional to the core count: {proportional_mem} MiB")
 
+        # make sure exact_memory is always defined for tests that don't (yet) use the EESSI_Mixin class
+        if not hasattr(test, 'exact_memory'):
+            test.exact_memory = False
+
         if test.exact_memory:
             # Request the exact amount of required memory
             req_mem_per_node = app_mem_req
@@ -617,18 +620,6 @@ def set_tag_scale(test: rfm.RegressionTest):
     test.node_part = SCALES[scale].get('node_part')
     test.tags.add(scale)
     log(f'tags set to {test.tags}')
-
-
-def check_custom_executable_opts(test: rfm.RegressionTest, num_default: int = 0):
-    """"
-    Check if custom executable options were added with --setvar executable_opts=<x>.
-    """
-    # normalize options
-    test.executable_opts = shlex.split(' '.join(test.executable_opts))
-    test.has_custom_executable_opts = False
-    if len(test.executable_opts) > num_default:
-        test.has_custom_executable_opts = True
-    log(f'has_custom_executable_opts set to {test.has_custom_executable_opts}')
 
 
 def set_compact_process_binding(test: rfm.RegressionTest):
@@ -717,8 +708,10 @@ def _check_always_request_gpus(test: rfm.RegressionTest):
     """
     Make sure we always request enough GPUs if required for the current GPU partition (cluster-specific policy)
     """
+    # make sure always_request_gpus is always defined for tests that don't (yet) use the EESSI_Mixin class
     if not hasattr(test, 'always_request_gpus'):
         test.always_request_gpus = False
+
     always_request_gpus = FEATURES[ALWAYS_REQUEST_GPUS] in test.current_partition.features or test.always_request_gpus
     if always_request_gpus and not test.num_gpus_per_node:
         test.num_gpus_per_node = test.default_num_gpus_per_node
