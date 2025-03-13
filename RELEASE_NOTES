@@ -1,6 +1,24 @@
 This file contains a description of the major changes to the EESSI test suite.
 For more detailed information, please see the git log.
 
+v0.5.2 (13 March 2025)
+--------------------------
+
+This is a bug fix release of the EESSI test-suite
+
+Bug fix:
+
+* Add exact_memory attribute to tests that are not inheriting from EESSI_Mixin to avoid '<testname>' object has no attribute 'exact_memory' failure [#245](https://github.com/EESSI/test-suite/pull/245), fixes [#252](https://github.com/EESSI/test-suite/issues/252)
+
+Other updates:
+
+* Prefix mixin method names to avoid accidental overrides [#246](https://github.com/EESSI/test-suite/pull/246)
+* Use CI constant (instead of 'CI' as string) [#247](https://github.com/EESSI/test-suite/pull/247)
+* Ported ESPResSo to EESSI_Mixin [#248](https://github.com/EESSI/test-suite/pull/248)
+* Simplify `executable_opts` with new variable `user_executable_opts` [#249](https://github.com/EESSI/test-suite/pull/249)
+* Update example_settings.py config file [#254](https://github.com/EESSI/test-suite/pull/254)
+
+
 v0.5.1 (30 January 2025)
 --------------------------
 
