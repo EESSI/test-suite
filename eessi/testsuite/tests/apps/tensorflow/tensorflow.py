@@ -20,7 +20,7 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     module_name = parameter(utils.find_modules('TensorFlow'))
 
     # Make CPU and GPU versions of this test
-    device_type = parameter([DEVICE_TYPES.CPU], DEVICE_TYPES.GPU)
+    device_type = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])
 
     executable = 'python tf_test.py'
     readonly_files = ['mnist_setup.py', 'tf_test.py']

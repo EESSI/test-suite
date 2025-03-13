@@ -166,7 +166,7 @@ class EESSI_OSU_pt2pt_GPU(EESSI_OSU_pt2pt_Base, EESSI_Mixin):
 class EESSI_OSU_coll(EESSI_OSU_Base, EESSI_Mixin):
     ''' collective OSU test '''
     scale = parameter(filter_scales_coll())
-    device_type = parameter([DEVICE_TYPES.CPU], DEVICE_TYPES.GPU)
+    device_type = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])
 
     @run_after('init')
     def filter_benchmark_coll(self):

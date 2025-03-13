@@ -82,16 +82,12 @@ class EESSI_Mixin(RegressionMixin):
 
     # Helper function to validate if an attribute is present it item_dict.
     # If not, print it's current name, value, and the valid_values
-    def EESSI_mixin_validate_item_in_dict(self, item, item_dict, check_keys=False):
+    def EESSI_mixin_validate_item_in_list(self, item, valid_items):
         """
         Check if the item 'item' exist in the values of 'item_dict'.
-        If check_keys=True, then it will check instead of 'item' exists in the keys of 'item_dict'.
+        If check_keys=True, then it will check instead if 'item' exists in the keys of 'item_dict'.
         If item is not found, an error will be raised that will mention the valid values for 'item'.
         """
-        if check_keys:
-            valid_items = list(item_dict.keys())
-        else:
-            valid_items = list(item_dict.values())
 
         value = getattr(self, item)
         if value not in valid_items:
@@ -114,10 +110,10 @@ class EESSI_Mixin(RegressionMixin):
 
         # Check that the value for these variables is valid,
         # i.e. exists in their respective dict from eessi.testsuite.constants
-        self.EESSI_mixin_validate_item_in_dict('device_type', DEVICE_TYPES)
-        self.EESSI_mixin_validate_item_in_dict('scale', SCALES, check_keys=True)
-        self.EESSI_mixin_validate_item_in_dict('valid_systems', {'valid_systems': ['*']})
-        self.EESSI_mixin_validate_item_in_dict('valid_prog_environs', {'valid_prog_environs': ['default']})
+        self.EESSI_mixin_validate_item_in_list('device_type', DEVICE_TYPES[:])
+        self.EESSI_mixin_validate_item_in_list('scale', SCALES.keys())
+        self.EESSI_mixin_validate_item_in_list('valid_systems', [['*']])
+        self.EESSI_mixin_validate_item_in_list('valid_prog_environs', [['default']])
 
     @run_after('init')
     def EESSI_mixin_run_after_init(self):
@@ -182,7 +178,7 @@ class EESSI_Mixin(RegressionMixin):
 
         # Check that the value for these variables is valid
         # i.e. exists in their respective dict from eessi.testsuite.constants
-        self.EESSI_mixin_validate_item_in_dict('compute_unit', COMPUTE_UNITS)
+        self.EESSI_mixin_validate_item_in_list('compute_unit', COMPUTE_UNITS[:])
 
     @run_after('setup')
     def EESSI_mixin_assign_tasks_per_compute_unit(self):

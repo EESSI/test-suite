@@ -5,43 +5,43 @@ from typing import NamedTuple
 
 
 class Extras(NamedTuple):
-    GPU_VENDOR = 'gpu_vendor'
-    MEM_PER_NODE = 'mem_per_node'
+    GPU_VENDOR: str = 'gpu_vendor'
+    MEM_PER_NODE: str = 'mem_per_node'
 
 
 class DeviceTypes(NamedTuple):
     "device types"
-    CPU = 'cpu'
-    GPU = 'gpu'
+    CPU: str = 'cpu'
+    GPU: str = 'gpu'
 
 
 class ComputeUnits(NamedTuple):
     "compute units"
-    CPU = 'cpu'
-    CPU_SOCKET = 'cpu_socket'
-    GPU = 'gpu'
-    HWTHREAD = 'hwthread'
-    NODE = 'node'
-    NUMA_NODE = 'numa_node'
+    CPU: str = 'cpu'
+    CPU_SOCKET: str = 'cpu_socket'
+    GPU: str = 'gpu'
+    HWTHREAD: str = 'hwthread'
+    NODE: str = 'node'
+    NUMA_NODE: str = 'numa_node'
 
 
 class Tags(NamedTuple):
     "tags"
-    CI = 'CI'
+    CI: str = 'CI'
 
 
 class Features(NamedTuple):
     "features"
-    CPU = 'cpu'
-    GPU = 'gpu'
-    ALWAYS_REQUEST_GPUS = 'always_request_gpus'
+    CPU: str = 'cpu'
+    GPU: str = 'gpu'
+    ALWAYS_REQUEST_GPUS: str = 'always_request_gpus'
 
 
 class GPUVendors(NamedTuple):
     "GPU vendors"
-    AMD = 'amd'
-    INTEL = 'intel'
-    NVIDIA = 'nvidia'
+    AMD: str = 'amd'
+    INTEL: str = 'intel'
+    NVIDIA: str = 'nvidia'
 
 
 EXTRAS = Extras()

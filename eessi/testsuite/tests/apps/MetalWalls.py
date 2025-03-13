@@ -53,8 +53,8 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
 
     module_name = parameter(find_modules('MetalWalls'))
     # For now, MetalWalls is being build for CPU targets only
-    # compute_device = parameter([DEVICE_TYPES.CPU], DEVICE_TYPES.GPU)
-    compute_device = parameter([DEVICE_TYPES.CPU], )
+    # compute_device = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])
+    compute_device = parameter([DEVICE_TYPES.CPU])
 
     @run_after('init')
     def run_after_init(self):
