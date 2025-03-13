@@ -84,11 +84,9 @@ class EESSI_Mixin(RegressionMixin):
     # If not, print it's current name, value, and the valid_values
     def EESSI_mixin_validate_item_in_list(self, item, valid_items):
         """
-        Check if the item 'item' exist in the values of 'item_dict'.
-        If check_keys=True, then it will check instead if 'item' exists in the keys of 'item_dict'.
+        Check if the item 'item' exist in the values of 'valid_items'.
         If item is not found, an error will be raised that will mention the valid values for 'item'.
         """
-
         value = getattr(self, item)
         if value not in valid_items:
             if len(valid_items) == 1:
