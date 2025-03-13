@@ -18,7 +18,6 @@ Other updates:
 * Simplify `executable_opts` with new variable `user_executable_opts` [#249](https://github.com/EESSI/test-suite/pull/249)
 * Update example_settings.py config file [#254](https://github.com/EESSI/test-suite/pull/254)
 
-
 v0.5.1 (30 January 2025)
 --------------------------
 
