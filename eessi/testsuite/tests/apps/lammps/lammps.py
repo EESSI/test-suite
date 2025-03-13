@@ -104,7 +104,7 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
     @run_after('setup')
     def set_executable_opts(self):
         """Set executable opts based on device_type parameter"""
-        # should also check if the lammps is installed with kokkos.
+        # should also check if LAMMPS is installed with kokkos.
         # Because this executable opt is only for that case.
         if self.device_type == "gpu":
             if 'kokkos' in self.module_name:
