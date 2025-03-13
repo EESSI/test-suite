@@ -17,7 +17,7 @@ site_configuration = {
                     'scheduler': 'local',
                     'launcher': 'local',
                     'environs': ['default'],
-                    'features': [FEATURES[CPU]] + list(SCALES.keys()),
+                    'features': [FEATURES.CPU] + list(SCALES.keys()),
                     'processor': {
                         'num_cpus': 2,
                         'num_cpus_per_core': 1,
@@ -33,7 +33,7 @@ site_configuration = {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
                         # This is a fictional amount, GH actions probably has less, but only does --dry-run
-                        'mem_per_node': 30 * 1024  # in MiB
+                        EXTRAS.MEM_PER_NODE: 30 * 1024  # in MiB
                     },
                 }
             ]

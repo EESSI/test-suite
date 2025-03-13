@@ -1,49 +1,55 @@
 """
 Constants for ReFrame tests
 """
+from typing import NamedTuple
 
-AMD = 'AMD'
-CI = 'CI'
-HWTHREAD = 'HWTHREAD'
-CPU = 'CPU'
-CPU_SOCKET = 'CPU_SOCKET'
-NUMA_NODE = 'NUMA_NODE'
-GPU = 'GPU'
-GPU_VENDOR = 'GPU_VENDOR'
-INTEL = 'INTEL'
-NODE = 'NODE'
-NVIDIA = 'NVIDIA'
-ALWAYS_REQUEST_GPUS = 'ALWAYS_REQUEST_GPUS'
 
-DEVICE_TYPES = {
-    CPU: 'cpu',
-    GPU: 'gpu',
-}
+class Extras(NamedTuple):
+    GPU_VENDOR = 'gpu_vendor'
+    MEM_PER_NODE = 'mem_per_node'
 
-COMPUTE_UNIT = {
-    HWTHREAD: 'hwthread',
-    CPU: 'cpu',
-    CPU_SOCKET: 'cpu_socket',
-    NUMA_NODE: 'numa_node',
-    GPU: 'gpu',
-    NODE: 'node',
-}
 
-TAGS = {
-    CI: 'CI',
-}
+class DeviceTypes(NamedTuple):
+    "device types"
+    CPU = 'cpu'
+    GPU = 'gpu'
 
-FEATURES = {
-    CPU: 'cpu',
-    GPU: 'gpu',
-    ALWAYS_REQUEST_GPUS: 'always_request_gpus',
-}
 
-GPU_VENDORS = {
-    AMD: 'amd',
-    INTEL: 'intel',
-    NVIDIA: 'nvidia',
-}
+class ComputeUnits(NamedTuple):
+    "compute units"
+    CPU = 'cpu'
+    CPU_SOCKET = 'cpu_socket'
+    GPU = 'gpu'
+    HWTHREAD = 'hwthread'
+    NODE = 'node'
+    NUMA_NODE = 'numa_node'
+
+
+class Tags(NamedTuple):
+    "tags"
+    CI = 'CI'
+
+
+class Features(NamedTuple):
+    "features"
+    CPU = 'cpu'
+    GPU = 'gpu'
+    ALWAYS_REQUEST_GPUS = 'always_request_gpus'
+
+
+class GPUVendors(NamedTuple):
+    "GPU vendors"
+    AMD = 'amd'
+    INTEL = 'intel'
+    NVIDIA = 'nvidia'
+
+
+EXTRAS = Extras()
+DEVICE_TYPES = DeviceTypes()
+COMPUTE_UNITS = ComputeUnits()
+TAGS = Tags()
+FEATURES = Features()
+GPU_VENDORS = GPUVendors()
 
 SCALES = {
     # required keys:

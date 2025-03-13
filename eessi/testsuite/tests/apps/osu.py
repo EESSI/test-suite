@@ -11,7 +11,7 @@ from reframe.utility import reframe
 
 from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
 
-from eessi.testsuite.constants import COMPUTE_UNIT, CPU, DEVICE_TYPES, INVALID_SYSTEM, GPU, NODE, SCALES
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, INVALID_SYSTEM, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules, log
 
@@ -75,7 +75,7 @@ class EESSI_OSU_Base(osu_benchmark):
     def filter_scales_2gpus(self):
         """Filter out scales with < 2 GPUs if running on GPUs"""
         if (
-            self.device_type == DEVICE_TYPES[GPU]
+            self.device_type == DEVICE_TYPES.GPU
             and SCALES[self.scale]['num_nodes'] == 1
             and SCALES[self.scale].get('num_gpus_per_node', 2) < 2
         ):
@@ -89,7 +89,7 @@ class EESSI_OSU_Base(osu_benchmark):
         commands in a @run_before('setup') hook if not equal to 'cpu'.
         Therefore, we must set device_buffers *before* the @run_before('setup') hooks.
         """
-        if self.device_type == DEVICE_TYPES[GPU]:
+        if self.device_type == DEVICE_TYPES.GPU:
             self.device_buffers = 'cuda'
         else:
             self.device_buffers = 'cpu'
@@ -103,7 +103,7 @@ class EESSI_OSU_Base(osu_benchmark):
 
 class EESSI_OSU_pt2pt_Base(EESSI_OSU_Base):
     ''' point-to-point OSU test base class '''
-    compute_unit = COMPUTE_UNIT[NODE]
+    compute_unit = COMPUTE_UNITS.NODE
 
     @run_after('init')
     def filter_benchmark_pt2pt(self):
@@ -130,7 +130,7 @@ class EESSI_OSU_pt2pt_Base(EESSI_OSU_Base):
         This option is added by hpctestlib in a @run_before('setup') to all pt2pt tests which is not required.
         Therefore we must override it *after* the 'setup' phase
         """
-        if self.device_type == DEVICE_TYPES[CPU]:
+        if self.device_type == DEVICE_TYPES.CPU:
             self.executable_opts = [x for x in self.executable_opts if x != 'D']
 
 
@@ -138,14 +138,14 @@ class EESSI_OSU_pt2pt_Base(EESSI_OSU_Base):
 class EESSI_OSU_pt2pt_CPU(EESSI_OSU_pt2pt_Base, EESSI_Mixin):
     ''' point-to-point OSU test on CPUs'''
     scale = parameter(filter_scales_pt2pt_cpu())
-    device_type = DEVICE_TYPES[CPU]
+    device_type = DEVICE_TYPES.CPU
 
 
 @rfm.simple_test
 class EESSI_OSU_pt2pt_GPU(EESSI_OSU_pt2pt_Base, EESSI_Mixin):
     ''' point-to-point OSU test on GPUs'''
     scale = parameter(filter_scales_pt2pt_gpu())
-    device_type = DEVICE_TYPES[GPU]
+    device_type = DEVICE_TYPES.GPU
     always_request_gpus = True
 
     @run_after('setup')
@@ -166,7 +166,7 @@ class EESSI_OSU_pt2pt_GPU(EESSI_OSU_pt2pt_Base, EESSI_Mixin):
 class EESSI_OSU_coll(EESSI_OSU_Base, EESSI_Mixin):
     ''' collective OSU test '''
     scale = parameter(filter_scales_coll())
-    device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
+    device_type = parameter([DEVICE_TYPES.CPU], DEVICE_TYPES.GPU)
 
     @run_after('init')
     def filter_benchmark_coll(self):
@@ -187,13 +187,13 @@ class EESSI_OSU_coll(EESSI_OSU_Base, EESSI_Mixin):
         one task per core for CPU runs, and one task per GPU for GPU runs.
         """
         device_to_compute_unit = {
-            DEVICE_TYPES[CPU]: COMPUTE_UNIT[CPU],
-            DEVICE_TYPES[GPU]: COMPUTE_UNIT[GPU],
+            DEVICE_TYPES.CPU: COMPUTE_UNITS.CPU,
+            DEVICE_TYPES.GPU: COMPUTE_UNITS.GPU,
         }
         self.compute_unit = device_to_compute_unit.get(self.device_type)
 
     @run_after('setup')
     def skip_test_1gpu(self):
-        if self.device_type == DEVICE_TYPES[GPU]:
+        if self.device_type == DEVICE_TYPES.GPU:
             num_gpus = self.num_gpus_per_node * self.num_nodes
             self.skip_if(num_gpus < 2, "Skipping GPU test : only 1 GPU available for this test case")

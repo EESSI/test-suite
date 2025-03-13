@@ -10,7 +10,7 @@ from reframe.core.builtins import variable, parameter, performance_function, san
 
 # Import the EESSI_Mixin class so that we can inherit from it
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
-from eessi.testsuite.constants import COMPUTE_UNIT, DEVICE_TYPES, CPU
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES
 from eessi.testsuite.utils import find_modules
 
 
@@ -21,10 +21,10 @@ from eessi.testsuite.utils import find_modules
 class EESSI_MPI4PY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     # The device type makes sure this test only gets executed on systems/partitions that can provide this device
-    device_type = DEVICE_TYPES[CPU]
+    device_type = DEVICE_TYPES.CPU
 
     # One task is launched per compute unit. In this case, one task per (physical) CPU core
-    compute_unit = COMPUTE_UNIT[CPU]
+    compute_unit = COMPUTE_UNITS.CPU
 
     # ReFrame will generate a test for each module that matches the regex `mpi4py`
     # This means we implicitly assume that any module matching this name provides the required functionality

@@ -33,8 +33,7 @@ from reframe.core.builtins import run_after
 from reframe.core.parameters import TestParam as parameter
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import (COMPUTE_UNIT, CPU, DEVICE_TYPES, GPU, CI,
-                                       SCALES, TAGS)
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES, TAGS
 from eessi.testsuite.utils import find_modules, log
 
 
@@ -54,8 +53,8 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
 
     module_name = parameter(find_modules('MetalWalls'))
     # For now, MetalWalls is being build for CPU targets only
-    # compute_device = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
-    compute_device = parameter([DEVICE_TYPES[CPU], ])
+    # compute_device = parameter([DEVICE_TYPES.CPU], DEVICE_TYPES.GPU)
+    compute_device = parameter([DEVICE_TYPES.CPU], )
 
     @run_after('init')
     def run_after_init(self):
@@ -79,7 +78,7 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
     def set_tag_ci(self):
         """Set tag CI on smallest benchmark, so it can be selected on the cmd line via --tag CI"""
         if self.benchmark_info[0] == 'hackathonGPU/benchmark':
-            self.tags.add(TAGS[CI])
+            self.tags.add(TAGS.CI)
             log(f'tags set to {self.tags}')
 
     @run_after('init')
@@ -97,10 +96,10 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
         # Calculate default requested resources based on the scale:
         # 1 task per CPU for CPU-only tests, 1 task per GPU for GPU tests.
         # Also support setting the resources on the cmd line.
-        if self.compute_device == DEVICE_TYPES[GPU]:
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[GPU])
+        if self.compute_device == DEVICE_TYPES.GPU:
+            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNITS.GPU)
         else:
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNIT[CPU])
+            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNITS.CPU)
 
     @run_after('setup')
     def set_binding(self):
