@@ -563,13 +563,13 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
 
         if test.exact_memory:
             # Request the exact amount of required memory
-            req_MEM_PER_NODE = app_mem_req
+            req_mem_per_node = app_mem_req
         else:
             # Request the maximum of the proportional_mem, and app_mem_req to the scheduler
-            req_MEM_PER_NODE = max(proportional_mem, app_mem_req)
+            req_mem_per_node = max(proportional_mem, app_mem_req)
 
-        test.extra_resources = {'memory': {'size': f'{req_MEM_PER_NODE}M'}}
-        log(f"Requested {req_MEM_PER_NODE} MiB per node from the SLURM batch scheduler")
+        test.extra_resources = {'memory': {'size': f'{req_mem_per_node}M'}}
+        log(f"Requested {req_mem_per_node} MiB per node from the SLURM batch scheduler")
 
     elif scheduler_name == 'torque':
         # Torque/moab requires asking for --pmem (--mem only works single node and thus doesnt generalize)
