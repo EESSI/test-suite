@@ -5,6 +5,7 @@ from typing import NamedTuple
 
 
 class Extras(NamedTuple):
+    "extras keys"
     GPU_VENDOR: str = 'gpu_vendor'
     MEM_PER_NODE: str = 'mem_per_node'
 
