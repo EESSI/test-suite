@@ -32,7 +32,7 @@ import reframe as rfm
 from hpctestlib.sciapps.qespresso.benchmarks import QEspressoPWCheck
 from reframe.core.builtins import parameter, run_after
 
-from eessi.testsuite.constants import COMPUTE_UNIT, CPU, DEVICE_TYPES, GPU
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules
 
@@ -42,7 +42,7 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck, EESSI_Mixin):
     time_limit = '30m'
     module_name = parameter(find_modules('QuantumESPRESSO'))
     # For now, QE is built for CPU targets only
-    device_type = parameter([DEVICE_TYPES[CPU]])
+    device_type = parameter([DEVICE_TYPES.CPU])
     readonly_files = ['']
 
     def required_mem_per_node(self):
@@ -71,7 +71,7 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck, EESSI_Mixin):
         one task per CPU core for CPU runs, and one task per GPU for GPU runs.
         """
         device_to_compute_unit = {
-            DEVICE_TYPES[CPU]: COMPUTE_UNIT[CPU],
-            DEVICE_TYPES[GPU]: COMPUTE_UNIT[GPU],
+            DEVICE_TYPES.CPU: COMPUTE_UNITS.CPU,
+            DEVICE_TYPES.GPU: COMPUTE_UNITS.GPU,
         }
         self.compute_unit = device_to_compute_unit.get(self.device_type)

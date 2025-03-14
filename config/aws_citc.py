@@ -221,7 +221,7 @@ partition_defaults = {
     'launcher': 'mpirun',
     'environs': ['default'],
     'features': [
-        FEATURES['CPU']
+        FEATURES.CPU
     ],
     'prepare_cmds': [
         common_eessi_init(),

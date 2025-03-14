@@ -5,7 +5,7 @@ from reframe.utility.sanity import make_performance_function
 import reframe.utility.sanity as sn
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import CI, DEVICE_TYPES, SCALES, COMPUTE_UNIT, TAGS
+from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNITS, TAGS
 from eessi.testsuite.utils import log
 from eessi.testsuite import __version__ as testsuite_version
 
@@ -82,17 +82,11 @@ class EESSI_Mixin(RegressionMixin):
 
     # Helper function to validate if an attribute is present it item_dict.
     # If not, print it's current name, value, and the valid_values
-    def EESSI_mixin_validate_item_in_dict(self, item, item_dict, check_keys=False):
+    def EESSI_mixin_validate_item_in_list(self, item, valid_items):
         """
-        Check if the item 'item' exist in the values of 'item_dict'.
-        If check_keys=True, then it will check instead of 'item' exists in the keys of 'item_dict'.
+        Check if the item 'item' exist in the values of 'valid_items'.
         If item is not found, an error will be raised that will mention the valid values for 'item'.
         """
-        if check_keys:
-            valid_items = list(item_dict.keys())
-        else:
-            valid_items = list(item_dict.values())
-
         value = getattr(self, item)
         if value not in valid_items:
             if len(valid_items) == 1:
@@ -114,10 +108,10 @@ class EESSI_Mixin(RegressionMixin):
 
         # Check that the value for these variables is valid,
         # i.e. exists in their respective dict from eessi.testsuite.constants
-        self.EESSI_mixin_validate_item_in_dict('device_type', DEVICE_TYPES)
-        self.EESSI_mixin_validate_item_in_dict('scale', SCALES, check_keys=True)
-        self.EESSI_mixin_validate_item_in_dict('valid_systems', {'valid_systems': ['*']})
-        self.EESSI_mixin_validate_item_in_dict('valid_prog_environs', {'valid_prog_environs': ['default']})
+        self.EESSI_mixin_validate_item_in_list('device_type', DEVICE_TYPES[:])
+        self.EESSI_mixin_validate_item_in_list('scale', SCALES.keys())
+        self.EESSI_mixin_validate_item_in_list('valid_systems', [['*']])
+        self.EESSI_mixin_validate_item_in_list('valid_prog_environs', [['default']])
 
     @run_after('init')
     def EESSI_mixin_run_after_init(self):
@@ -153,7 +147,7 @@ class EESSI_Mixin(RegressionMixin):
                 msg = "Attribute bench_name_ci is set, but bench_name is not set"
                 raise ReframeFatalError(msg)
             if self.bench_name == self.bench_name_ci:
-                self.tags.add(TAGS[CI])
+                self.tags.add(TAGS.CI)
                 tags_added = True
         if self.bench_name:
             self.tags.add(self.bench_name)
@@ -182,7 +176,7 @@ class EESSI_Mixin(RegressionMixin):
 
         # Check that the value for these variables is valid
         # i.e. exists in their respective dict from eessi.testsuite.constants
-        self.EESSI_mixin_validate_item_in_dict('compute_unit', COMPUTE_UNIT)
+        self.EESSI_mixin_validate_item_in_list('compute_unit', COMPUTE_UNITS[:])
 
     @run_after('setup')
     def EESSI_mixin_assign_tasks_per_compute_unit(self):

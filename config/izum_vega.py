@@ -57,14 +57,14 @@ site_configuration = {
                         }
                     ],
                     'features': [
-                        FEATURES[CPU],
+                        FEATURES.CPU,
                     ] + list(SCALES.keys()),
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
                         # NB: Vega's MaxMemPerNode is set to 256000, but this MUST be a MB/MiB units mistake
                         # Most likely, it is 256 GB, so 256*1E9/(1024*1024) MiB
-                        'mem_per_node': 244140  # in MiB
+                        EXTRAS.MEM_PER_NODE: 244140  # in MiB
                     },
                     'descr': 'CPU partition Standard, see https://en-doc.vega.izum.si/architecture/'
                 },
@@ -88,7 +88,7 @@ site_configuration = {
                     'max_jobs': 60,
                     'devices': [
                         {
-                            'type': DEVICE_TYPES[GPU],
+                            'type': DEVICE_TYPES.GPU,
                             'num_devices': 4,
                         }
                     ],
@@ -103,13 +103,13 @@ site_configuration = {
                         }
                     ],
                     'features': [
-                        FEATURES[GPU],
+                        FEATURES.GPU,
                     ] + list(SCALES.keys()),
                     'extras': {
-                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                        EXTRAS.GPU_VENDOR: GPU_VENDORS.NVIDIA,
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 476.837 * 1024  # in MiB (should be checked, its unclear from slurm.conf)
+                        EXTRAS.MEM_PER_NODE: 476.837 * 1024  # in MiB (should be checked, its unclear from slurm.conf)
                     },
                     'descr': 'GPU partition, see https://en-doc.vega.izum.si/architecture/'
                 },

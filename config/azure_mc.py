@@ -13,7 +13,7 @@
 import os
 
 from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
-from eessi.testsuite.constants import FEATURES, SCALES
+from eessi.testsuite.constants import EXTRAS, FEATURES, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
 # Override with RFM_PREFIX environment variable
@@ -50,7 +50,7 @@ site_configuration = {
                     'extras': {
                         # For some reason, we cannot ask for the full amount configured as RealMemory in
                         # /etc/slurm/nodes.conf, so we ask slightly less
-                        'mem_per_node': 767480
+                        EXTRAS.MEM_PER_NODE: 767480
                     },
                 },
                 {
@@ -67,7 +67,7 @@ site_configuration = {
                     'extras': {
                         # For some reason, we cannot ask for the full amount configured as RealMemory in
                         # /etc/slurm/nodes.conf, so we ask slightly less
-                        'mem_per_node': 63480
+                        EXTRAS.MEM_PER_NODE: 63480
                     },
                 },
             ]
@@ -98,7 +98,7 @@ partition_defaults = {
     'launcher': 'mpirun',
     'environs': ['default'],
     'features': [
-        FEATURES['CPU']
+        FEATURES.CPU
     ] + list(SCALES.keys()),
     'resources': [
         {

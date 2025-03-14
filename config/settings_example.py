@@ -20,7 +20,7 @@ Example configuration file
 import os
 
 from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
-from eessi.testsuite.constants import FEATURES, CPU, GPU, SCALES, DEVICE_TYPES, GPU_VENDOR, GPU_VENDORS, NVIDIA
+from eessi.testsuite.constants import EXTRAS, FEATURES, SCALES, DEVICE_TYPES, GPU_VENDORS
 
 
 site_configuration = {
@@ -61,11 +61,11 @@ site_configuration = {
                         # on nodes in this partition
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 229376  # in MiB
+                        EXTRAS.MEM_PER_NODE: 229376  # in MiB
                     },
                     # list(SCALES.keys()) adds all the scales from eessi.testsuite.constants as valid for thi partition
                     # Can be modified if not all scales can run on this partition, see e.g. the surf_snellius.py config
-                    'features': [FEATURES[CPU]] + list(SCALES.keys()),
+                    'features': [FEATURES.CPU] + list(SCALES.keys()),
                 },
                 {
                     'name': 'gpu_partition',
@@ -96,21 +96,21 @@ site_configuration = {
                     ],
                     'devices': [
                         {
-                            'type': DEVICE_TYPES[GPU],
+                            'type': DEVICE_TYPES.GPU,
                             'num_devices': 4,
                         }
                     ],
                     'features': [
-                        FEATURES[CPU],
-                        FEATURES[GPU],
+                        FEATURES.CPU,
+                        FEATURES.GPU,
                     ] + list(SCALES.keys()),
                     'extras': {
                         # If you have slurm, check with scontrol show node <nodename> for the amount of RealMemory
                         # on nodes in this partition
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 229376,  # in MiB
-                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                        EXTRAS.MEM_PER_NODE: 229376,  # in MiB
+                        EXTRAS.GPU_VENDOR: GPU_VENDORS.NVIDIA,
                     },
                 },
             ]

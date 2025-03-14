@@ -58,7 +58,7 @@ site_configuration = {
                     'environs': ['default'],
                     'max_jobs': 120,
                     'features': [
-                        FEATURES[CPU],
+                        FEATURES.CPU,
                     ] + list(SCALES.keys()),
                     'resources': [
                         {
@@ -69,7 +69,7 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 235520  # in MiB
+                        EXTRAS.MEM_PER_NODE: 235520  # in MiB
                     },
                     'descr': 'CPU Universal Compute Nodes, see https://docs.it4i.cz/karolina/hardware-overview/'
                 },
@@ -95,7 +95,7 @@ site_configuration = {
                 #     'max_jobs': 60,
                 #     'devices': [
                 #         {
-                #             'type': DEVICE_TYPES[GPU],
+                #             'type': DEVICE_TYPES.GPU,
                 #             'num_devices': 8,
                 #         }
                 #     ],
@@ -106,7 +106,7 @@ site_configuration = {
                 #         }
                 #     ],
                 #     'features': [
-                #         FEATURES[GPU],
+                #         FEATURES.GPU,
                 #     ] + list(SCALES.keys()),
                 #     'descr': 'GPU partition with accelerated nodes, https://docs.it4i.cz/karolina/hardware-overview/'
                 # },

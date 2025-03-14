@@ -4,7 +4,7 @@ import reframe as rfm
 import reframe.utility.sanity as sn
 from reframe.core.builtins import parameter, run_after, sanity_function, performance_function
 
-from eessi.testsuite.constants import DEVICE_TYPES, COMPUTE_UNIT, CPU, NUMA_NODE, GPU
+from eessi.testsuite.constants import DEVICE_TYPES, COMPUTE_UNITS
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules
 
@@ -31,7 +31,7 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         self.bench_name = self.nn_model
 
         # If not a GPU run, disable CUDA
-        if self.device_type != DEVICE_TYPES[GPU]:
+        if self.device_type != DEVICE_TYPES.GPU:
             self.executable_opts += ['--no-cuda']
 
     @run_after('setup')
@@ -73,7 +73,7 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     @performance_function('img/sec')
     def througput_per_CPU(self):
         '''Training througput per device type'''
-        if self.device_type == DEVICE_TYPES[CPU]:
+        if self.device_type == DEVICE_TYPES.CPU:
             return sn.extractsingle(r'Img/sec per CPU:\s+(?P<perf_per_cpu>\S+)', self.stdout, 'perf_per_cpu', float)
         else:
             return sn.extractsingle(r'Img/sec per GPU:\s+(?P<perf_per_gpu>\S+)', self.stdout, 'perf_per_gpu', float)
@@ -81,14 +81,14 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
 @rfm.simple_test
 class EESSI_PyTorch_torchvision_CPU(EESSI_PyTorch_torchvision):
-    device_type = DEVICE_TYPES[CPU]
-    compute_unit = COMPUTE_UNIT[NUMA_NODE]
+    device_type = DEVICE_TYPES.CPU
+    compute_unit = COMPUTE_UNITS.NUMA_NODE
 
 
 @rfm.simple_test
 class EESSI_PyTorch_torchvision_GPU(EESSI_PyTorch_torchvision):
-    device_type = DEVICE_TYPES[GPU]
-    compute_unit = COMPUTE_UNIT[GPU]
+    device_type = DEVICE_TYPES.GPU
+    compute_unit = COMPUTE_UNITS.GPU
     precision = parameter(['default', 'mixed'])
 
     @run_after('init')

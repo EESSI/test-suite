@@ -9,7 +9,7 @@ import reframe.utility.sanity as sn
 from reframe.core.builtins import variable, parameter, run_after, performance_function, sanity_function
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import SCALES, COMPUTE_UNIT, CPU
+from eessi.testsuite.constants import SCALES, COMPUTE_UNITS
 from eessi.testsuite.utils import find_modules
 
 
@@ -88,7 +88,7 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest):
         """ Setting number of tasks per node and cpus per task in this function. This function sets
         num_tasks, num_tasks_per_node, num_cpus_per_task, and num_gpus_per_node, based on the current scale
         and the current partition's num_cpus, max_avail_gpus_per_node and num_nodes"""
-        hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNIT[CPU])
+        hooks.assign_tasks_per_compute_unit(self, COMPUTE_UNITS.CPU)
 
         # This test scales almost indefinitely
         # For tests that have limited scaling, make sure that test instances exceeding
