@@ -4,19 +4,19 @@ Constants for ReFrame tests
 from typing import NamedTuple
 
 
-class Extras(NamedTuple):
+class _Extras(NamedTuple):
     "extras keys"
     GPU_VENDOR: str = 'gpu_vendor'
     MEM_PER_NODE: str = 'mem_per_node'
 
 
-class DeviceTypes(NamedTuple):
+class _DeviceTypes(NamedTuple):
     "device types"
     CPU: str = 'cpu'
     GPU: str = 'gpu'
 
 
-class ComputeUnits(NamedTuple):
+class _ComputeUnits(NamedTuple):
     "compute units"
     CPU: str = 'cpu'
     CPU_SOCKET: str = 'cpu_socket'
@@ -26,31 +26,31 @@ class ComputeUnits(NamedTuple):
     NUMA_NODE: str = 'numa_node'
 
 
-class Tags(NamedTuple):
+class _Tags(NamedTuple):
     "tags"
     CI: str = 'CI'
 
 
-class Features(NamedTuple):
+class _Features(NamedTuple):
     "features"
     CPU: str = 'cpu'
     GPU: str = 'gpu'
     ALWAYS_REQUEST_GPUS: str = 'always_request_gpus'
 
 
-class GPUVendors(NamedTuple):
+class _GPUVendors(NamedTuple):
     "GPU vendors"
     AMD: str = 'amd'
     INTEL: str = 'intel'
     NVIDIA: str = 'nvidia'
 
 
-EXTRAS = Extras()
-DEVICE_TYPES = DeviceTypes()
-COMPUTE_UNITS = ComputeUnits()
-TAGS = Tags()
-FEATURES = Features()
-GPU_VENDORS = GPUVendors()
+EXTRAS = _Extras()
+DEVICE_TYPES = _DeviceTypes()
+COMPUTE_UNITS = _ComputeUnits()
+TAGS = _Tags()
+FEATURES = _Features()
+GPU_VENDORS = _GPUVendors()
 
 SCALES = {
     # required keys:
