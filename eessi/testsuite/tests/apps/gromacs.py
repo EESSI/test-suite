@@ -34,7 +34,7 @@ from reframe.core.builtins import parameter, run_after  # added only to make the
 
 from hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
 
-from eessi.testsuite.constants import COMPUTE_UNIT, DEVICE_TYPES, SCALES
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules, log
 
@@ -69,12 +69,12 @@ class EESSI_GROMACS(EESSI_GROMACS_base, EESSI_Mixin):
         Set the compute unit to which tasks will be assigned:
         one task per CPU core for CPU runs, and one task per GPU for GPU runs.
         """
-        if self.device_type == DEVICE_TYPES['CPU']:
-            self.compute_unit = COMPUTE_UNIT['CPU']
-        elif self.device_type == DEVICE_TYPES['GPU']:
-            self.compute_unit = COMPUTE_UNIT['GPU']
+        if self.device_type == DEVICE_TYPES.CPU:
+            self.compute_unit = COMPUTE_UNITS.CPU
+        elif self.device_type == DEVICE_TYPES.GPU:
+            self.compute_unit = COMPUTE_UNITS.GPU
         else:
-            msg = f"No mapping of device type {self.device_type} to a COMPUTE_UNIT was specified in this test"
+            msg = f"No mapping of device type {self.device_type} to a COMPUTE_UNITS was specified in this test"
             raise NotImplementedError(msg)
 
     @run_after('setup')

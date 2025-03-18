@@ -9,7 +9,7 @@ from reframe.core.builtins import deferrable, parameter, run_after, sanity_funct
 import reframe.utility.sanity as sn
 
 from eessi.testsuite import utils
-from eessi.testsuite.constants import COMPUTE_UNIT, CPU, CPU_SOCKET, DEVICE_TYPES, GPU
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
 
@@ -20,7 +20,7 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     module_name = parameter(utils.find_modules('TensorFlow'))
 
     # Make CPU and GPU versions of this test
-    device_type = parameter([DEVICE_TYPES[CPU], DEVICE_TYPES[GPU]])
+    device_type = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])
 
     executable = 'python tf_test.py'
     readonly_files = ['mnist_setup.py', 'tf_test.py']
@@ -86,8 +86,8 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         one task per CPU socket for CPU runs, and one task per GPU for GPU runs.
         """
         device_to_compute_unit = {
-            DEVICE_TYPES[CPU]: COMPUTE_UNIT[CPU_SOCKET],
-            DEVICE_TYPES[GPU]: COMPUTE_UNIT[GPU],
+            DEVICE_TYPES.CPU: COMPUTE_UNITS.CPU_SOCKET,
+            DEVICE_TYPES.GPU: COMPUTE_UNITS.GPU,
         }
         self.compute_unit = device_to_compute_unit.get(self.device_type)
 

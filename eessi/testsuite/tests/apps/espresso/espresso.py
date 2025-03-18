@@ -13,7 +13,7 @@ import reframe.utility.sanity as sn
 from reframe.core.builtins import deferrable, parameter, performance_function, run_after, sanity_function
 from reframe.utility import reframe
 
-from eessi.testsuite.constants import CPU, DEVICE_TYPES, SCALES, COMPUTE_UNIT
+from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNITS
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules, log
 
@@ -33,8 +33,8 @@ def filter_scales():
 
 class EESSI_ESPRESSO_base(rfm.RunOnlyRegressionTest):
     module_name = parameter(find_modules('^ESPResSo$'))
-    device_type = DEVICE_TYPES[CPU]
-    compute_unit = COMPUTE_UNIT[CPU]
+    device_type = DEVICE_TYPES.CPU
+    compute_unit = COMPUTE_UNITS.CPU
     time_limit = '300m'
 
     @run_after('init')
@@ -111,7 +111,7 @@ class EESSI_ESPRESSO_LJ_PARTICLES(EESSI_ESPRESSO_base, EESSI_Mixin):
     @deferrable
     def assert_completion(self):
         '''Check completion'''
-        return (sn.assert_found(r'^Algorithm executed.', self.stdout))
+        return sn.assert_found(r'^Algorithm executed.', self.stdout)
 
     @deferrable
     def assert_convergence(self):
