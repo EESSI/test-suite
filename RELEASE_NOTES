@@ -1,6 +1,26 @@
 This file contains a description of the major changes to the EESSI test suite.
 For more detailed information, please see the git log.
 
+v0.6.0 (19 March 2025)
+
+This is a minor release of the EESSI test-suite.
+
+WARNING: this release contains a breaking change ([#258](https://github.com/EESSI/test-suite/pull/258)) for the format of the required ReFrame configuration file. Essentially, this requires making the following substitutions in the ReFrame configuration file.
+
+* `FEATURES[CPU]` => `FEATURES.CPU`
+* `FEATURES[GPU]` => `FEATURES.GPU`
+* `'mem_per_node'` => `EXTRAS.MEM_PER_NODE`
+* `DEVICE_TYPES[CPU]` => `DEVICE_TYPES.CPU`
+* `DEVICE_TYPES[GPU]` => `DEVICE_TYPES.GPU`
+* `GPU_VENDOR: GPU_VENDORS[NVIDIA]` => `EXTRAS.GPU_VENDOR: GPU_VENDORS.NVIDIA`
+* `FEATURES[ALWAYS_REQUEST_GPUS]` => `FEATURES.ALWAYS_REQUEST_GPUS`
+
+See the [updated documentation](https://www.eessi.io/docs/test-suite/ReFrame-configuration-file/) for more details.
+
+Updates:
+
+* Use NamedTuples to define constants instead of constants indexing a dictionary of constants [#258](https://github.com/EESSI/test-suite/pull/258)
+
 v0.5.2 (13 March 2025)
 --------------------------
 
