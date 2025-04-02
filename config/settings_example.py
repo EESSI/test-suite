@@ -39,7 +39,11 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access': ['-p cpu', '--export=None'],
-                    'prepare_cmds': [common_eessi_init()],
+                    'prepare_cmds': [
+                        common_eessi_init(),
+                        # Pass job environment variables like $PATH, etc., into job steps
+                        'export SLURM_EXPORT_ENV=ALL',
+                    ],
                     'environs': ['default'],
                     'max_jobs': 4,
                     # We recommend to rely on ReFrame's CPU autodetection,
@@ -73,7 +77,11 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access': ['-p gpu', '--export=None'],
-                    'prepare_cmds': [common_eessi_init()],
+                    'prepare_cmds': [
+                        common_eessi_init(),
+                        # Pass job environment variables like $PATH, etc., into job steps
+                        'export SLURM_EXPORT_ENV=ALL',
+                    ],
                     'environs': ['default'],
                     'max_jobs': 4,
                     # We recommend to rely on ReFrame's CPU autodetection,
