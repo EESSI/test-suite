@@ -10,7 +10,7 @@ if [[ "$TEST_SUITE_PARTITION" == "GPU" ]]; then
     fi
     if [ -z "${LOCAL_MODULES}"]; then
          export LOCAL_MODULES="env/slurm/dodrio/gpu_rome_a100"
-         # module use to accellorator
+         module use /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/accel/nvidia/cc80/modules/all
     fi
 fi
 
