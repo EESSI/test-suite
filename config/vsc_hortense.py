@@ -57,6 +57,9 @@ site_configuration = {
             'descr': 'Hortense',
             'hostnames': ['login.*.dodrio.os'],
             'modules_system': 'lmod',
+            # Need to set the environment variable to be able to submit to GPU_partitions
+            # see https://github.com/EESSI/test-suite/issues/242
+            'env_vars': [['SLURM_CONF', '/etc/slurm/slurm.conf_dodrio']],
             'partitions': [
                 {
                     'name': 'cpu_rome',
@@ -145,7 +148,10 @@ site_configuration = {
                 {
                     'name': 'gpu_rome_a100_40',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
+                    'prepare_cmds': [
+                        prepare_eessi_init,
+                        common_eessi_init(),
+                    ],
                     'access': hortense_access + ['--partition=gpu_rome_a100_40'],
                     'sched_options': {
                         'sched_access_in_submit': True,
@@ -185,7 +191,10 @@ site_configuration = {
                 {
                     'name': 'gpu_rome_a100_80',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
+                    'prepare_cmds': [
+                        prepare_eessi_init,
+                        common_eessi_init(),
+                    ],
                     'access': hortense_access + ['--partition=gpu_rome_a100_80'],
                     'sched_options': {
                         'sched_access_in_submit': True,
