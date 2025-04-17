@@ -2,15 +2,13 @@
 Hooks for adding tags, filtering and setting job resources in ReFrame tests
 """
 import math
-import shlex
 
 import reframe as rfm
 import reframe.core.logging as rflog
 import reframe.utility.sanity as sn
 
-from eessi.testsuite.constants import (ALWAYS_REQUEST_GPUS, COMPUTE_UNIT, CPU, CPU_SOCKET, DEVICE_TYPES, FEATURES, GPU,
-                                       GPU_VENDOR, GPU_VENDORS, HWTHREAD, INVALID_SYSTEM, NODE, NUMA_NODE, NVIDIA,
-                                       SCALES)
+from eessi.testsuite.constants import (COMPUTE_UNITS, DEVICE_TYPES, EXTRAS, FEATURES,
+                                       GPU_VENDORS, INVALID_SYSTEM, SCALES)
 from eessi.testsuite.utils import (get_max_avail_gpus_per_node, is_cuda_required_module, log,
                                    check_proc_attribute_defined, check_extras_key_defined)
 
@@ -71,23 +69,23 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
     Total task count is determined based on the number of nodes to be used in the test.
     Behaviour of this function is (usually) sensible for MPI tests.
 
-    WARNING: when using COMPUTE_UNIT[HWTHREAD] and invoking a hook for process binding, please verify that process
+    WARNING: when using COMPUTE_UNITS.HWTHREAD and invoking a hook for process binding, please verify that process
     binding happens correctly.
 
     Arguments:
     - test: the ReFrame test to which this hook should apply
-    - compute_unit: a device as listed in eessi.testsuite.constants.COMPUTE_UNIT
+    - compute_unit: a device as listed in eessi.testsuite.constants.COMPUTE_UNITS
 
     Examples:
     On a single node with 2 sockets, 64 cores and 128 hyperthreads:
-    - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[HWTHREAD]) will launch 128 tasks with 1 thread per task
-    - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU]) will launch 64 tasks with 2 threads per task
-    - assign_tasks_per_compute_unit(test, COMPUTE_UNIT[CPU_SOCKET]) will launch 2 tasks with 64 threads per task
+    - assign_tasks_per_compute_unit(test, COMPUTE_UNITS.HWTHREAD) will launch 128 tasks with 1 thread per task
+    - assign_tasks_per_compute_unit(test, COMPUTE_UNITS.CPU) will launch 64 tasks with 2 threads per task
+    - assign_tasks_per_compute_unit(test, COMPUTE_UNITS.CPU_SOCKET) will launch 2 tasks with 64 threads per task
 
     """
     log(f'assign_tasks_per_compute_unit called with compute_unit: {compute_unit} and num_per: {num_per}')
 
-    if num_per != 1 and compute_unit not in [COMPUTE_UNIT[NODE]]:
+    if num_per != 1 and compute_unit not in [COMPUTE_UNITS.NODE]:
         raise NotImplementedError(
             f'Non-default num_per {num_per} is not implemented for compute_unit {compute_unit}.')
 
@@ -109,30 +107,30 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
     # If on
     # - a hyperthreading system
     # - num_cpus_per_node was set by the scale
-    # - compute_unit != COMPUTE_UNIT[HWTHREAD]
+    # - compute_unit != COMPUTE_UNITS.HWTHREAD
     # double the default_num_cpus_per_node. In this scenario, if the scale asks for e.g. 1 num_cpus_per_node and
     # the test doesn't state it wants to use hwthreads, we want to launch on two hyperthreads, i.e. one physical core
-    if SCALES[test.scale].get('num_cpus_per_node') is not None and compute_unit != COMPUTE_UNIT[HWTHREAD]:
+    if SCALES[test.scale].get('num_cpus_per_node') is not None and compute_unit != COMPUTE_UNITS.HWTHREAD:
         check_proc_attribute_defined(test, 'num_cpus_per_core')
         num_cpus_per_core = test.current_partition.processor.num_cpus_per_core
         # On a hyperthreading system?
         if num_cpus_per_core > 1:
             test.default_num_cpus_per_node = test.default_num_cpus_per_node * num_cpus_per_core
 
-    if FEATURES[GPU] in test.current_partition.features:
+    if FEATURES.GPU in test.current_partition.features:
         _assign_default_num_gpus_per_node(test)
 
-    if compute_unit == COMPUTE_UNIT[GPU]:
+    if compute_unit == COMPUTE_UNITS.GPU:
         _assign_one_task_per_gpu(test)
-    elif compute_unit == COMPUTE_UNIT[HWTHREAD]:
+    elif compute_unit == COMPUTE_UNITS.HWTHREAD:
         _assign_one_task_per_hwthread(test)
-    elif compute_unit == COMPUTE_UNIT[CPU]:
+    elif compute_unit == COMPUTE_UNITS.CPU:
         _assign_one_task_per_cpu(test)
-    elif compute_unit == COMPUTE_UNIT[CPU_SOCKET]:
+    elif compute_unit == COMPUTE_UNITS.CPU_SOCKET:
         _assign_one_task_per_cpu_socket(test)
-    elif compute_unit == COMPUTE_UNIT[NUMA_NODE]:
+    elif compute_unit == COMPUTE_UNITS.NUMA_NODE:
         _assign_one_task_per_numa_node(test)
-    elif compute_unit == COMPUTE_UNIT[NODE]:
+    elif compute_unit == COMPUTE_UNITS.NODE:
         _assign_num_tasks_per_node(test, num_per)
     else:
         raise ValueError(f'compute unit {compute_unit} is currently not supported')
@@ -467,21 +465,21 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     """
     is_cuda_module = is_cuda_required_module(test.module_name)
 
-    if is_cuda_module and required_device_type == DEVICE_TYPES[GPU]:
-        # CUDA modules and when using a GPU require partitions with FEATURES[GPU] feature and
-        # GPU_VENDOR=GPU_VENDORS[NVIDIA] extras
-        valid_systems = f'+{FEATURES[GPU]} %{GPU_VENDOR}={GPU_VENDORS[NVIDIA]}'
+    if is_cuda_module and required_device_type == DEVICE_TYPES.GPU:
+        # CUDA modules and when using a GPU require partitions with FEATURES.GPU feature and
+        # EXTRAS.GPU_VENDOR=GPU_VENDORS.NVIDIA extras
+        valid_systems = f'+{FEATURES.GPU} %{EXTRAS.GPU_VENDOR}={GPU_VENDORS.NVIDIA}'
 
-    elif not is_cuda_module and required_device_type == DEVICE_TYPES[CPU]:
-        # Using the CPU requires partitions with FEATURES[CPU] feature
-        # Note: making FEATURES[CPU] an explicit feature allows e.g. skipping CPU-based tests on GPU partitions
-        valid_systems = f'+{FEATURES[CPU]}'
+    elif not is_cuda_module and required_device_type == DEVICE_TYPES.CPU:
+        # Using the CPU requires partitions with FEATURES.CPU feature
+        # Note: making FEATURES.CPU an explicit feature allows e.g. skipping CPU-based tests on GPU partitions
+        valid_systems = f'+{FEATURES.CPU}'
 
-    elif is_cuda_module and required_device_type == DEVICE_TYPES[CPU]:
+    elif is_cuda_module and required_device_type == DEVICE_TYPES.CPU:
         # Note: This applies for CUDA module tests that want to test only on cpus on gpu partitions.
-        valid_systems = f'+{FEATURES[CPU]} +{FEATURES[GPU]} %{GPU_VENDOR}={GPU_VENDORS[NVIDIA]}'
+        valid_systems = f'+{FEATURES.CPU} +{FEATURES.GPU} %{EXTRAS.GPU_VENDOR}={GPU_VENDORS.NVIDIA}'
 
-    elif not is_cuda_module and required_device_type == DEVICE_TYPES[GPU]:
+    elif not is_cuda_module and required_device_type == DEVICE_TYPES.GPU:
         # Invalid combination: a module without GPU support cannot use a GPU
         valid_systems = ''
 
@@ -499,7 +497,7 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
     Then, the hook compares this to how much memory the application claims to need per node (app_mem_req).
     It then passes the maximum of these two numbers to the batch scheduler as a memory request.
 
-    Note: using this hook requires that the ReFrame configuration defines system.partition.extras['mem_per_node']
+    Note: using this hook requires that the ReFrame configuration defines system.partition.extras[EXTRAS.MEM_PER_NODE]
     That field should be defined in GiB
 
     Arguments:
@@ -520,13 +518,13 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
     In this case, the test requests 50% of the CPUs. Thus, the proportional amount of memory is 64,000 MiB.
     This is higher than the app_mem_req. Thus, 64,000 MiB (per node) is requested from the batch scheduler.
     """
-    # Check that the systems.partitions.extra dict in the ReFrame config contains mem_per_node
-    check_extras_key_defined(test, 'mem_per_node')
+    # Check that the systems.partitions.extra dict in the ReFrame config contains MEM_PER_NODE
+    check_extras_key_defined(test, EXTRAS.MEM_PER_NODE)
     # Skip if the current partition doesn't have sufficient memory to run the application
-    msg = f"Skipping test: nodes in this partition only have {test.current_partition.extras['mem_per_node']} MiB"
+    msg = f"Skipping test: nodes in this partition only have {test.current_partition.extras[EXTRAS.MEM_PER_NODE]} MiB"
     msg += " memory available (per node) accodring to the current ReFrame configuration,"
     msg += f" but {app_mem_req} MiB is needed"
-    test.skip_if(test.current_partition.extras['mem_per_node'] < app_mem_req, msg)
+    test.skip_if(test.current_partition.extras[EXTRAS.MEM_PER_NODE] < app_mem_req, msg)
 
     # Check if a resource with the name 'memory' was set in the ReFrame config file. If not, warn the user
     # and return from this hook (as setting test.extra_resources will be ignored in that case according to
@@ -549,7 +547,7 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
     # Fraction of CPU cores requested
     check_proc_attribute_defined(test, 'num_cpus')
     cpu_fraction = test.num_tasks_per_node * test.num_cpus_per_task / test.current_partition.processor.num_cpus
-    proportional_mem = math.floor(cpu_fraction * test.current_partition.extras['mem_per_node'])
+    proportional_mem = math.floor(cpu_fraction * test.current_partition.extras[EXTRAS.MEM_PER_NODE])
     app_mem_req = math.ceil(app_mem_req)
 
     scheduler_name = test.current_partition.scheduler.registered_name
@@ -558,6 +556,10 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
         # SLURM uses MiB units by default
         log(f"Memory requested by application: {app_mem_req} MiB")
         log(f"Memory proportional to the core count: {proportional_mem} MiB")
+
+        # make sure exact_memory is always defined for tests that don't (yet) use the EESSI_Mixin class
+        if not hasattr(test, 'exact_memory'):
+            test.exact_memory = False
 
         if test.exact_memory:
             # Request the exact amount of required memory
@@ -619,18 +621,6 @@ def set_tag_scale(test: rfm.RegressionTest):
     log(f'tags set to {test.tags}')
 
 
-def check_custom_executable_opts(test: rfm.RegressionTest, num_default: int = 0):
-    """"
-    Check if custom executable options were added with --setvar executable_opts=<x>.
-    """
-    # normalize options
-    test.executable_opts = shlex.split(' '.join(test.executable_opts))
-    test.has_custom_executable_opts = False
-    if len(test.executable_opts) > num_default:
-        test.has_custom_executable_opts = True
-    log(f'has_custom_executable_opts set to {test.has_custom_executable_opts}')
-
-
 def set_compact_process_binding(test: rfm.RegressionTest):
     """
     This hook sets a binding policy for process binding.
@@ -654,7 +644,7 @@ def set_compact_process_binding(test: rfm.RegressionTest):
 
     # Check if hyperthreading is enabled. If so, divide the number of cpus per task by the number
     # of hw threads per core to get a physical core count
-    # TODO: check if this also leads to sensible binding when using COMPUTE_UNIT[HWTHREAD]
+    # TODO: check if this also leads to sensible binding when using COMPUTE_UNITS.HWTHREAD
     check_proc_attribute_defined(test, 'num_cpus_per_core')
     num_cpus_per_core = test.current_partition.processor.num_cpus_per_core
     physical_cpus_per_task = int(test.num_cpus_per_task / num_cpus_per_core)
@@ -717,9 +707,11 @@ def _check_always_request_gpus(test: rfm.RegressionTest):
     """
     Make sure we always request enough GPUs if required for the current GPU partition (cluster-specific policy)
     """
+    # make sure always_request_gpus is always defined for tests that don't (yet) use the EESSI_Mixin class
     if not hasattr(test, 'always_request_gpus'):
         test.always_request_gpus = False
-    always_request_gpus = FEATURES[ALWAYS_REQUEST_GPUS] in test.current_partition.features or test.always_request_gpus
+
+    always_request_gpus = FEATURES.ALWAYS_REQUEST_GPUS in test.current_partition.features or test.always_request_gpus
     if always_request_gpus and not test.num_gpus_per_node:
         test.num_gpus_per_node = test.default_num_gpus_per_node
         log(f'num_gpus_per_node set to {test.num_gpus_per_node} for partition {test.current_partition.name}')

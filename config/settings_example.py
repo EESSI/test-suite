@@ -19,8 +19,8 @@ Example configuration file
 """
 import os
 
-from eessi.testsuite.common_config import common_logging_config, common_general_config, format_perfvars, perflog_format
-from eessi.testsuite.constants import *
+from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
+from eessi.testsuite.constants import EXTRAS, FEATURES, SCALES, DEVICE_TYPES, GPU_VENDORS
 
 
 site_configuration = {
@@ -29,7 +29,7 @@ site_configuration = {
             'name': 'example',
             'descr': 'Example cluster',
             'modules_system': 'lmod',
-            'hostnames': ['*'],
+            'hostnames': ['.*'],
             # Note that the stagedir should be a shared directory available on all nodes running ReFrame tests
             'stagedir': f'/some/shared/dir/{os.environ.get("USER")}/reframe_output/staging',
             'partitions': [
@@ -39,7 +39,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access': ['-p cpu', '--export=None'],
-                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
+                    'prepare_cmds': [common_eessi_init()],
                     'environs': ['default'],
                     'max_jobs': 4,
                     # We recommend to rely on ReFrame's CPU autodetection,
@@ -57,13 +57,15 @@ site_configuration = {
                         }
                     ],
                     'extras': {
+                        # If you have slurm, check with scontrol show node <nodename> for the amount of RealMemory
+                        # on nodes in this partition
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 229376  # in MiB
+                        EXTRAS.MEM_PER_NODE: 229376  # in MiB
                     },
                     # list(SCALES.keys()) adds all the scales from eessi.testsuite.constants as valid for thi partition
                     # Can be modified if not all scales can run on this partition, see e.g. the surf_snellius.py config
-                    'features': [FEATURES[CPU]] + list(SCALES.keys()),
+                    'features': [FEATURES.CPU] + list(SCALES.keys()),
                 },
                 {
                     'name': 'gpu_partition',
@@ -71,7 +73,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access': ['-p gpu', '--export=None'],
-                    'prepare_cmds': ['source /cvmfs/pilot.eessi-hpc.org/latest/init/bash'],
+                    'prepare_cmds': [common_eessi_init()],
                     'environs': ['default'],
                     'max_jobs': 4,
                     # We recommend to rely on ReFrame's CPU autodetection,
@@ -94,19 +96,21 @@ site_configuration = {
                     ],
                     'devices': [
                         {
-                            'type': DEVICE_TYPES[GPU],
+                            'type': DEVICE_TYPES.GPU,
                             'num_devices': 4,
                         }
                     ],
                     'features': [
-                        FEATURES[CPU],
-                        FEATURES[GPU],
+                        FEATURES.CPU,
+                        FEATURES.GPU,
                     ] + list(SCALES.keys()),
                     'extras': {
+                        # If you have slurm, check with scontrol show node <nodename> for the amount of RealMemory
+                        # on nodes in this partition
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 229376,  # in MiB
-                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                        EXTRAS.MEM_PER_NODE: 229376,  # in MiB
+                        EXTRAS.GPU_VENDOR: GPU_VENDORS.NVIDIA,
                     },
                 },
             ]
@@ -130,13 +134,3 @@ site_configuration = {
         }
     ],
 }
-
-# optional logging to syslog
-site_configuration['logging'][0]['handlers_perflog'].append({
-    'type': 'syslog',
-    'address': '/dev/log',
-    'level': 'info',
-    'format': f'reframe: {perflog_format}',
-    'format_perfvars': format_perfvars,
-    'append': True,
-})

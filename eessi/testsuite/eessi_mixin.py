@@ -5,7 +5,7 @@ from reframe.utility.sanity import make_performance_function
 import reframe.utility.sanity as sn
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNIT, TAGS
+from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNITS, TAGS
 from eessi.testsuite.utils import log
 from eessi.testsuite import __version__ as testsuite_version
 
@@ -41,6 +41,7 @@ class EESSI_Mixin(RegressionMixin):
     # Set defaults for these class variables, can be overwritten by child class if desired
     measure_memory_usage = variable(bool, value=False)
     exact_memory = variable(bool, value=False)
+    user_executable_opts = variable(str, value='')
     scale = parameter(SCALES.keys())
     bench_name = None
     bench_name_ci = None
@@ -81,17 +82,11 @@ class EESSI_Mixin(RegressionMixin):
 
     # Helper function to validate if an attribute is present it item_dict.
     # If not, print it's current name, value, and the valid_values
-    def validate_item_in_dict(self, item, item_dict, check_keys=False):
+    def EESSI_mixin_validate_item_in_list(self, item, valid_items):
         """
-        Check if the item 'item' exist in the values of 'item_dict'.
-        If check_keys=True, then it will check instead of 'item' exists in the keys of 'item_dict'.
+        Check if the item 'item' exist in the values of 'valid_items'.
         If item is not found, an error will be raised that will mention the valid values for 'item'.
         """
-        if check_keys:
-            valid_items = list(item_dict.keys())
-        else:
-            valid_items = list(item_dict.values())
-
         value = getattr(self, item)
         if value not in valid_items:
             if len(valid_items) == 1:
@@ -101,7 +96,7 @@ class EESSI_Mixin(RegressionMixin):
             raise ReframeFatalError(msg)
 
     @run_after('init')
-    def validate_init(self):
+    def EESSI_mixin_validate_init(self):
         """Check that all variables that have to be set for subsequent hooks in the init phase have been set"""
         # List which variables we will need/use in the run_after('init') hooks
         var_list = ['device_type', 'scale', 'module_name', 'measure_memory_usage']
@@ -113,13 +108,13 @@ class EESSI_Mixin(RegressionMixin):
 
         # Check that the value for these variables is valid,
         # i.e. exists in their respective dict from eessi.testsuite.constants
-        self.validate_item_in_dict('device_type', DEVICE_TYPES)
-        self.validate_item_in_dict('scale', SCALES, check_keys=True)
-        self.validate_item_in_dict('valid_systems', {'valid_systems': ['*']})
-        self.validate_item_in_dict('valid_prog_environs', {'valid_prog_environs': ['default']})
+        self.EESSI_mixin_validate_item_in_list('device_type', DEVICE_TYPES[:])
+        self.EESSI_mixin_validate_item_in_list('scale', SCALES.keys())
+        self.EESSI_mixin_validate_item_in_list('valid_systems', [['*']])
+        self.EESSI_mixin_validate_item_in_list('valid_prog_environs', [['default']])
 
     @run_after('init')
-    def run_after_init(self):
+    def EESSI_mixin_run_after_init(self):
         """Hooks to run after init phase"""
 
         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
@@ -133,7 +128,7 @@ class EESSI_Mixin(RegressionMixin):
         hooks.set_tag_scale(self)
 
     @run_before('setup', always_last=True)
-    def measure_mem_usage(self):
+    def EESSI_mixin_measure_mem_usage(self):
         if self.measure_memory_usage:
             hooks.measure_memory_usage(self)
             # Since we want to do this conditionally on self.measure_mem_usage, we use make_performance_function
@@ -141,18 +136,27 @@ class EESSI_Mixin(RegressionMixin):
             self.perf_variables['memory'] = make_performance_function(hooks.extract_memory_usage, 'MiB', self)
 
     @run_after('init', always_last=True)
-    def set_tag_ci(self):
-        "Set CI tag if bench_name_ci and bench_name are set and are equal"
+    def EESSI_mixin_set_tag_ci(self):
+        """
+        Set CI tag if bench_name_ci and bench_name are set and are equal
+        Also set tag on bench_name if set
+        """
+        tags_added = False
         if self.bench_name_ci:
             if not self.bench_name:
                 msg = "Attribute bench_name_ci is set, but bench_name is not set"
                 raise ReframeFatalError(msg)
             if self.bench_name == self.bench_name_ci:
-                self.tags.add(TAGS['CI'])
-                log(f'tags set to {self.tags}')
+                self.tags.add(TAGS.CI)
+                tags_added = True
+        if self.bench_name:
+            self.tags.add(self.bench_name)
+            tags_added = True
+        if tags_added:
+            log(f'tags set to {self.tags}')
 
     @run_after('setup')
-    def validate_setup(self):
+    def EESSI_mixin_validate_setup(self):
         """Check that all variables that have to be set for subsequent hooks in the setup phase have been set"""
         var_list = ['compute_unit']
         for var in var_list:
@@ -172,10 +176,10 @@ class EESSI_Mixin(RegressionMixin):
 
         # Check that the value for these variables is valid
         # i.e. exists in their respective dict from eessi.testsuite.constants
-        self.validate_item_in_dict('compute_unit', COMPUTE_UNIT)
+        self.EESSI_mixin_validate_item_in_list('compute_unit', COMPUTE_UNITS[:])
 
     @run_after('setup')
-    def assign_tasks_per_compute_unit(self):
+    def EESSI_mixin_assign_tasks_per_compute_unit(self):
         """Call hooks to assign tasks per compute unit, set OMP_NUM_THREADS, and set compact process binding"""
         hooks.assign_tasks_per_compute_unit(test=self, compute_unit=self.compute_unit,
                                             num_per=self.num_tasks_per_compute_unit)
@@ -187,12 +191,12 @@ class EESSI_Mixin(RegressionMixin):
         hooks.set_compact_process_binding(self)
 
     @run_after('setup')
-    def request_mem(self):
+    def EESSI_mixin_request_mem(self):
         """Call hook to request the required amount of memory per node"""
         hooks.req_memory_per_node(self, app_mem_req=self.required_mem_per_node())
 
     @run_after('setup')
-    def log_runtime_info(self):
+    def EESSI_mixin_log_runtime_info(self):
         """Log additional runtime information: which CVMFS repo was used (or if it was testing local software),
         path to the modulefile, EESSI software subdir, EESSI testsuite version"""
         self.postrun_cmds.append('echo "EESSI_CVMFS_REPO: $EESSI_CVMFS_REPO"')
@@ -202,8 +206,16 @@ class EESSI_Mixin(RegressionMixin):
             get_full_modpath = f'echo "FULL_MODULEPATH: $(module --location show {self.module_name})"'
             self.postrun_cmds.append(get_full_modpath)
 
+    @run_before('run', always_last=True)
+    def EESSI_mixin_set_user_executable_opts(self):
+        "Override executable_opts with user_executable_opts if set on the cmd line"
+        if self.user_executable_opts:
+            log(f'Overwriting executable_opts {self.executable_opts} by executable_opts '
+                'specified on cmd line {[self.user_executable_opts]}')
+            self.executable_opts = [self.user_executable_opts]
+
     @run_after('run')
-    def extract_runtime_info_from_log(self):
+    def EESSI_mixin_extract_runtime_info_from_log(self):
         """Extracts the printed runtime info from the job log and logs it as reframe variables"""
         if self.is_dry_run():
             return

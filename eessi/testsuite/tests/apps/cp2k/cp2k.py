@@ -2,7 +2,7 @@ import reframe as rfm
 from reframe.core.builtins import parameter, run_after, performance_function, sanity_function
 import reframe.utility.sanity as sn
 
-from eessi.testsuite.constants import SCALES, COMPUTE_UNIT, DEVICE_TYPES, CPU
+from eessi.testsuite.constants import SCALES, COMPUTE_UNITS, DEVICE_TYPES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules
 
@@ -22,8 +22,8 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     executable = 'cp2k.popt'
     time_limit = '2h'
-    device_type = DEVICE_TYPES[CPU]
-    compute_unit = COMPUTE_UNIT[CPU]
+    device_type = DEVICE_TYPES.CPU
+    compute_unit = COMPUTE_UNITS.CPU
     bench_name_ci = 'QS/H2O-32'  # set CI on smallest benchmark
     readonly_files = ['QS']
 
