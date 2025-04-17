@@ -57,6 +57,8 @@ site_configuration = {
             'descr': 'Hortense',
             'hostnames': ['login.*.dodrio.os'],
             'modules_system': 'lmod',
+            # Need to set the environment variable to be able to submit to GPU_partitions
+            # see https://github.com/EESSI/test-suite/issues/242
             'env_vars': [['SLURM_CONF', '/etc/slurm/slurm.conf_dodrio']],
             'partitions': [
                 {
@@ -263,7 +265,6 @@ site_configuration = {
     'general': [
         {
             'remote_detect': True,
-            # Purge_environment needs to be false see https://github.com/EESSI/test-suite/issues/242
             'purge_environment': True,
             'resolve_module_conflicts': False,  # avoid loading the module before submitting the job
             **common_general_config()
