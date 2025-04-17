@@ -57,7 +57,7 @@ site_configuration = {
             'descr': 'Hortense',
             'hostnames': ['login.*.dodrio.os'],
             'modules_system': 'lmod',
-            'env_vars': [['SLURM_CONF','/etc/slurm/slurm.conf_dodrio']],
+            'env_vars': [['SLURM_CONF', '/etc/slurm/slurm.conf_dodrio']],
             'partitions': [
                 {
                     'name': 'cpu_rome',
@@ -147,7 +147,7 @@ site_configuration = {
                     'name': 'gpu_rome_a100_40',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
-                        prepare_eessi_init, 
+                        prepare_eessi_init,
                         common_eessi_init(),
                     ],
                     'access': hortense_access + ['--partition=gpu_rome_a100_40'],
@@ -190,7 +190,7 @@ site_configuration = {
                     'name': 'gpu_rome_a100_80',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
-                        prepare_eessi_init, 
+                        prepare_eessi_init,
                         common_eessi_init(),
                     ],
                     'access': hortense_access + ['--partition=gpu_rome_a100_80'],
