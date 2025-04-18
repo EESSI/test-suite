@@ -49,10 +49,10 @@ site_configuration = {
                     # We recommend to rely on ReFrame's CPU autodetection,
                     # and only define the 'processor' field if autodetection fails
                     # 'processor': {
-                        # 'num_cpus': 128,
-                        # 'num_sockets': 2,
-                        # 'num_cpus_per_socket': 64,
-                        # 'num_cpus_per_core': 1,
+                    #     'num_cpus': 128,
+                    #     'num_sockets': 2,
+                    #     'num_cpus_per_socket': 64,
+                    #     'num_cpus_per_core': 1,
                     # },
                     'resources': [
                         {
