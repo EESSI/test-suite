@@ -31,6 +31,7 @@ import reframe as rfm
 import os
 from reframe.core.builtins import parameter, run_after  # added only to make the linter happy
 import reframe.utility.sanity as sn
+from reframe.core.backends import getlauncher
 
 
 from eessi.testsuite import hooks
@@ -38,50 +39,31 @@ from eessi.testsuite.constants import COMPUTE_UNIT, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules, log
 
-class EESSI_OPENFOAM_base(rfm.RunOnlyRegressionTest):
-    """ Base class for the OpenFOAM test case."""
-    valid_prog_environs = ['default']
-    executable = 'cp'
-    local = True # Required to prevent the parallel launcher to be used.
-    time_limit = '30m'
-    readonly_files = ['']
-    device_type = DEVICE_TYPES['CPU']
-    module_name = parameter(find_modules('OpenFOAM'))
 
-    def required_mem_per_node(self):
-        return self.num_tasks_per_node * 2048
+def filter_scales_8M():
+    """
+    Filtering function for filtering scales for the collective OSU test
+    returns all scales with at least 2 cores
+    """
+    return [
+        k for (k, v) in SCALES.items()
+        if (v['num_nodes'] > 1) and (v.get('node_part', 0) == 1)
+    ]
 
-    @run_after('init')
-    def set_compute_unit(self):
-        """
-        Set the compute unit to which tasks will be assigned:
-        one task per CPU core for CPU runs, and one task per GPU for GPU runs.
-        """
-        if self.device_type == DEVICE_TYPES['CPU']:
-            self.compute_unit = COMPUTE_UNIT['CPU']
-        else:
-            msg = f"No mapping of device type {self.device_type} to a COMPUTE_UNIT was specified in this test"
-            raise NotImplementedError(msg)
-
-    @run_after('setup')
-    def set_executable_opts(self):
-        self.executable_opts = ['-r','./cavity3D/8M/fixedTol',f'{self.stagedir}']
-
-    @sanity_function
-    def validate_copy(self):
-        return sn.assert_eq(self.job.exitcode, 0)
 
 @rfm.simple_test
-class EESSI_OPENFOAM_create_blockMesh(rfm.RunOnlyRegressionTest, EESSI_Mixin):
+class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     """ This class will be used as a fixture for creating a block mesh. """
-    ldc_8M = fixture(EESSI_OPENFOAM_base, scope='partition')
-    exectuable = 'blockMesh'
-    executable_opts = ['2>&1', '|', 'tee log.blockMesh']
-    local = True # Required to prevent the parallel launcher to be used.
-    time_limit = '30m'
+#    ldc_8M = fixture(EESSI_OPENFOAM_base, scope='partition')
+    executable = 'icoFoam'
+    executable_opts = ['-parallel', '2>&1', '|', 'tee log.icofoam']
+    time_limit = '60m'
     readonly_files = ['']
-    device_type = DEVICE_TYPES['CPU']
-    module_name = parameter(find_modules('OpenFOAM'))
+    device_type = parameter([DEVICE_TYPES['CPU']])
+    module_name = parameter(find_modules('OpenFOAM/v', name_only=False))
+    valid_systems  = ['*']
+    scale = parameter(filter_scales_8M())
+
 
     @run_after('init')
     def set_compute_unit(self):
@@ -96,119 +78,79 @@ class EESSI_OPENFOAM_create_blockMesh(rfm.RunOnlyRegressionTest, EESSI_Mixin):
             raise NotImplementedError(msg)
 
     def required_mem_per_node(self):
-        return self.num_tasks_per_node * 2048
+        return 2048
+
+    @run_after('setup')
+    def check_launcher_options(self):
+        if(self.job.launcher.command(self.job)[0] == 'mpirun'):
+            self.launcher_command =  self.job.launcher.command(self.job)
+            self.launcher_command[-1] = str(self.num_tasks_per_node * self.num_nodes)
+        elif(self.job.launcher.command(self.job)[0] == 'srun'):
+            self.launcher_command = self.job.launcher.command(self.job)
+        else:
+            self.skip(msg="The chosen launcher for this test is different from mpirun or srun which means that the\
+                    the test will definitely fail, therefore skipping this test.")
 
     @run_before('run')
     def prepare_environment(self):
-        fullpath = os.path.join(self.ldc_8M.stagedir, 'fixedTol')
+        # fullpath = os.path.join(self.ldc_8M.stagedir, 'fixedTol')
         self.prerun_cmds=[
-            f'cp -r {fullpath} {self.stagedir}',
-            f'cd {self.stagedir}',
+            f'cd ./cavity3D/8M/fixedTol',
             'source $FOAM_BASH',
-            f'foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} system/decomposeParDict'
+            f'foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} system/decomposeParDict',
+            'blockMesh 2>&1 | tee log.blockMesh',
+            f"{' '.join(self.launcher_command)} redistributePar -decompose -parallel 2>&1 | tee log.decompose",
+            f"{' '.join(self.launcher_command)} renumberMesh -parallel -overwrite 2>&1 | tee log.renumberMesh"
                 ]
 
-    @sanity_function
-    def validate_blockMesh():
-        """ blockMesh output finalize."""
+    @deferrable
+    def check_files(self):
+        ''' Check for all the log files present. '''
+        return (sn.path_isfile("./cavity3D/8M/fixedTol/log.blockMesh") and
+                sn.path_isfile("./cavity3D/8M/fixedTol/log.decompose") and
+                sn.path_isfile("./cavity3D/8M/fixedTol/log.renumberMesh") and
+                sn.path_isfile("./cavity3D/8M/fixedTol/log.icofoam") )
 
-# @rfm.simple_test
-# class EESSI_OPENFOAM_decomposeMesh(EESSI_Mixin):
-#     """ This class will be used as a fixture to decompose the mesh across the MPI processes."""
-#     ldc_8M_blockMesh = fixture(EESSI_OPENFOAM_create_blockMesh, scope='partition')
-#     executable = 'redistributePar'
-#     executable_opts = ['-decompose', '-parallel', '2&>1', '|', 'tee', 'log.decompose']
-#     module_name=ldc_8M_blockMesh.module_name
-# 
-#     @run_before('run')
-#     def prepare_environment(self):
-#         fullpath = os.path.join(self.ldc_8M_blockMesh.stagedir, 'fixedTol')
-#         self.prerun_cmds=[
-#             f'cp -r {fullpath} {self.stagedir}',
-#             f'cd {self.stagedir}',
-#             'source $FOAM_BASH',
-#             f'foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} system/decomposeParDict'
-#                 ]
-# 
-#     @sanity_function
-#     def validate_decomposeMesh():
-#         """ blockMesh output finalize."""
-# 
-# class EESSI_OPENFOAM_renumberMesh(EESSI_Mixin):
-#     """ This class will be used as a fixture to re-number the mesh so that the coefficient matrix is efficiently stored
-#     in memory."""
-#     ldc_8M_decomposeMesh = fixture(EESSI_OPENFOAM_decomposeMesh, scope='parition')
-#     executable = 'renumberMesh'
-#     executable_opts = ['-parallel' '-overwrite' '2>&1' '|' 'tee' 'log.renumberMesh']
-# 
-#     @run_before('run')
-#     def prepare_environment(self):
-#         fullpath = os.path.join(self.ldc_8M_decomposeMesh.stagedir, 'fixedTol')
-#         self.stagedir = fullpath
-#         self.prerun_cmds=[
-#             'source $FOAM_BASH',
-#             f'foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} system/decomposeParDict'
-#                 ]
-# 
-#     @sanity_function
-#     def validate_renumberMesh():
-#         """ blockMesh output finalize."""
-# 
-# 
-# @rfm.simple_test
-# class EESSI_OPENFOAM(EESSI_OPENFOAM_base, EESSI_Mixin):
-#     """ This class executes the icofoam test case which essentially stands for incompressible flow solver for the
-#     Navier-Stokes equations. The system that is setup is Lid-Driven Cavity."""
-#     scale = parameter(SCALES.keys())
-#     time_limit = '30m'
-#     module_name = parameter(find_modules('OpenFOAM/v'))
-#     bench_name_ci = 'lid_driven_cavity'
-#     # input files are downloaded
-#     readonly_files = ['']
-# 
-#     def required_mem_per_node(self):
-#         return self.num_tasks_per_node * 1024
-# 
-#     @run_after('init')
-#     def set_compute_unit(self):
-#         """
-#         Set the compute unit to which tasks will be assigned:
-#         one task per CPU core for CPU runs, and one task per GPU for GPU runs.
-#         """
-#         if self.device_type == DEVICE_TYPES['CPU']:
-#             self.compute_unit = COMPUTE_UNIT['CPU']
-#         else:
-#             msg = f"No mapping of device type {self.device_type} to a COMPUTE_UNIT was specified in this test"
-#             raise NotImplementedError(msg)
-# 
-#     @run_after('setup')
-#     def set_executable_opts(self):
-#         """
-#         Add extra executable_opts, unless specified via --setvar executable_opts=<x>
-#         Set default executable_opts and support setting custom executable_opts on the cmd line.
-#         """
-# 
-#         num_default = 4  # normalized number of executable opts added by parent class (gromacs_check)
-#         hooks.check_custom_executable_opts(self, num_default=num_default)
-#         if not self.has_custom_executable_opts:
-#             self.executable_opts += ['-dlb', 'yes', '-npme', '-1']
-#             log(f'executable_opts set to {self.executable_opts}')
-# 
-#     @run_after('setup')
-#     def set_omp_num_threads(self):
-#         """
-#         Set number of OpenMP threads.
-#         Set both OMP_NUM_THREADS and -ntomp explicitly to avoid conflicting values.
-#         Set default number of OpenMP threads equal to number of CPUs per task.
-#         Also support setting OpenMP threads on the cmd line via custom executable option '-ntomp'.
-#         """
-# 
-#         if '-ntomp' in self.executable_opts:
-#             omp_num_threads = self.executable_opts[self.executable_opts.index('-ntomp') + 1]
-#         else:
-#             omp_num_threads = self.num_cpus_per_task
-#             self.executable_opts += ['-ntomp', str(omp_num_threads)]
-#             log(f'executable_opts set to {self.executable_opts}')
-# 
-#         self.env_vars['OMP_NUM_THREADS'] = omp_num_threads
-#         log(f'env_vars set to {self.env_vars}')
+
+    @deferrable
+    def assert_completion(self):
+        n_ranks = sn.count(sn.extractall(
+            '^Processor (?P<rank>[0-9]+)',"./cavity3D/8M/fixedTol/log.decompose", tag='rank'))
+        return (sn.assert_found("^Writing polyMesh with 0 cellZones","./cavity3D/8M/fixedTol/log.blockMesh",
+                                msg="BlockMesh failure.") and
+                sn.assert_found("\s+nCells: 8000000","./cavity3D/8M/fixedTol/log.blockMesh",
+                                msg="BlockMesh failure.") and
+                sn.assert_eq(n_ranks,self.num_tasks) and
+                sn.assert_found("^Finalising parallel run","./cavity3D/8M/fixedTol/log.renumberMesh",
+                                msg="Did not reach the end of the renumberMesh run. RenumberMesh failure.") and
+                sn.assert_found("^Time = 0.0075","./cavity3D/8M/fixedTol/log.icofoam",
+                                msg="Did not reach the last time step. IcoFoam failure.") and
+                sn.assert_found("^Finalising parallel run","./cavity3D/8M/fixedTol/log.icofoam",
+                                msg="Did not reach the end of the icofoam run. IcoFoam failure.") )
+
+
+    @deferrable
+    def assert_convergence(self):
+        cumulative_cont_err = sn.extractall(r'cumulative = (?P<cont>\S+)',"./cavity3D/8M/fixedTol/log.icofoam",
+                                            'cont', float)
+        abs_cumulative_cont_err = sn.abs(cumulative_cont_err[-1])
+        return sn.assert_le(abs_cumulative_cont_err, 1e-15,
+                            msg="The cumulative continuity errors are high. Try varying pressure solver.")
+
+
+    @performance_function('s/timestep')
+    def perf(self):
+        perftimes = sn.extractall(r'ClockTime = (?P<perf>\S+)',"./cavity3D/8M/fixedTol/log.icofoam", 'perf',
+                                  float)
+        seconds_per_timestep = perftimes[-1]/15.0
+        return seconds_per_timestep
+
+
+    @sanity_function
+    def assert_sanity(self):
+        '''Check all sanity criteria'''
+        return sn.all([
+            self.check_files(),
+            self.assert_completion(),
+            self.assert_convergence(),
+        ])
