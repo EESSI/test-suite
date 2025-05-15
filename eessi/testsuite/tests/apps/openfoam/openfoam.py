@@ -28,8 +28,8 @@ See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 """
 
 import reframe as rfm
+# added only to make the linter happy
 from reframe.core.builtins import deferrable, parameter, run_after, run_before, sanity_function, performance_function
-  # added only to make the linter happy
 import reframe.utility.sanity as sn
 from eessi.testsuite.constants import COMPUTE_UNIT, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
