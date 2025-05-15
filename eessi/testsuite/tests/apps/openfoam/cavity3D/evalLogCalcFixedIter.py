@@ -31,7 +31,7 @@ def main():
               nTimes, "has been evaluated from the logfile\n")
     print("Assumption: the linear solver is executed twice for the p eq.",
           "(nCorrectors 2)")
-    print("nMeanUIter =", int(round(np.mean(df.nUIter)/3)),
+    print("nMeanUIter =", int(round(np.mean(df.nUIter) / 3)),
           "evaluated from", len(df.nUIter), "time steps")
     print("iter_start =", iter_start,
           "evaluated from", len(df.nPIter), "time steps")
