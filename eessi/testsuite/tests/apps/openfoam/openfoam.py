@@ -93,10 +93,11 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     @run_before('run')
     def prepare_environment(self):
         # fullpath = os.path.join(self.ldc_8M.stagedir, 'fixedTol')
-        self.prerun_cmds= [
+        self.prerun_cmds = [
             'cd ./cavity3D/8M/fixedTol',
             'source $FOAM_BASH',
-            f'foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} system/decomposeParDict',
+            f'foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} system/decompose\
+                    ParDict',
             'blockMesh 2>&1 | tee log.blockMesh',
             f"{' '.join(self.launcher_command)} redistributePar -decompose -parallel 2>&1 | tee log.decompose",
             f"{' '.join(self.launcher_command)} renumberMesh -parallel -overwrite 2>&1 | tee log.renumberMesh"]
@@ -114,16 +115,16 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         n_ranks = sn.count(sn.extractall(
             '^Processor (?P<rank>[0-9]+)', "./cavity3D/8M/fixedTol/log.decompose", tag='rank'))
         return (sn.assert_found("^Writing polyMesh with 0 cellZones", "./cavity3D/8M/fixedTol/log.blockMesh",
-                                msg ="BlockMesh failure.")
+                                msg="BlockMesh failure.")
                 and sn.assert_found(r"\s+nCells: 8000000", "./cavity3D/8M/fixedTol/log.blockMesh",
-                                    msg ="BlockMesh failure.")
+                                    msg="BlockMesh failure.")
                 and sn.assert_eq(n_ranks, self.num_tasks)
                 and sn.assert_found(r"^Finalising parallel run", "./cavity3D/8M/fixedTol/log.renumberMesh",
-                                    msg ="Did not reach the end of the renumberMesh run. RenumberMesh failure.")
+                                    msg="Did not reach the end of the renumberMesh run. RenumberMesh failure.")
                 and sn.assert_found(r"^Time = 0.0075", "./cavity3D/8M/fixedTol/log.icofoam",
-                                    msg ="Did not reach the last time step. IcoFoam failure.")
+                                    msg="Did not reach the last time step. IcoFoam failure.")
                 and sn.assert_found(r"^Finalising parallel run", "./cavity3D/8M/fixedTol/log.icofoam",
-                                    msg ="Did not reach the end of the icofoam run. IcoFoam failure."))
+                                    msg="Did not reach the end of the icofoam run. IcoFoam failure."))
 
     @deferrable
     def assert_convergence(self):
