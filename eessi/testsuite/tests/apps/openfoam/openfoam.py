@@ -34,13 +34,13 @@ import reframe.utility.sanity as sn
 
 from eessi.testsuite.constants import COMPUTE_UNIT, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
-from eessi.testsuite.utils import find_modules, log
+from eessi.testsuite.utils import find_modules
 
 
 def filter_scales_8M():
     """
-    Filtering function for filtering scales for the collective OSU test
-    returns all scales with at least 2 cores
+    Filtering function for filtering scales for the OpenFOAM 8M mesh test
+    returns all scales with at least 2 nodes.
     """
     return [
         k for (k, v) in SCALES.items()
@@ -50,7 +50,10 @@ def filter_scales_8M():
 
 @rfm.simple_test
 class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
-    """ This class will be used as a fixture for creating a block mesh. """
+    """
+    This is the main OPENFOAM class for the Lid-driven cavity test. The test consists of many steps which are run as
+    pre-run commands and the main test with the executable `icoFoam` is measured for performance.
+    """
 #    ldc_8M = fixture(EESSI_OPENFOAM_base, scope='partition')
     executable = 'icoFoam'
     executable_opts = ['-parallel', '2>&1', '|', 'tee log.icofoam']
@@ -66,7 +69,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     def set_compute_unit(self):
         """
         Set the compute unit to which tasks will be assigned:
-        one task per CPU core for CPU runs, and one task per GPU for GPU runs.
+        one task per CPU core for CPU runs.
         """
         if self.device_type == DEVICE_TYPES['CPU']:
             self.compute_unit = COMPUTE_UNIT['CPU']
@@ -75,7 +78,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
             raise NotImplementedError(msg)
 
     def required_mem_per_node(self):
-        return 2048
+        return self.num_tasks_per_node * 1700
 
     @run_after('setup')
     def check_launcher_options(self):
@@ -103,45 +106,41 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     @deferrable
     def check_files(self):
         ''' Check for all the log files present. '''
-        return (sn.path_isfile("./cavity3D/8M/fixedTol/log.blockMesh") and
-                sn.path_isfile("./cavity3D/8M/fixedTol/log.decompose") and
-                sn.path_isfile("./cavity3D/8M/fixedTol/log.renumberMesh") and
-                sn.path_isfile("./cavity3D/8M/fixedTol/log.icofoam") )
-
+        return (sn.path_isfile("./cavity3D/8M/fixedTol/log.blockMesh")
+                and sn.path_isfile("./cavity3D/8M/fixedTol/log.decompose")
+                and sn.path_isfile("./cavity3D/8M/fixedTol/log.renumberMesh")
+                and sn.path_isfile("./cavity3D/8M/fixedTol/log.icofoam") )
 
     @deferrable
     def assert_completion(self):
         n_ranks = sn.count(sn.extractall(
-            '^Processor (?P<rank>[0-9]+)',"./cavity3D/8M/fixedTol/log.decompose", tag='rank'))
-        return (sn.assert_found("^Writing polyMesh with 0 cellZones","./cavity3D/8M/fixedTol/log.blockMesh",
-                                msg="BlockMesh failure.") and
-                sn.assert_found(r"\s+nCells: 8000000","./cavity3D/8M/fixedTol/log.blockMesh",
-                                msg="BlockMesh failure.") and
-                sn.assert_eq(n_ranks,self.num_tasks) and
-                sn.assert_found(r"^Finalising parallel run","./cavity3D/8M/fixedTol/log.renumberMesh",
-                                msg="Did not reach the end of the renumberMesh run. RenumberMesh failure.") and
-                sn.assert_found(r"^Time = 0.0075","./cavity3D/8M/fixedTol/log.icofoam",
-                                msg="Did not reach the last time step. IcoFoam failure.") and
-                sn.assert_found(r"^Finalising parallel run","./cavity3D/8M/fixedTol/log.icofoam",
+            '^Processor (?P<rank>[0-9]+)', "./cavity3D/8M/fixedTol/log.decompose", tag='rank'))
+        return (sn.assert_found("^Writing polyMesh with 0 cellZones", "./cavity3D/8M/fixedTol/log.blockMesh",
+                                msg="BlockMesh failure.")
+                 and sn.assert_found(r"\s+nCells: 8000000", "./cavity3D/8M/fixedTol/log.blockMesh",
+                                msg="BlockMesh failure.")
+                 and sn.assert_eq(n_ranks, self.num_tasks)
+                 and sn.assert_found(r"^Finalising parallel run", "./cavity3D/8M/fixedTol/log.renumberMesh",
+                                msg="Did not reach the end of the renumberMesh run. RenumberMesh failure.")
+                 and sn.assert_found(r"^Time = 0.0075", "./cavity3D/8M/fixedTol/log.icofoam",
+                                msg="Did not reach the last time step. IcoFoam failure.")
+                 and sn.assert_found(r"^Finalising parallel run", "./cavity3D/8M/fixedTol/log.icofoam",
                                 msg="Did not reach the end of the icofoam run. IcoFoam failure.") )
-
 
     @deferrable
     def assert_convergence(self):
-        cumulative_cont_err = sn.extractall(r'cumulative = (?P<cont>\S+)',"./cavity3D/8M/fixedTol/log.icofoam",
+        cumulative_cont_err = sn.extractall(r'cumulative = (?P<cont>\S+)', "./cavity3D/8M/fixedTol/log.icofoam",
                                             'cont', float)
         abs_cumulative_cont_err = sn.abs(cumulative_cont_err[-1])
         return sn.assert_le(abs_cumulative_cont_err, 1e-15,
                             msg="The cumulative continuity errors are high. Try varying pressure solver.")
 
-
     @performance_function('s/timestep')
     def perf(self):
-        perftimes = sn.extractall(r'ClockTime = (?P<perf>\S+)',"./cavity3D/8M/fixedTol/log.icofoam", 'perf',
+        perftimes = sn.extractall(r'ClockTime = (?P<perf>\S+)', "./cavity3D/8M/fixedTol/log.icofoam", 'perf',
                                   float)
-        seconds_per_timestep = perftimes[-1]/15.0
+        seconds_per_timestep = perftimes[-1] / 15.0
         return seconds_per_timestep
-
 
     @sanity_function
     def assert_sanity(self):
