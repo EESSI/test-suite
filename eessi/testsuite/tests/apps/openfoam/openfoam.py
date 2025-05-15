@@ -28,13 +28,10 @@ See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 """
 
 import reframe as rfm
-import os
 from reframe.core.builtins import parameter, run_after  # added only to make the linter happy
 import reframe.utility.sanity as sn
-from reframe.core.backends import getlauncher
 
 
-from eessi.testsuite import hooks
 from eessi.testsuite.constants import COMPUTE_UNIT, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules, log
@@ -118,14 +115,14 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
             '^Processor (?P<rank>[0-9]+)',"./cavity3D/8M/fixedTol/log.decompose", tag='rank'))
         return (sn.assert_found("^Writing polyMesh with 0 cellZones","./cavity3D/8M/fixedTol/log.blockMesh",
                                 msg="BlockMesh failure.") and
-                sn.assert_found("\s+nCells: 8000000","./cavity3D/8M/fixedTol/log.blockMesh",
+                sn.assert_found(r"\s+nCells: 8000000","./cavity3D/8M/fixedTol/log.blockMesh",
                                 msg="BlockMesh failure.") and
                 sn.assert_eq(n_ranks,self.num_tasks) and
-                sn.assert_found("^Finalising parallel run","./cavity3D/8M/fixedTol/log.renumberMesh",
+                sn.assert_found(r"^Finalising parallel run","./cavity3D/8M/fixedTol/log.renumberMesh",
                                 msg="Did not reach the end of the renumberMesh run. RenumberMesh failure.") and
-                sn.assert_found("^Time = 0.0075","./cavity3D/8M/fixedTol/log.icofoam",
+                sn.assert_found(r"^Time = 0.0075","./cavity3D/8M/fixedTol/log.icofoam",
                                 msg="Did not reach the last time step. IcoFoam failure.") and
-                sn.assert_found("^Finalising parallel run","./cavity3D/8M/fixedTol/log.icofoam",
+                sn.assert_found(r"^Finalising parallel run","./cavity3D/8M/fixedTol/log.icofoam",
                                 msg="Did not reach the end of the icofoam run. IcoFoam failure.") )
 
 
