@@ -87,7 +87,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
             self.launcher_command = self.job.launcher.command(self.job)
         else:
             self.skip(msg="The chosen launcher for this test is different from mpirun or srun which means that the\
-                    the test will definitely fail, therefore skipping this test.")
+                      test will definitely fail, therefore skipping this test.")
 
     @run_before('run')
     def prepare_environment(self):
@@ -95,7 +95,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         self.prerun_cmds = [
             'cd ./cavity3D/8M/fixedTol',
             'source $FOAM_BASH',
-            f"foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} " \
+            f"foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} "
             "system/decomposeParDict",
             'blockMesh 2>&1 | tee log.blockMesh',
             f"{' '.join(self.launcher_command)} redistributePar -decompose -parallel 2>&1 | tee log.decompose",
