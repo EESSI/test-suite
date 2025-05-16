@@ -95,8 +95,8 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         self.prerun_cmds = [
             'cd ./cavity3D/8M/fixedTol',
             'source $FOAM_BASH',
-            f'foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} system/decompose\
-                    ParDict',
+            f"foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} " \
+            "system/decomposeParDict",
             'blockMesh 2>&1 | tee log.blockMesh',
             f"{' '.join(self.launcher_command)} redistributePar -decompose -parallel 2>&1 | tee log.decompose",
             f"{' '.join(self.launcher_command)} renumberMesh -parallel -overwrite 2>&1 | tee log.renumberMesh"]
