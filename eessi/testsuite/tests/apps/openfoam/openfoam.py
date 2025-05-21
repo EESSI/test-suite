@@ -31,7 +31,7 @@ import reframe as rfm
 # added only to make the linter happy
 from reframe.core.builtins import deferrable, parameter, run_after, run_before, sanity_function, performance_function
 import reframe.utility.sanity as sn
-from eessi.testsuite.constants import COMPUTE_UNIT, DEVICE_TYPES, SCALES
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules
 
@@ -58,7 +58,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     executable_opts = ['-parallel', '2>&1', '|', 'tee log.icofoam']
     time_limit = '60m'
     readonly_files = ['']
-    device_type = parameter([DEVICE_TYPES['CPU']])
+    device_type = parameter([DEVICE_TYPES.CPU])
     module_name = parameter(find_modules('OpenFOAM/v', name_only=False))
     valid_systems = ['*']
     scale = parameter(filter_scales_8M())
@@ -69,10 +69,10 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         Set the compute unit to which tasks will be assigned:
         one task per CPU core for CPU runs.
         """
-        if self.device_type == DEVICE_TYPES['CPU']:
-            self.compute_unit = COMPUTE_UNIT['CPU']
+        if self.device_type == DEVICE_TYPES.CPU:
+            self.compute_unit = COMPUTE_UNITS.CPU
         else:
-            msg = f"No mapping of device type {self.device_type} to a COMPUTE_UNIT was specified in this test"
+            msg = f"No mapping of device type {self.device_type} to a COMPUTE_UNITS was specified in this test"
             raise NotImplementedError(msg)
 
     def required_mem_per_node(self):
