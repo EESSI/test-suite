@@ -41,14 +41,14 @@ site_configuration = {
                         }
                     ],
                     'features': [
-                        FEATURES[CPU],
+                        FEATURES.CPU,
                     ] + list(SCALES.keys()),
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
                         # NB: Deucalion's MaxMemPerNode is undefined. Experimentally I found you cannot submit with
                         # more than --mem=30000M
-                        'mem_per_node': 30000  # in MiB
+                        EXTRAS.MEM_PER_NODE: 30000  # in MiB
                     },
                     'descr': 'CPU ARM A64FX partition, see https://docs.macc.fccn.pt/deucalion/#compute-nodes'
                 },

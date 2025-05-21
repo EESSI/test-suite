@@ -4,8 +4,7 @@ on: [push, pull_request, workflow_dispatch]
 permissions: read-all
 jobs:
   test_fallback_version_against_tags:
-    # ubuntu <= 20.04 is required for python 3.6
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
     steps:

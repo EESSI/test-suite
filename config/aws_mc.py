@@ -13,7 +13,7 @@
 import os
 
 from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
-from eessi.testsuite.constants import FEATURES, SCALES
+from eessi.testsuite.constants import EXTRAS, FEATURES, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
 # Override with RFM_PREFIX environment variable
@@ -97,7 +97,7 @@ partition_defaults = {
     'launcher': 'mpirun',
     'environs': ['default'],
     'features': [
-        FEATURES['CPU']
+        FEATURES.CPU
     ] + list(SCALES.keys()),
     'prepare_cmds': [
         common_eessi_init(),
@@ -114,7 +114,7 @@ partition_defaults = {
     'extras': {
         # Node types have somewhat varying amounts of memory, but we'll make it easy on ourselves
         # All should _at least_ have this amount (30GB * 1E9 / (1024*1024) = 28610 MiB)
-        'mem_per_node': 28610
+        EXTRAS.MEM_PER_NODE: 28610
     },
     'max_jobs': 1,
 }

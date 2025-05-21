@@ -57,6 +57,9 @@ site_configuration = {
             'descr': 'Hortense',
             'hostnames': ['login.*.dodrio.os'],
             'modules_system': 'lmod',
+            # Need to set the environment variable to be able to submit to GPU_partitions
+            # see https://github.com/EESSI/test-suite/issues/242
+            'env_vars': [['SLURM_CONF', '/etc/slurm/slurm.conf_dodrio']],
             'partitions': [
                 {
                     'name': 'cpu_rome',
@@ -78,12 +81,12 @@ site_configuration = {
                         }
                     ],
                     'features': [
-                        FEATURES[CPU],
+                        FEATURES.CPU,
                     ] + list(SCALES.keys()),
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 252160,  # in MiB
+                        EXTRAS.MEM_PER_NODE: 252160,  # in MiB
                     },
                 },
                 {
@@ -106,12 +109,12 @@ site_configuration = {
                         }
                     ],
                     'features': [
-                        FEATURES[CPU],
+                        FEATURES.CPU,
                     ] + list(SCALES.keys()),
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 508160,  # in MiB
+                        EXTRAS.MEM_PER_NODE: 508160,  # in MiB
                     },
                 },
                 {
@@ -134,18 +137,21 @@ site_configuration = {
                         }
                     ],
                     'features': [
-                        FEATURES[CPU],
+                        FEATURES.CPU,
                     ] + list(SCALES.keys()),
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 252160,  # in MiB
+                        EXTRAS.MEM_PER_NODE: 252160,  # in MiB
                     },
                 },
                 {
                     'name': 'gpu_rome_a100_40',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
+                    'prepare_cmds': [
+                        prepare_eessi_init,
+                        common_eessi_init(),
+                    ],
                     'access': hortense_access + ['--partition=gpu_rome_a100_40'],
                     'sched_options': {
                         'sched_access_in_submit': True,
@@ -156,13 +162,13 @@ site_configuration = {
                     'launcher': launcher,
                     'modules': [mpi_module.format('gpu_rome_a100_40')],
                     'features': [
-                        FEATURES[GPU],
+                        FEATURES.GPU,
                     ] + list(SCALES.keys()),
                     'extras': {
-                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                        EXTRAS.GPU_VENDOR: GPU_VENDORS.NVIDIA,
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 254400,  # in MiB
+                        EXTRAS.MEM_PER_NODE: 254400,  # in MiB
                     },
                     'resources': [
                         {
@@ -176,7 +182,7 @@ site_configuration = {
                     ],
                     'devices': [
                         {
-                            'type': DEVICE_TYPES[GPU],
+                            'type': DEVICE_TYPES.GPU,
                             'num_devices': 4,
                         }
                     ],
@@ -185,7 +191,10 @@ site_configuration = {
                 {
                     'name': 'gpu_rome_a100_80',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
+                    'prepare_cmds': [
+                        prepare_eessi_init,
+                        common_eessi_init(),
+                    ],
                     'access': hortense_access + ['--partition=gpu_rome_a100_80'],
                     'sched_options': {
                         'sched_access_in_submit': True,
@@ -196,13 +205,13 @@ site_configuration = {
                     'launcher': launcher,
                     'modules': [mpi_module.format('gpu_rome_a100_80')],
                     'features': [
-                        FEATURES[GPU],
+                        FEATURES.GPU,
                     ] + list(SCALES.keys()),
                     'extras': {
-                        GPU_VENDOR: GPU_VENDORS[NVIDIA],
+                        EXTRAS.GPU_VENDOR: GPU_VENDORS.NVIDIA,
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        'mem_per_node': 510720,  # in MiB
+                        EXTRAS.MEM_PER_NODE: 510720,  # in MiB
                     },
                     'resources': [
                         {
@@ -216,7 +225,7 @@ site_configuration = {
                     ],
                     'devices': [
                         {
-                            'type': DEVICE_TYPES[GPU],
+                            'type': DEVICE_TYPES.GPU,
                             'num_devices': 4,
                         }
                     ],
