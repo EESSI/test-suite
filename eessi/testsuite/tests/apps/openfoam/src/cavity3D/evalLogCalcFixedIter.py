@@ -1,6 +1,3 @@
-import os
-import subprocess
-import sys
 import re
 import numpy as np
 import pandas as pd
@@ -24,25 +21,25 @@ def main():
 
     # Extrapolation factor for the iteration number determined empirically
     fac = 2.3
-    iter_start = int(round(np.mean(df.nPIter)/2))
-    iter_run = int(round(iter_start/fac))
+    iter_start = int(round(np.mean(df.nPIter) / 2))
+    iter_run = int(round(iter_start / fac))
 
-    nTimes = len(df.nPIter) 
+    nTimes = len(df.nPIter)
     if nTimes != 15:
         print("\nWARNING: the extrapolation factor for the iteration number is "
-            "legit only for the evaluation invterval of 15 time steps, but",
-            nTimes, "has been evaluated from the logfile\n")
+              "legit only for the evaluation invterval of 15 time steps, but",
+              nTimes, "has been evaluated from the logfile\n")
     print("Assumption: the linear solver is executed twice for the p eq.",
-        "(nCorrectors 2)")
+          "(nCorrectors 2)")
     print("nMeanUIter =", int(round(np.mean(df.nUIter)/3)),
-            "evaluated from", len(df.nUIter), "time steps")
+          "evaluated from", len(df.nUIter), "time steps")
     print("iter_start =", iter_start,
-            "evaluated from", len(df.nPIter), "time steps")
+          "evaluated from", len(df.nPIter), "time steps")
     print("iter_run =", iter_run,
-        "(supply this to maxIter entry in fixedIter/system/fvSolution)")
+          "(supply this to maxIter entry in fixedIter/system/fvSolution)")
 
     if args.saveEval:
-        df.to_csv(args.logfile+'.csv')
+        df.to_csv(args.logfile + '.csv')
 
 
 def addMatch(nIterArr, match):
@@ -51,7 +48,7 @@ def addMatch(nIterArr, match):
 
 def read_logfile(log):
     # String dict for matches
-    regexFloat = "[+-]?(\d+([.]\d*)?(e[+-]?\d+)?|[.]\d+(e[+-]?\d+)?)"
+    regexFloat = r"[+-]?(\d+([.]\d*)?(e[+-]?\d+)?|[.]\d+(e[+-]?\d+)?)"
     matches = {
         "Ux": r".+Ux.+No Iterations ([\w.]+)",
         "Uy": r".+Uy.+No Iterations ([\w.]+)",
@@ -85,14 +82,14 @@ def read_logfile(log):
                         addMatch(runTimes, match)
                         continue
                     elif (key == "Ux"
-                        or key == "Uy"
-                        or key == "Uz"):
+                          or key == "Uy"
+                          or key == "Uz"):
                         addMatch(nUIter, match)
                         continue
                     elif (key == "p"):
                         addMatch(nPIter, match)
                         match =\
-                            re.match(".+Initial residual = "+regexFloat, line)
+                            re.match(".+Initial residual = " + regexFloat, line)
                         pResiduals[-1] = float(match.groups()[0])
                         continue
                     elif (key == "clockDiff"):
@@ -103,8 +100,9 @@ def read_logfile(log):
                         continue
 
     return customSolver, pd.DataFrame({'runTimes': runTimes, 'nUIter': nUIter,
-        'nPIter': nPIter, 'pResiduals': pResiduals, 'times':times,
-        'clockDiffs': clockDiffs})
+                                       'nPIter': nPIter, 'pResiduals': pResiduals, 'times': times,
+                                       'clockDiffs': clockDiffs})
+
 
 if (__name__ == "__main__"):
     main()
