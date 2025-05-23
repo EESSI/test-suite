@@ -86,8 +86,8 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         elif (self.job.launcher.command(self.job)[0] == 'srun'):
             self.launcher_command = self.job.launcher.command(self.job)
         else:
-            self.skip(msg="The chosen launcher for this test is different from mpirun or srun which means that the\
-                      test will definitely fail, therefore skipping this test.")
+            self.skip(msg="The chosen launcher for this test is different from mpirun or srun which means that the"
+                      "test will definitely fail, therefore skipping this test.")
 
     @run_before('run')
     def prepare_environment(self):
