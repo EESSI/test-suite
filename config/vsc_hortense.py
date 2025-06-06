@@ -22,7 +22,6 @@
 # ```
 import os
 
-from reframe.core.backends import register_launcher
 from reframe.core.launchers import JobLauncher
 
 from eessi.testsuite.common_config import (common_eessi_init,
