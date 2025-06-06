@@ -33,17 +33,13 @@ from eessi.testsuite.constants import *  # noqa: F403
 # Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
 hortense_access = ['--export=NONE', '--get-user-env=60L']
 
-
-@register_launcher('mympirun')
-class MyMpirunLauncher(JobLauncher):
-    def command(self, job):
-        return ['mympirun', '--hybrid', str(job.num_tasks_per_node)]
-
-
+# These environment need to be set to avoid orte failures when launching application with `mpirun`
 common_env_vars = [
     ['OMPI_MCA_plm_base_verbose', '100'],
     ['OMPI_MCA_orte_keep_fqdn_hostnames', '1']
 ]
+# We need to pass `--export=NONE` so that we have a clean environment in the jobs
+# We need to unset SLURM_EXPORT_ENV in the job because otherwise this causes problems for `mpirun`
 post_init = 'unset SLURM_EXPORT_ENV'
 launcher = "mpirun"
 
