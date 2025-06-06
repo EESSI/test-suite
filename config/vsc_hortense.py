@@ -22,8 +22,6 @@
 # ```
 import os
 
-from reframe.core.launchers import JobLauncher
-
 from eessi.testsuite.common_config import (common_eessi_init,
                                            common_general_config,
                                            common_logging_config)
@@ -65,7 +63,7 @@ site_configuration = {
                     'name': 'cpu_rome',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
-                        prepare_eessi_init, 
+                        prepare_eessi_init,
                         common_eessi_init(),
                         post_init,
                     ],
