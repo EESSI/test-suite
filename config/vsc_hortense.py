@@ -40,14 +40,19 @@ class MyMpirunLauncher(JobLauncher):
         return ['mympirun', '--hybrid', str(job.num_tasks_per_node)]
 
 
+common_env_vars = [
+    ['OMPI_MCA_plm_base_verbose', '100'],
+    ['OMPI_MCA_orte_keep_fqdn_hostnames', '1']
+]
+post_init = 'unset SLURM_EXPORT_ENV'
+launcher = "mpirun"
+
 eessi_cvmfs_repo = os.getenv('EESSI_CVMFS_REPO', None)
 if eessi_cvmfs_repo is not None:
     prepare_eessi_init = "module --force purge"
-    launcher = "mpirun"
     mpi_module = "env/vsc/dodrio/{}"
 else:
     prepare_eessi_init = ""
-    launcher = "mympirun"
     mpi_module = "vsc-mympirun"
 
 site_configuration = {
@@ -64,8 +69,13 @@ site_configuration = {
                 {
                     'name': 'cpu_rome',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
+                    'prepare_cmds': [
+                        prepare_eessi_init, 
+                        common_eessi_init(),
+                        post_init,
+                    ],
                     'access': hortense_access + ['--partition=cpu_rome'],
+                    'env_vars': common_env_vars,
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
@@ -86,14 +96,19 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        EXTRAS.MEM_PER_NODE: 252160,  # in MiB
+                        EXTRAS.MEM_PER_NODE: 243200,  # in MiB
                     },
                 },
                 {
                     'name': 'cpu_rome_512',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
+                    'prepare_cmds': [
+                        prepare_eessi_init,
+                        common_eessi_init(),
+                        post_init,
+                    ],
                     'access': hortense_access + ['--partition=cpu_rome_512'],
+                    'env_vars': common_env_vars,
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
@@ -114,14 +129,19 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        EXTRAS.MEM_PER_NODE: 508160,  # in MiB
+                        EXTRAS.MEM_PER_NODE: 499200,  # in MiB
                     },
                 },
                 {
                     'name': 'cpu_milan',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [prepare_eessi_init, common_eessi_init()],
+                    'prepare_cmds': [
+                        prepare_eessi_init,
+                        common_eessi_init(),
+                        post_init,
+                    ],
                     'access': hortense_access + ['--partition=cpu_milan'],
+                    'env_vars': common_env_vars,
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
@@ -142,7 +162,40 @@ site_configuration = {
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        EXTRAS.MEM_PER_NODE: 252160,  # in MiB
+                        EXTRAS.MEM_PER_NODE: 243200,  # in MiB
+                    },
+                },
+                {
+                    'name': 'cpu_milan_rhel9',
+                    'scheduler': 'slurm',
+                    'prepare_cmds': [
+                        prepare_eessi_init,
+                        common_eessi_init(),
+                        post_init,
+                    ],
+                    'access': hortense_access + ['--partition=cpu_milan_rhel9'],
+                    'env_vars': common_env_vars,
+                    'sched_options': {
+                        'sched_access_in_submit': True,
+                    },
+                    'environs': ['default'],
+                    'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
+                    'max_jobs': 20,
+                    'launcher': launcher,
+                    'modules': [mpi_module.format('cpu_milan_rhel9')],
+                    'resources': [
+                        {
+                            'name': 'memory',
+                            'options': ['--mem={size}'],
+                        }
+                    ],
+                    'features': [
+                        FEATURES.CPU,
+                    ] + list(SCALES.keys()),
+                    'extras': {
+                        # Make sure to round down, otherwise a job might ask for more mem than is available
+                        # per node
+                        EXTRAS.MEM_PER_NODE: 243200,  # in MiB
                     },
                 },
                 {
@@ -151,8 +204,10 @@ site_configuration = {
                     'prepare_cmds': [
                         prepare_eessi_init,
                         common_eessi_init(),
+                        post_init,
                     ],
                     'access': hortense_access + ['--partition=gpu_rome_a100_40'],
+                    'env_vars': common_env_vars,
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
@@ -168,7 +223,7 @@ site_configuration = {
                         EXTRAS.GPU_VENDOR: GPU_VENDORS.NVIDIA,
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        EXTRAS.MEM_PER_NODE: 254400,  # in MiB
+                        EXTRAS.MEM_PER_NODE: 243840,  # in MiB
                     },
                     'resources': [
                         {
@@ -194,8 +249,10 @@ site_configuration = {
                     'prepare_cmds': [
                         prepare_eessi_init,
                         common_eessi_init(),
+                        post_init,
                     ],
                     'access': hortense_access + ['--partition=gpu_rome_a100_80'],
+                    'env_vars': common_env_vars,
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
@@ -211,7 +268,7 @@ site_configuration = {
                         EXTRAS.GPU_VENDOR: GPU_VENDORS.NVIDIA,
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
-                        EXTRAS.MEM_PER_NODE: 510720,  # in MiB
+                        EXTRAS.MEM_PER_NODE: 499680,  # in MiB
                     },
                     'resources': [
                         {
