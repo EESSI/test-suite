@@ -1,6 +1,11 @@
 """
 This module tests the binary icofoam in available modules containing substring 'OPENFOAM'.
 This line of tests target binaries from OpenFOAM from https://www.openfoam.com/ .
+The test is taken from the ExaFOAM project:
+https://develop.openfoam.com/committees/hpc/-/tree/develop/incompressible/icoFoam/cavity3D
+
+License information can be found here:
+https://develop.openfoam.com/committees/hpc/-/blob/develop/incompressible/icoFoam/cavity3D/README.md#copyright
 
 ReFrame terminology:
 
