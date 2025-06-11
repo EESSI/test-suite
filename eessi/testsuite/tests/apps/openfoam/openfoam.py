@@ -48,7 +48,7 @@ def filter_scales_8M():
     """
     return [
         k for (k, v) in SCALES.items()
-        if (v['num_nodes'] > 1) and (v.get('node_part', 0) == 1)
+        if (v['num_nodes'] >= 1) and (0 < v.get('node_part', 0) <= 2)
     ]
 
 
