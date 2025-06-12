@@ -96,7 +96,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
-                    'access': ['-p gpu_a100', '--export=None', '--exclusive'],
+                    'access': ['-p gpu_a100', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 60,
                     'devices': [
@@ -132,7 +132,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
-                    'access': ['-p gpu_h100', '--export=None', '--exclusive'],
+                    'access': ['-p gpu_h100', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 60,
                     'devices': [
