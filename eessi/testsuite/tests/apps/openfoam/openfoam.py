@@ -85,6 +85,10 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     @run_after('setup')
     def check_launcher_options(self):
+        # We had to get the launcher command and prepend this to the prerun steps (func prepare_environment) because:
+        # 1. A typical OpenFOAM job would contain multiple mpirun steps working on the same stage directory.
+        # 2. We had trouble using ReFrame fixtures to separate these over multiple jobs, because we couldn't get it to
+        #    work together with the mixin class.
         if (self.job.launcher.command(self.job)[0] == 'mpirun'):
             self.launcher_command = self.job.launcher.command(self.job)
             self.launcher_command[-1] = str(self.num_tasks_per_node * self.num_nodes)
@@ -93,6 +97,13 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         else:
             self.skip(msg="The chosen launcher for this test is different from mpirun or srun which means that the"
                       "test will definitely fail, therefore skipping this test.")
+
+    @run_after('setup')
+    def check_minimum_cores(self):
+        # The 8M test case requires minimally 8 cores to run within reasonable time.
+        if self.num_tasks < 8:
+            self.skip(msg="The minimum number of cores required by this test is 8. Launch on a scale with higher core"
+                      "count.")
 
     @run_before('run')
     def prepare_environment(self):
