@@ -44,7 +44,7 @@ from eessi.testsuite.utils import find_modules
 def filter_scales_8M():
     """
     Filtering function for filtering scales for the OpenFOAM 8M mesh test
-    returns all scales with at least 2 nodes.
+    returns all scales with at least half a node.
     """
     return [
         k for (k, v) in SCALES.items()
