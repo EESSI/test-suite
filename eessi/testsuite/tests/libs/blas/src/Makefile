@@ -39,13 +39,21 @@
 # Makefile adapted for FlexiBLAS by Samuel Moors (Vrije Universiteit Brussel)
 #
 
-.PHONY: all all-st all-mt all-blis all-flexiblas clean
+REQUIRED_VARS = EBROOTBLIS EBROOTFLEXIBLAS CFLAGS
+
+$(foreach var_name,$(REQUIRED_VARS),\
+	$(if $(value $(var_name)),,\
+		$(error variable '$(var_name)' must be set)\
+	)\
+)
+
+.PHONY: all all-st all-mt all-blis all-flexiblas flexiblas-st flexiblas-mt blis-st blis-mt clean
 
 LIB_PATH   := $(EBROOTBLIS)/lib
 INC_PATH   := $(EBROOTBLIS)/include/blis
-SHARE_PATH := $(EBROOTBLIS)/share/blis
 
-include $(SHARE_PATH)/common.mk
+LIBBLIS_LINK := $(LIB_PATH)/libblis.a
+LDFLAGS += -lm -lpthread -fopenmp -lrt
 
 FLEXIBLAS_LIB := $(EBROOTFLEXIBLAS)/lib/libflexiblas.so
 
@@ -61,9 +69,6 @@ TEST_OBJS      := $(sort $(patsubst $(TEST_SRC_PATH)/%.c, \
 # get-user-cflags-for() is not cluttered up with include paths needed only
 # while building BLIS.
 CINCFLAGS      := -I$(INC_PATH)
-
-# Use the "framework" CFLAGS for the configuration family.
-CFLAGS         := $(call get-user-cflags-for,$(CONFIG_NAME))
 
 # Add local header paths to CFLAGS.
 CFLAGS         += -I$(TEST_SRC_PATH)
@@ -180,7 +185,6 @@ test_%_blis_st.x:     test_%_blis_st.o     $(COMMON_OBJS)
 test_%_blis_mt.x:     test_%_blis_mt.o     $(COMMON_OBJS)
 	$(CC) $(strip $<                    $(COMMON_OBJS) $(LDFLAGS) -o $@)
 
-
 test_%_flexiblas_st.x: test_%_flexiblas_st.o $(COMMON_OBJS)
 	$(CC) $(strip $<   $(FLEXIBLAS_LIB)  $(COMMON_OBJS) $(LDFLAGS) -o $@)
 
@@ -188,5 +192,5 @@ test_%_flexiblas_mt.x: test_%_flexiblas_mt.o $(COMMON_OBJS)
 	$(CC) $(strip $<   $(FLEXIBLAS_LIB) $(COMMON_OBJS) $(LDFLAGS) -o $@)
 
 clean:
-	- $(RM_F) *.o *.x
+	- rm -f *.o *.x
 
