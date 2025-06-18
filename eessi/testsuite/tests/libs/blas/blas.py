@@ -11,21 +11,28 @@ BLAS_MODULES = {
     '2023a': {
         'FlexiBLAS': 'FlexiBLAS/3.3.1-GCC-12.3.0',
         'BLIS': 'BLIS/0.9.0-GCC-12.3.0',
+        'imkl': 'imkl/2023.1.0',
     },
     '2024a': {
         'FlexiBLAS': 'FlexiBLAS/3.4.4-GCC-13.3.0',
         'BLIS': 'BLIS/1.0-GCC-13.3.0',
         'AOCL-BLAS': 'AOCL-BLAS/5.0-GCC-13.3.0',
+        'imkl': 'imkl/2024.2.0',
     },
     '2025a': {
         'FlexiBLAS': 'FlexiBLAS/3.4.5-GCC-14.2.0',
         'BLIS': 'BLIS/1.1-GCC-14.2.0',
         'AOCL-BLAS': 'AOCL-BLAS/5.0-GCC-14.2.0',
+        'imkl': '2025.1.0',
     },
 }
 
 
-def single_node_scales():
+def single_thread_scales():
+    return parameter(['1_core', '1_node'])
+
+
+def multi_thread_scales():
     return parameter([
         k for (k, v) in SCALES.items()
         if v['num_nodes'] == 1
@@ -124,13 +131,14 @@ class EESSI_BLAS_OpenBLAS_base(EESSI_BLAS_base):
     module_name = parameter(module_lists)
 
     blas_lib = 'openblas'
+    tags = {'openblas'}
 
 
 @rfm.simple_test
 class EESSI_BLAS_OpenBLAS_st(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
     "single-threaded OpenBLAS test"
 
-    scale = parameter(['1_core'])
+    scale = single_thread_scales()
 
     bench_name = 'OpenBLAS_st'
     bench_name_ci = 'OpenBLAS_st'
@@ -141,7 +149,7 @@ class EESSI_BLAS_OpenBLAS_st(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
 class EESSI_BLAS_OpenBLAS_mt(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
     "multi-threaded OpenBLAS test"
 
-    scale = single_node_scales()
+    scale = multi_thread_scales()
 
     bench_name = 'OpenBLAS_mt'
     bench_name_ci = 'OpenBLAS_mt'
@@ -161,13 +169,14 @@ class EESSI_BLAS_AOCLBLAS_base(EESSI_BLAS_base):
     module_name = parameter(module_lists)
 
     blas_lib = 'aocl_mt'
+    tags = {'aocl-blas'}
 
 
 @rfm.simple_test
 class EESSI_BLAS_AOCLBLAS_st(EESSI_BLAS_AOCLBLAS_base, EESSI_Mixin):
     "single-threaded AOCL-BLAS test"
 
-    scale = parameter(['1_core'])
+    scale = single_thread_scales()
     threading = 'st'
 
 
@@ -175,5 +184,37 @@ class EESSI_BLAS_AOCLBLAS_st(EESSI_BLAS_AOCLBLAS_base, EESSI_Mixin):
 class EESSI_BLAS_AOCLBLAS_mt(EESSI_BLAS_AOCLBLAS_base, EESSI_Mixin):
     "multi-threaded AOCL-BLAS test"
 
-    scale = single_node_scales()
+    scale = multi_thread_scales()
+    threading = 'mt'
+
+
+class EESSI_BLAS_MKL_base(EESSI_BLAS_base):
+    "base MKL test"
+
+    # FlexiBLAS and BLIS must always be loaded, even if BLIS is not used
+    module_lists = [
+        [x['FlexiBLAS'], x['BLIS'], x['imkl']]
+        for x in BLAS_MODULES.values()
+        if x.get('imkl')
+    ]
+    module_lists = [x for x in module_lists if check_modules_avail(x)]
+    module_name = parameter(module_lists)
+
+    blas_lib = 'imkl'
+    tags = {'mkl'}
+
+
+@rfm.simple_test
+class EESSI_BLAS_MKL_st(EESSI_BLAS_MKL_base, EESSI_Mixin):
+    "single-threaded MKL test"
+
+    scale = single_thread_scales()
+    threading = 'st'
+
+
+@rfm.simple_test
+class EESSI_BLAS_MKL_mt(EESSI_BLAS_MKL_base, EESSI_Mixin):
+    "multi-threaded MKL test"
+
+    scale = multi_thread_scales()
     threading = 'mt'
