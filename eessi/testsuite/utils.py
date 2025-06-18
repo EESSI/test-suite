@@ -48,11 +48,12 @@ def is_gpu_present(test: rfm.RegressionTest) -> bool:
     return len(_get_gpu_list(test)) >= 1
 
 
-def is_cuda_required_module(module_name: str) -> bool:
+def is_cuda_required_module(module_name: list) -> bool:
     '''Checks if CUDA seems to be required by given module'''
     requires_cuda = False
-    if re.search("(?i)cuda", module_name):
-        requires_cuda = True
+    for module in module_name:
+        if re.search("(?i)cuda", module):
+            requires_cuda = True
     return requires_cuda
 
 
@@ -122,6 +123,23 @@ def find_modules(regex: str, name_only=True) -> Iterator[str]:
         err_msg += "Please make sure that only one is available on your system. "
         err_msg += f"The following modules have a duplicate on your system: {dupes}"
         raise ValueError(err_msg)
+
+
+def check_modules_avail(modules: list) -> bool:
+    """
+    Check if all modules in a list are available
+
+    Arguments:
+    - modules: list of modules to check
+
+    Returns:
+    - True if all modules are available
+    - False if any module in the list is not available
+    """
+
+    ms = rt.runtime().modules_system
+    avail_modules = ms.available_modules('')
+    return any(x for x in modules if x in avail_modules)
 
 
 def check_proc_attribute_defined(test: rfm.RegressionTest, attribute) -> bool:

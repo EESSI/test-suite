@@ -599,14 +599,23 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
 
 def set_modules(test: rfm.RegressionTest):
     """
-    Skip current test if module_name is not among a list of modules,
+    Set modules test parameter via module_name, which can be a string or a list of strings
+    Skip current test if any of the module names is not present in the list of modules,
     specified with --setvar modules=<comma-separated-list>.
     """
-    if test.modules and test.module_name not in test.modules:
-        test.valid_systems = []
-        log(f'valid_systems set to {test.valid_systems}')
+    if not test.module_name:
+        return
+    if isinstance(test.module_name, str):
+        test.module_names = [test.module_name]
+    else:
+        test.module_names = test.module_name
+    if test.modules:
+        for name in test.module_names:
+            if name not in test.modules:
+                test.valid_systems = []
+                log(f'module {name} not in {test.modules}, valid_systems set to {test.valid_systems}')
 
-    test.modules = [test.module_name]
+    test.modules = test.module_names
     log(f'modules set to {test.modules}')
 
 
