@@ -44,9 +44,12 @@ BLAS_MODULES = {
         'FlexiBLAS': 'FlexiBLAS/3.4.5-GCC-14.2.0',
         'BLIS': 'BLIS/1.1-GCC-14.2.0',
         'AOCL-BLAS': 'AOCL-BLAS/5.0-GCC-14.2.0',
-        'imkl': '2025.1.0',
+        'imkl': 'imkl/2025.1.0',
     },
 }
+
+# FlexiBLAS and BLIS must always be loaded, even if BLIS is not used
+BASE_BLAS_MODULES = {'FlexiBLAS', 'BLIS'}
 
 
 def single_thread_scales():
@@ -60,6 +63,15 @@ def multi_thread_scales():
         k for (k, v) in SCALES.items()
         if v['num_nodes'] == 1
     ])
+
+
+def get_module_lists(req_modules):
+    module_lists = [
+        [x[y] for y in req_modules]
+        for x in BLAS_MODULES.values()
+        if req_modules.issubset(x.keys())
+    ]
+    return [x for x in module_lists if check_modules_avail(x)]
 
 
 class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
@@ -150,12 +162,7 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
 class EESSI_BLAS_OpenBLAS_base(EESSI_BLAS_base):
     "base OpenBLAS test"
 
-    # FlexiBLAS and BLIS must always be loaded, even if BLIS is not used
-    module_lists = [
-        [x['FlexiBLAS'], x['BLIS']]
-        for x in BLAS_MODULES.values()
-    ]
-    module_lists = [x for x in module_lists if check_modules_avail(x)]
+    module_lists = get_module_lists(BASE_BLAS_MODULES)
     module_name = parameter(module_lists)
 
     blas_lib = 'openblas'
@@ -168,8 +175,7 @@ class EESSI_BLAS_OpenBLAS_st(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
 
     scale = single_thread_scales()
 
-    bench_name = 'OpenBLAS_st'
-    bench_name_ci = 'OpenBLAS_st'
+    bench_name = bench_name_ci = 'OpenBLAS_st'
     threading = 'st'
 
 
@@ -179,21 +185,14 @@ class EESSI_BLAS_OpenBLAS_mt(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
 
     scale = multi_thread_scales()
 
-    bench_name = 'OpenBLAS_mt'
-    bench_name_ci = 'OpenBLAS_mt'
+    bench_name = bench_name_ci = 'OpenBLAS_mt'
     threading = 'mt'
 
 
 class EESSI_BLAS_AOCLBLAS_base(EESSI_BLAS_base):
     "base AOCL-BLAS test"
 
-    # FlexiBLAS and BLIS must always be loaded, even if BLIS is not used
-    module_lists = [
-        [x['FlexiBLAS'], x['BLIS'], x['AOCL-BLAS']]
-        for x in BLAS_MODULES.values()
-        if x.get('AOCL-BLAS')
-    ]
-    module_lists = [x for x in module_lists if check_modules_avail(x)]
+    module_lists = get_module_lists(BASE_BLAS_MODULES.union({'AOCL-BLAS'}))
     module_name = parameter(module_lists)
 
     blas_lib = 'aocl_mt'
@@ -219,13 +218,7 @@ class EESSI_BLAS_AOCLBLAS_mt(EESSI_BLAS_AOCLBLAS_base, EESSI_Mixin):
 class EESSI_BLAS_MKL_base(EESSI_BLAS_base):
     "base MKL test"
 
-    # FlexiBLAS and BLIS must always be loaded, even if BLIS is not used
-    module_lists = [
-        [x['FlexiBLAS'], x['BLIS'], x['imkl']]
-        for x in BLAS_MODULES.values()
-        if x.get('imkl')
-    ]
-    module_lists = [x for x in module_lists if check_modules_avail(x)]
+    module_lists = get_module_lists(BASE_BLAS_MODULES.union({'imkl'}))
     module_name = parameter(module_lists)
 
     blas_lib = 'imkl'
@@ -248,16 +241,8 @@ class EESSI_BLAS_MKL_mt(EESSI_BLAS_MKL_base, EESSI_Mixin):
     threading = 'mt'
 
 
-class EESSI_BLAS_BLIS_base(EESSI_BLAS_base):
+class EESSI_BLAS_BLIS_base(EESSI_BLAS_OpenBLAS_base):
     "base BLIS test"
-
-    # FlexiBLAS and BLIS must always be loaded, even if BLIS is not used
-    module_lists = [
-        [x['FlexiBLAS'], x['BLIS']]
-        for x in BLAS_MODULES.values()
-    ]
-    module_lists = [x for x in module_lists if check_modules_avail(x)]
-    module_name = parameter(module_lists)
 
     blas_lib = 'blis'
     tags = {'blis'}
