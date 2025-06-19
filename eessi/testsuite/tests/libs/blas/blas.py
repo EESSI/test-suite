@@ -50,10 +50,12 @@ BLAS_MODULES = {
 
 
 def single_thread_scales():
+    """Scales for the single-threaded tests"""
     return parameter(['1_core', '1_node'])
 
 
 def multi_thread_scales():
+    """Scales for the multi-threaded tests"""
     return parameter([
         k for (k, v) in SCALES.items()
         if v['num_nodes'] == 1
@@ -84,6 +86,7 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
 
     @run_after('init')
     def set_prerun_cmds(self):
+        """Set prerun_cmds"""
         self.prerun_cmds = [f'make flexiblas-{self.threading}']
 
     @run_after('init')
@@ -99,6 +102,7 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
 
     @run_after('init')
     def set_executable_opts(self):
+        """Set executable_opts"""
         self.size = self.sizes[self.threading]
         self.executable_opts = [
             self.threading,
@@ -110,12 +114,14 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
 
     @run_after('init')
     def set_blas_lib(self):
+        """Set FLEXIBLAS environment variable to selected BLAS lib"""
         self.env_vars.update({
             'FLEXIBLAS': self.blas_lib,
         })
 
     @run_after('setup')
     def set_launcher(self):
+        """Select local launcher"""
         self.job.launcher = getlauncher('local')()
 
     @sanity_function
@@ -134,6 +140,7 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
 
     @run_before('performance')
     def set_perf_vars(self):
+        """Set performance variables"""
         self.perf_variables.update({
             f'{x}{y.split("_")[0]}': sn.make_performance_function(self._extract_perf(x, y), 'GFLOPS')
             for x in self.dts for y in self.ops
