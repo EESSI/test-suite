@@ -66,6 +66,7 @@ def multi_thread_scales():
 
 
 def get_module_lists(req_modules):
+    """Get a list of lists of full module names that are required for the test and available on the system"""
     module_lists = [
         [x[y] for y in req_modules]
         for x in BLAS_MODULES.values()
