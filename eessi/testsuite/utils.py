@@ -125,12 +125,12 @@ def find_modules(regex: str, name_only=True) -> Iterator[str]:
         raise ValueError(err_msg)
 
 
-def check_modules_avail(modules: list) -> bool:
+def check_modules_avail(module_names: list) -> bool:
     """
     Check if all modules in a list are available
 
     Arguments:
-    - modules: list of modules to check
+    - module_names: list of module names to check
 
     Returns:
     - True if all modules are available
@@ -139,7 +139,7 @@ def check_modules_avail(modules: list) -> bool:
 
     ms = rt.runtime().modules_system
     avail_modules = ms.available_modules('')
-    return any(x for x in modules if x in avail_modules)
+    return any(x for x in module_names if x in avail_modules)
 
 
 def check_proc_attribute_defined(test: rfm.RegressionTest, attribute) -> bool:
