@@ -1,6 +1,6 @@
 """
 This test is adapted from the BLAS test included in the BLIS v1.1 sources at
-https://github.com/flame/blis/tree/1.1/test/3 .
+https://github.com/flame/blis/tree/1.1/test/3
 
 Customizations to the original BLAS test:
 - adapted and simplified Makefile for FlexiBLAS support
@@ -138,11 +138,17 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
         self.job.launcher = getlauncher('local')()
 
     @sanity_function
-    def assert_result(self):
-        return sn.all([
+    def assert_sanity(self):
+        assert_backend = sn.assert_not_found(
+            r'BLAS backend\s+\S+\s+not found',
+            self.stderr,
+            f'FlexiBLAS BLAS backend not found ({self.blas_lib})'
+        )
+        asserts_result = [
             sn.assert_found(r"data\S+_flexiblas", f'output/{x}{y}_flexiblas.m', f'output/{x}{y}_flexiblas.m')
             for x in self.dts for y in self.ops
-        ])
+        ]
+        return sn.all([assert_backend] + asserts_result)
 
     def _extract_perf(self, dt, op):
         return sn.extractsingle(
