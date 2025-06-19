@@ -6,11 +6,11 @@ Customizations to the original BLAS test:
 - adapted and simplified Makefile for FlexiBLAS support
 - custom simplified run.sh script
 
-Supported tags this ReFrame test (in addition to the common tags):
+Supported tags in this ReFrame test (in addition to the common tags):
 - threading: `st`, `mt`
 - BLAS implementation: `openblas`, `blis`, `aocl-blas`, `mkl`
-- toolchain: 2023a, 2023b, 2024a, ...
-- CI tag: runs only openblas st + mt
+- toolchain: `2023a`, `2023b`, `2024a`, ...
+- `CI` tag: runs only openblas st + mt
 """
 
 
