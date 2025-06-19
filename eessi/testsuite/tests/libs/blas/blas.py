@@ -13,6 +13,11 @@ BLAS_MODULES = {
         'BLIS': 'BLIS/0.9.0-GCC-12.3.0',
         'imkl': 'imkl/2023.1.0',
     },
+    '2023b': {
+        'FlexiBLAS': 'FlexiBLAS/3.3.1-GCC-13.2.0',
+        'BLIS': 'BLIS/1.0-GCC-13.2.0',
+        'imkl': 'imkl/2023.2.0',
+    },
     '2024a': {
         'FlexiBLAS': 'FlexiBLAS/3.4.4-GCC-13.3.0',
         'BLIS': 'BLIS/1.0-GCC-13.3.0',
