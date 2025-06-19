@@ -6,7 +6,7 @@ Customizations to the original BLAS test:
 - adapted and simplified Makefile for FlexiBLAS support
 - custom simplified run.sh script
 
-Supported tags in this ReFrame test:
+Supported tags this ReFrame test (in addition to the common tags):
 - threading: `st`, `mt`
 - BLAS implementation: `openblas`, `blis`, `aocl-blas`, `mkl`
 - toolchain: 2023a, 2023b, 2024a, ...
@@ -135,7 +135,7 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
     @run_before('performance')
     def set_perf_vars(self):
         self.perf_variables.update({
-            f'{x}{y}': sn.make_performance_function(self._extract_perf(x, y), 'GFLOPS')
+            f'{x}{y.split("_")[0]}': sn.make_performance_function(self._extract_perf(x, y), 'GFLOPS')
             for x in self.dts for y in self.ops
         })
 
