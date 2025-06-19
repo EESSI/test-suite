@@ -239,3 +239,34 @@ class EESSI_BLAS_MKL_mt(EESSI_BLAS_MKL_base, EESSI_Mixin):
 
     scale = multi_thread_scales()
     threading = 'mt'
+
+
+class EESSI_BLAS_BLIS_base(EESSI_BLAS_base):
+    "base BLIS test"
+
+    # FlexiBLAS and BLIS must always be loaded, even if BLIS is not used
+    module_lists = [
+        [x['FlexiBLAS'], x['BLIS']]
+        for x in BLAS_MODULES.values()
+    ]
+    module_lists = [x for x in module_lists if check_modules_avail(x)]
+    module_name = parameter(module_lists)
+
+    blas_lib = 'blis'
+    tags = {'blis'}
+
+
+@rfm.simple_test
+class EESSI_BLAS_BLIS_st(EESSI_BLAS_BLIS_base, EESSI_Mixin):
+    "single-threaded BLIS test"
+
+    scale = single_thread_scales()
+    threading = 'st'
+
+
+@rfm.simple_test
+class EESSI_BLAS_BLIS_mt(EESSI_BLAS_BLIS_base, EESSI_Mixin):
+    "multi-threaded BLIS test"
+
+    scale = multi_thread_scales()
+    threading = 'mt'
