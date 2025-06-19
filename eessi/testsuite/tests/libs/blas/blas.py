@@ -1,3 +1,19 @@
+"""
+This test is adapted from the BLAS test included in the BLIS v1.1 sources at
+https://github.com/flame/blis/tree/1.1/test/3 .
+
+Customizations to the original BLAS test:
+- adapted and simplified Makefile for FlexiBLAS support
+- custom simplified run.sh script
+
+Supported tags in this ReFrame test:
+- threading: `st`, `mt`
+- BLAS implementation: `openblas`, `blis`, `aocl-blas`, `mkl`
+- toolchain: 2023a, 2023b, 2024a, ...
+- CI tag: runs only openblas st + mt
+"""
+
+
 import reframe as rfm
 from reframe.core.backends import getlauncher
 from reframe.core.builtins import parameter, run_after, run_before, sanity_function
