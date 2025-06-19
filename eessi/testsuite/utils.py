@@ -48,10 +48,10 @@ def is_gpu_present(test: rfm.RegressionTest) -> bool:
     return len(_get_gpu_list(test)) >= 1
 
 
-def is_cuda_required_module(module_name: list) -> bool:
+def is_cuda_required_module(module_names: list) -> bool:
     '''Checks if CUDA seems to be required by given module'''
     requires_cuda = False
-    for module in module_name:
+    for module in module_names:
         if re.search("(?i)cuda", module):
             requires_cuda = True
     return requires_cuda

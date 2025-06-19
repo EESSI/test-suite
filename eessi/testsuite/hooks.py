@@ -463,7 +463,7 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     cause the valid_systems to be set to an empty string, and consequently the
     test.valid_systems to an invalid system name (eessi.testsuite.constants.INVALID_SYSTEM).
     """
-    is_cuda_module = is_cuda_required_module(test.module_name)
+    is_cuda_module = is_cuda_required_module(test.module_names)
 
     if is_cuda_module and required_device_type == DEVICE_TYPES.GPU:
         # CUDA modules and when using a GPU require partitions with FEATURES.GPU feature and

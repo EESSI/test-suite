@@ -120,9 +120,9 @@ class EESSI_Mixin(RegressionMixin):
         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
         hooks.filter_supported_scales(self)
 
-        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
-
         hooks.set_modules(self)
+
+        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
 
         # Set scales as tags
         hooks.set_tag_scale(self)
