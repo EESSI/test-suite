@@ -22,6 +22,10 @@ from eessi.testsuite.constants import *  # noqa: F403
 # Override with RFM_PREFIX environment variable
 reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 
+# From ReFrame 4.8.1 we can no longer rely on SBATCH_ACCOUNT completely
+# ReFrame unset all `SBATCH_*` evironment variables before running `sbatch`
+sbatch_account = os.getenv('SBATCH_ACCOUNT', None)
+
 # This is an example configuration file
 site_configuration = {
     'systems': [
@@ -54,7 +58,7 @@ site_configuration = {
                     'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
                     # Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
-                    'access': ['-p qcpu', '--export=None'],
+                    'access': [f'-A {sbatch_account}', '-p qcpu', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
                     'features': [
