@@ -26,6 +26,10 @@ reframe_prefix = os.path.join(os.environ['HOME'], 'reframe_runs')
 # ReFrame unsets all `SBATCH_*` evironment variables before running `sbatch`
 # See https://github.com/reframe-hpc/reframe/issues/3422
 sbatch_account = os.getenv('SBATCH_ACCOUNT', None)
+if sbatch_accounti == None:
+    err_msg = "Environment variable 'SBATCH_ACCOUNT' was not found."
+    err_msg += " It is required to set `SBATCH_ACCOUNT` to run on this system."
+    raise ValueError(err_msg)
 
 # This is an example configuration file
 site_configuration = {
