@@ -132,12 +132,13 @@ def common_eessi_init(eessi_version=None):
     eessi_init.append(f'source {eessi_cvmfs_repo}/{version_string}/init/bash')
     return ' && '.join(eessi_init)
 
+
 def get_sbatch_account():
     """
     return SBATCH_ACCOUNT as a string
     """
     sbatch_account = os.getenv('SBATCH_ACCOUNT', None)
-    if sbatch_account == None:
+    if sbatch_account is None:
         err_msg = "Environment variable 'SBATCH_ACCOUNT' was not found."
         err_msg += " It is required to set `SBATCH_ACCOUNT` to run on this system."
         raise ValueError(err_msg)
