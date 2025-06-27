@@ -24,11 +24,18 @@ import os
 
 from eessi.testsuite.common_config import (common_eessi_init,
                                            common_general_config,
-                                           common_logging_config)
+                                           common_logging_config,
+                                           get_sbatch_account)
 from eessi.testsuite.constants import *  # noqa: F403
 
-# Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
 hortense_access = ['--export=NONE', '--get-user-env=60L']
+
+# Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
+# From ReFrame 4.8.1 we can no longer rely on SBATCH_ACCOUNT completely
+# ReFrame unsets all `SBATCH_*` evironment variables before running `sbatch`
+# See https://github.com/reframe-hpc/reframe/issues/3422
+sbatch_account = get_sbatch_account()
+hortense_access.append(f'-A {sbatch_account}')
 
 # These environment need to be set to avoid orte failures when launching application with `mpirun`
 common_env_vars = [
