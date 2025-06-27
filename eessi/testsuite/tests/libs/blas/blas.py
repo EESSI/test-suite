@@ -49,7 +49,7 @@ BLAS_MODULES = {
 }
 
 # FlexiBLAS and BLIS must always be loaded, even if BLIS is not used
-BASE_BLAS_MODULES = {'FlexiBLAS', 'BLIS'}
+BASE_BLAS_MODULES = ['FlexiBLAS', 'BLIS']
 
 
 def single_thread_scales():
@@ -67,12 +67,13 @@ def multi_thread_scales():
 
 def get_module_lists(req_modules):
     """Get a list of lists of full module names that are required for the test and available on the system"""
-    module_lists = [
+    req_modules = set(req_modules)
+    ml_lists = [
         [x[y] for y in req_modules]
         for x in BLAS_MODULES.values()
         if req_modules.issubset(x.keys())
     ]
-    return [x for x in module_lists if check_modules_avail(x)]
+    return [x for x in ml_lists if check_modules_avail(x)]
 
 
 class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
@@ -120,16 +121,16 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
         self.executable_opts = [
             self.threading,
             self.nrepeats,
-            f'''"{' '.join(self.size)}"''',
-            f'''"{' '.join(self.dts)}"''',
-            f'''"{' '.join(self.ops)}"''',
+            '"{}"'.format(' '.join(self.size)),
+            '"{}"'.format(' '.join(self.dts)),
+            '"{}"'.format(' '.join(self.ops)),
         ]
 
     @run_after('init')
-    def set_blas_lib(self):
+    def set_flexiblas_blas_lib(self):
         """Set FLEXIBLAS environment variable to selected BLAS lib"""
         self.env_vars.update({
-            'FLEXIBLAS': self.blas_lib,
+            'FLEXIBLAS': self.flexiblas_blas_lib,
         })
 
     @run_after('setup')
@@ -142,7 +143,7 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
         assert_backend = sn.assert_not_found(
             r'BLAS backend\s+\S+\s+not found',
             self.stderr,
-            f'FlexiBLAS BLAS backend not found ({self.blas_lib})'
+            f'FlexiBLAS BLAS backend not found ({self.flexiblas_blas_lib})'
         )
         asserts_result = [
             sn.assert_found(r"data\S+_flexiblas", f'output/{x}{y}_flexiblas.m', f'output/{x}{y}_flexiblas.m')
@@ -172,7 +173,7 @@ class EESSI_BLAS_OpenBLAS_base(EESSI_BLAS_base):
     module_lists = get_module_lists(BASE_BLAS_MODULES)
     module_name = parameter(module_lists)
 
-    blas_lib = 'openblas'
+    flexiblas_blas_lib = 'openblas'
     tags = {'openblas'}
 
 
@@ -199,10 +200,10 @@ class EESSI_BLAS_OpenBLAS_mt(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
 class EESSI_BLAS_AOCLBLAS_base(EESSI_BLAS_base):
     "base AOCL-BLAS test"
 
-    module_lists = get_module_lists(BASE_BLAS_MODULES.union({'AOCL-BLAS'}))
+    module_lists = get_module_lists(BASE_BLAS_MODULES + ['AOCL-BLAS'])
     module_name = parameter(module_lists)
 
-    blas_lib = 'aocl_mt'
+    flexiblas_blas_lib = 'aocl_mt'
     tags = {'aocl-blas'}
 
 
@@ -225,10 +226,10 @@ class EESSI_BLAS_AOCLBLAS_mt(EESSI_BLAS_AOCLBLAS_base, EESSI_Mixin):
 class EESSI_BLAS_MKL_base(EESSI_BLAS_base):
     "base MKL test"
 
-    module_lists = get_module_lists(BASE_BLAS_MODULES.union({'imkl'}))
+    module_lists = get_module_lists(BASE_BLAS_MODULES + ['imkl'])
     module_name = parameter(module_lists)
 
-    blas_lib = 'imkl'
+    flexiblas_blas_lib = 'imkl'
     tags = {'mkl'}
 
 
@@ -251,7 +252,7 @@ class EESSI_BLAS_MKL_mt(EESSI_BLAS_MKL_base, EESSI_Mixin):
 class EESSI_BLAS_BLIS_base(EESSI_BLAS_OpenBLAS_base):
     "base BLIS test"
 
-    blas_lib = 'blis'
+    flexiblas_blas_lib = 'blis'
     tags = {'blis'}
 
 
