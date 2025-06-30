@@ -1,6 +1,19 @@
 This file contains a description of the major changes to the EESSI test suite.
 For more detailed information, please see the git log.
 
+v0.7.1 (30 June 2025)
+---------------------
+
+This is a bug fix release of the EESSI test-suite
+
+Bug fixes:
+
+* Make sure automatic API docs generation also generates docs for OpenFOAM (#271)
+
+Other changes:
+
+* Update CI workflow to use ReFrame 4.8.1 by default, and use new argument passing functionality to pass the SLURM account (#270)
+
 v0.7.0 (17 June 2025)
 ---------------------
 
@@ -12,7 +25,7 @@ New tests:
 
 Bug fixes:
 
-*  Fixes syntax issue in docstring that blocks automatic API doc generation #(265)
+*  Fixes syntax issue in docstring that blocks automatic API doc generation (#265)
 * Update VSC Tier-1 Hortense configuration file and CI script to fix problems (#250, #266)
 
 Other changes:
