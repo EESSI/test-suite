@@ -6,6 +6,8 @@ Customizations to the original BLAS test:
 - adapted and simplified Makefile for FlexiBLAS support
 - custom simplified run.sh script
 
+Note: a FlexiBLAS and BLIS module must always be loaded to run the test, even if BLIS or OpenBLAS are not used
+
 Supported tags in this ReFrame test (in addition to the common tags):
 - threading: `st`, `mt`
 - BLAS implementation: `openblas`, `blis`, `aocl-blas`, `imkl`
