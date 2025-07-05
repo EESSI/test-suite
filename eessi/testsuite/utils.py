@@ -57,7 +57,51 @@ def is_cuda_required_module(module_names: list) -> bool:
     return requires_cuda
 
 
-def find_modules(regex: str, name_only=True) -> Iterator[str]:
+def split_module(module: str) -> tuple:
+    """
+    Split a full module name into (name, version, toolchain, versionsuffix)
+    Assumptions:
+    1) the module is formatted as any of the following:
+    - <name>/<version>
+    - <name>/<version>-<toolchain_name>-<toolchain_version>
+    - <name>/<version>-<toolchain_name>-<toolchain_version><versionsuffix>
+    2) there are no hyphens in the version, toolchain_name, or toolchain_version
+    Exceptions:
+    - toolchain_name 'intel-compilers'
+
+    Arguments:
+    - module: the full module name
+    """
+    name = module.split('/')[0]
+    parts = module.split('/')[1].split('-')
+    version = parts[0]
+    toolchain = ''
+    versionsuffix = ''
+
+    # special casing intel-compilers:
+    if parts[1] == 'intel' and parts[2] == 'compilers':
+        parts = [parts[0], '-'.join(parts[1:3])] + parts[3:]
+
+    if len(parts) >= 3:
+        toolchain = '-'.join(parts[1:3])
+    if len(parts) >= 4:
+        versionsuffix = '-'.join(parts[3:])
+
+    return name, version, toolchain, versionsuffix
+
+
+def get_avail_modules(string='') -> list:
+    """
+    Return the available modules in the system
+
+    Arguments:
+    - string: only return modules that contain string
+    """
+    ms = rt.runtime().modules_system
+    return ms.available_modules(string)
+
+
+def find_modules(regex: str, name_only=True, avail_modules=None) -> Iterator[str]:
     """
     Return all modules matching the regular expression regex. Note that since we use re.search,
     a module matches if the regex matches the module name at any place. I.e. the match does
@@ -92,12 +136,12 @@ def find_modules(regex: str, name_only=True) -> Iterator[str]:
     if not isinstance(regex, str):
         raise TypeError("'substr' argument must be a string")
 
-    ms = rt.runtime().modules_system
-    # Returns e.g. ['Bison/', 'Bison/3.7.6-GCCcore-10.3.0', 'BLIS/', 'BLIS/0.8.1-GCC-10.3.0']
-    modules = ms.available_modules('')
+    if not avail_modules:
+        # Returns e.g. ['Bison/', 'Bison/3.7.6-GCCcore-10.3.0', 'BLIS/', 'BLIS/0.8.1-GCC-10.3.0']
+        avail_modules = get_avail_modules()
     seen = set()
     dupes = []
-    for mod in modules:
+    for mod in avail_modules:
         # Exclude anything without version, i.e. ending with / (e.g. Bison/)
         if re.search('.*/$', mod):
             continue
@@ -123,23 +167,6 @@ def find_modules(regex: str, name_only=True) -> Iterator[str]:
         err_msg += "Please make sure that only one is available on your system. "
         err_msg += f"The following modules have a duplicate on your system: {dupes}"
         raise ValueError(err_msg)
-
-
-def check_modules_avail(module_names: list) -> bool:
-    """
-    Check if all modules in a list are available
-
-    Arguments:
-    - module_names: list of module names to check
-
-    Returns:
-    - True if all modules are available
-    - False if any module in the list is not available
-    """
-
-    ms = rt.runtime().modules_system
-    avail_modules = ms.available_modules('')
-    return any(x for x in module_names if x in avail_modules)
 
 
 def check_proc_attribute_defined(test: rfm.RegressionTest, attribute) -> bool:

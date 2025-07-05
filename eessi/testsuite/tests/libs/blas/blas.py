@@ -8,8 +8,7 @@ Customizations to the original BLAS test:
 
 Supported tags in this ReFrame test (in addition to the common tags):
 - threading: `st`, `mt`
-- BLAS implementation: `openblas`, `blis`, `aocl-blas`, `mkl`
-- toolchain: `2023a`, `2023b`, `2024a`, ...
+- BLAS implementation: `openblas`, `blis`, `aocl-blas`, `imkl`
 - `CI` tag: runs only openblas st + mt
 """
 
@@ -21,35 +20,10 @@ import reframe.utility.sanity as sn
 
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
-from eessi.testsuite.utils import check_modules_avail, log
+from eessi.testsuite.utils import find_modules, get_avail_modules, split_module, log
 
-BLAS_MODULES = {
-    '2023a': {
-        'FlexiBLAS': 'FlexiBLAS/3.3.1-GCC-12.3.0',
-        'BLIS': 'BLIS/0.9.0-GCC-12.3.0',
-        'imkl': 'imkl/2023.1.0',
-    },
-    '2023b': {
-        'FlexiBLAS': 'FlexiBLAS/3.3.1-GCC-13.2.0',
-        'BLIS': 'BLIS/1.0-GCC-13.2.0',
-        'imkl': 'imkl/2023.2.0',
-    },
-    '2024a': {
-        'FlexiBLAS': 'FlexiBLAS/3.4.4-GCC-13.3.0',
-        'BLIS': 'BLIS/1.0-GCC-13.3.0',
-        'AOCL-BLAS': 'AOCL-BLAS/5.0-GCC-13.3.0',
-        'imkl': 'imkl/2024.2.0',
-    },
-    '2025a': {
-        'FlexiBLAS': 'FlexiBLAS/3.4.5-GCC-14.2.0',
-        'BLIS': 'BLIS/1.1-GCC-14.2.0',
-        'AOCL-BLAS': 'AOCL-BLAS/5.0-GCC-14.2.0',
-        'imkl': 'imkl/2025.1.0',
-    },
-}
-
-# FlexiBLAS and BLIS must always be loaded, even if BLIS is not used
-BASE_BLAS_MODULES = ['FlexiBLAS', 'BLIS']
+# avoid repeatedly generating the available modules
+AVAIL_MODULES = get_avail_modules()
 
 
 def single_thread_scales():
@@ -65,15 +39,86 @@ def multi_thread_scales():
     ])
 
 
-def get_module_lists(req_modules):
-    """Get a list of lists of full module names that are required for the test and available on the system"""
-    req_modules = set(req_modules)
-    ml_lists = [
-        [x[y] for y in req_modules]
-        for x in BLAS_MODULES.values()
-        if req_modules.issubset(x.keys())
-    ]
-    return [x for x in ml_lists if check_modules_avail(x)]
+def get_blis_modules():
+    """Return available BLIS modules + matching Flexiblas modules as a list of lists"""
+    ml_lists = []
+
+    blises = list(find_modules(r'BLIS$', avail_modules=AVAIL_MODULES))
+    for blis in blises:
+        _, _, toolchain, _ = split_module(blis)
+        flexiblases = sorted(find_modules(rf'FlexiBLAS/.*{toolchain}$', name_only=False, avail_modules=AVAIL_MODULES))
+        if flexiblases:
+            ml_lists.append([flexiblases[-1], blis])
+        else:
+            log(f'no matching FlexiBLAS module found for module {blis}')
+
+    return ml_lists
+
+
+def get_openblas_modules():
+    """
+    Return available FlexiBLAS modules + matching BLIS modules as a list of lists
+    Assume OpenBLAS is included in FlexiBLAS as a dependency
+    """
+    ml_lists = []
+
+    flexiblases = list(find_modules(r'FlexiBLAS$', avail_modules=AVAIL_MODULES))
+    for flexiblas in flexiblases:
+        _, _, toolchain, _ = split_module(flexiblas)
+        blises = sorted(find_modules(rf'BLIS/.*{toolchain}$', name_only=False, avail_modules=AVAIL_MODULES))
+        if blises:
+            ml_lists.append([flexiblas, blises[-1]])
+        else:
+            log(f'no matching BLIS module found for module {flexiblas}')
+
+    return ml_lists
+
+
+def get_aoclblas_modules():
+    """Return available AOCL-BLAS modules + matching Flexiblas and BLIS modules as a list of lists"""
+    ml_lists = []
+
+    aoclblases = list(find_modules(r'AOCL-BLAS$', avail_modules=AVAIL_MODULES))
+    for aoclblas in aoclblases:
+        _, _, toolchain, _ = split_module(aoclblas)
+        flexiblases = sorted(find_modules(rf'FlexiBLAS/.*{toolchain}$', name_only=False, avail_modules=AVAIL_MODULES))
+        blises = sorted(find_modules(rf'BLIS/.*{toolchain}$', name_only=False, avail_modules=AVAIL_MODULES))
+        if flexiblases and blises:
+            ml_lists.append([flexiblases[-1], blises[-1], aoclblas])
+        else:
+            log(f'no matching FlexiBLAS and/or BLIS module found for module {aoclblas}')
+
+    return ml_lists
+
+
+def get_imkl_modules():
+    """
+    Return available imkl modules + matching Flexiblas and BLIS modules as a list of lists
+    Only select imkl modules with SYSTEM toolchain
+    """
+    ml_lists = []
+
+    flexiblases = sorted(find_modules(r'FlexiBLAS$', avail_modules=AVAIL_MODULES))
+    if flexiblases:
+        flexiblas = flexiblases[-1]
+    else:
+        log('no FlexiBLAS module found')
+        return ml_lists
+
+    _, _, toolchain, _ = split_module(flexiblas)
+
+    blises = sorted(find_modules(rf'BLIS/.*{toolchain}$', name_only=False, avail_modules=AVAIL_MODULES))
+    if blises:
+        blis = blises[-1]
+    else:
+        log(f'no matching BLIS module found for module {flexiblas}')
+        return ml_lists
+
+    imkls = list(find_modules(r'imkl/[^-]*$', name_only=False, avail_modules=AVAIL_MODULES))
+    for imkl in imkls:
+        ml_lists.append([flexiblas, blis, imkl])
+
+    return ml_lists
 
 
 class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
@@ -84,10 +129,10 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
     readonly_files = ['Makefile', 'run.sh', 'test_gemm.c', 'test_hemm.c', 'test_herk.c', 'test_trmm.c', 'test_trsm.c',
                       'test_utils.c', 'test_utils.h']
     env_vars = {
-        'CFLAGS': '"-O2 -ftree-vectorize -march=native -fno-math-errno -g"',  # default EB CFLAGS
+        'CFLAGS': '"-O2 -ftree-vectorize -march=native -fno-math-errno -g"',  # default CFLAGS set by EasyBuild
     }
     executable = './run.sh'
-    nrepeats = '3'
+    nrepeats = '5'
     dts = ['s', 'd', 'c', 'z']
     ops = ['gemm_nn', 'hemm_ll', 'herk_ln', 'trmm_llnn', 'trsm_runn']
     sizes = {
@@ -105,12 +150,7 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
 
     @run_after('init')
     def _tags(self):
-        """Add tags for toolchain (e.g. 2024a) and threading (st or mt)"""
-        blas_modules = {x: set(y.values()) for x, y in BLAS_MODULES.items()}
-        module_names = set(self.module_name)
-        toolchain = [x for x, y in blas_modules.items() if (module_names & y == module_names)][0]
-        self.tags.add(toolchain)
-
+        """Add threading tag (st or mt)"""
         self.tags.add(self.threading)
         log(f'tags set to {self.tags}')
 
@@ -170,9 +210,7 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
 class EESSI_BLAS_OpenBLAS_base(EESSI_BLAS_base):
     "base OpenBLAS test"
 
-    module_lists = get_module_lists(BASE_BLAS_MODULES)
-    module_name = parameter(module_lists)
-
+    module_name = parameter(get_openblas_modules())
     flexiblas_blas_lib = 'openblas'
     tags = {'openblas'}
 
@@ -182,7 +220,6 @@ class EESSI_BLAS_OpenBLAS_st(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
     "single-threaded OpenBLAS test"
 
     scale = single_thread_scales()
-
     bench_name = bench_name_ci = 'OpenBLAS_st'
     threading = 'st'
 
@@ -192,7 +229,6 @@ class EESSI_BLAS_OpenBLAS_mt(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
     "multi-threaded OpenBLAS test"
 
     scale = multi_thread_scales()
-
     bench_name = bench_name_ci = 'OpenBLAS_mt'
     threading = 'mt'
 
@@ -200,9 +236,7 @@ class EESSI_BLAS_OpenBLAS_mt(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
 class EESSI_BLAS_AOCLBLAS_base(EESSI_BLAS_base):
     "base AOCL-BLAS test"
 
-    module_lists = get_module_lists(BASE_BLAS_MODULES + ['AOCL-BLAS'])
-    module_name = parameter(module_lists)
-
+    module_name = parameter(get_aoclblas_modules())
     flexiblas_blas_lib = 'aocl_mt'
     tags = {'aocl-blas'}
 
@@ -223,35 +257,34 @@ class EESSI_BLAS_AOCLBLAS_mt(EESSI_BLAS_AOCLBLAS_base, EESSI_Mixin):
     threading = 'mt'
 
 
-class EESSI_BLAS_MKL_base(EESSI_BLAS_base):
-    "base MKL test"
+class EESSI_BLAS_imkl_base(EESSI_BLAS_base):
+    "base imkl test"
 
-    module_lists = get_module_lists(BASE_BLAS_MODULES + ['imkl'])
-    module_name = parameter(module_lists)
-
+    module_name = parameter(get_imkl_modules())
     flexiblas_blas_lib = 'imkl'
-    tags = {'mkl'}
+    tags = {'imkl'}
 
 
 @rfm.simple_test
-class EESSI_BLAS_MKL_st(EESSI_BLAS_MKL_base, EESSI_Mixin):
-    "single-threaded MKL test"
+class EESSI_BLAS_imkl_st(EESSI_BLAS_imkl_base, EESSI_Mixin):
+    "single-threaded imkl test"
 
     scale = single_thread_scales()
     threading = 'st'
 
 
 @rfm.simple_test
-class EESSI_BLAS_MKL_mt(EESSI_BLAS_MKL_base, EESSI_Mixin):
-    "multi-threaded MKL test"
+class EESSI_BLAS_imkl_mt(EESSI_BLAS_imkl_base, EESSI_Mixin):
+    "multi-threaded imkl test"
 
     scale = multi_thread_scales()
     threading = 'mt'
 
 
-class EESSI_BLAS_BLIS_base(EESSI_BLAS_OpenBLAS_base):
+class EESSI_BLAS_BLIS_base(EESSI_BLAS_base):
     "base BLIS test"
 
+    module_name = parameter(get_blis_modules())
     flexiblas_blas_lib = 'blis'
     tags = {'blis'}
 
