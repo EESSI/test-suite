@@ -62,6 +62,7 @@ SCALES = {
     '1_core': {'num_nodes': 1, 'num_cpus_per_node': 1, 'num_gpus_per_node': 1},
     '2_cores': {'num_nodes': 1, 'num_cpus_per_node': 2, 'num_gpus_per_node': 1},
     '4_cores': {'num_nodes': 1, 'num_cpus_per_node': 4, 'num_gpus_per_node': 1},
+    '8_cores': {'num_nodes': 1, 'num_cpus_per_node': 8, 'num_gpus_per_node': 1},
     # renamed after v0.2.0 from 1_cpn_2_nodes to make more unique
     '1cpn_2nodes': {'num_nodes': 2, 'num_cpus_per_node': 1, 'num_gpus_per_node': 1},
     # renamed after v0.2.0 from 1_cpn_4_nodes to make more unique
