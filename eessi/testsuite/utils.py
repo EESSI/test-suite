@@ -4,15 +4,17 @@ Utility functions for ReFrame tests
 
 import re
 import sys
-from typing import Iterator
+from typing import Iterator, List
 
 import reframe as rfm
 import reframe.core.runtime as rt
 from reframe.frontend.printer import PrettyPrinter
 
-from eessi.testsuite.constants import *
+from eessi.testsuite.constants import DEVICE_TYPES
 
 printer = PrettyPrinter()
+
+all_avail_modules = None
 
 
 def log(msg, logger=printer.debug):
@@ -90,18 +92,7 @@ def split_module(module: str) -> tuple:
     return name, version, toolchain, versionsuffix
 
 
-def get_avail_modules(string='') -> list:
-    """
-    Return the available modules in the system
-
-    Arguments:
-    - string: only return modules that contain string
-    """
-    ms = rt.runtime().modules_system
-    return ms.available_modules(string)
-
-
-def find_modules(regex: str, name_only=True, avail_modules=None) -> Iterator[str]:
+def find_modules(regex: str, name_only=True) -> Iterator[str]:
     """
     Return all modules matching the regular expression regex. Note that since we use re.search,
     a module matches if the regex matches the module name at any place. I.e. the match does
@@ -136,15 +127,19 @@ def find_modules(regex: str, name_only=True, avail_modules=None) -> Iterator[str
     if not isinstance(regex, str):
         raise TypeError("'substr' argument must be a string")
 
-    if not avail_modules:
+    # use global to avoid recalculating the list of available modules multiple times
+    global all_avail_modules
+    if all_avail_modules is None:
+        ms = rt.runtime().modules_system
         # Returns e.g. ['Bison/', 'Bison/3.7.6-GCCcore-10.3.0', 'BLIS/', 'BLIS/0.8.1-GCC-10.3.0']
-        avail_modules = get_avail_modules()
+        all_avail_modules = ms.available_modules('')
+        # Exclude anything without version, i.e. ending with / (e.g. Bison/)
+        all_avail_modules = [mod for mod in all_avail_modules if not mod.endswith('/')]
+        log(f"Total number of available modules: {len(all_avail_modules)}")
+
     seen = set()
     dupes = []
-    for mod in avail_modules:
-        # Exclude anything without version, i.e. ending with / (e.g. Bison/)
-        if re.search('.*/$', mod):
-            continue
+    for mod in all_avail_modules:
         # The thing we yield should always be the original module name (orig_mod), including version
         orig_mod = mod
         if name_only:
@@ -167,6 +162,11 @@ def find_modules(regex: str, name_only=True, avail_modules=None) -> Iterator[str
         err_msg += "Please make sure that only one is available on your system. "
         err_msg += f"The following modules have a duplicate on your system: {dupes}"
         raise ValueError(err_msg)
+
+
+def find_modules_in_toolchain(name: str, toolchain: str) -> List[str]:
+    "Return a sorted list of modules with name <name> in toolchain <toolchain>"
+    return sorted(find_modules(rf'{name}/\S+{toolchain}\S*$', name_only=False))
 
 
 def check_proc_attribute_defined(test: rfm.RegressionTest, attribute) -> bool:

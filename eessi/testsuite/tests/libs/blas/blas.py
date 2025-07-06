@@ -22,10 +22,7 @@ import reframe.utility.sanity as sn
 
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
-from eessi.testsuite.utils import find_modules, get_avail_modules, split_module, log
-
-# avoid repeatedly generating the available modules
-AVAIL_MODULES = get_avail_modules()
+from eessi.testsuite.utils import find_modules, find_modules_in_toolchain, split_module, log
 
 
 def single_thread_scales():
@@ -45,10 +42,10 @@ def get_blis_modules():
     """Return available BLIS modules + matching Flexiblas modules as a list of lists"""
     ml_lists = []
 
-    blises = list(find_modules(r'BLIS$', avail_modules=AVAIL_MODULES))
+    blises = list(find_modules(r'BLIS$'))
     for blis in blises:
         _, _, toolchain, _ = split_module(blis)
-        flexiblases = sorted(find_modules(rf'FlexiBLAS/.*{toolchain}$', name_only=False, avail_modules=AVAIL_MODULES))
+        flexiblases = find_modules_in_toolchain('FlexiBLAS', toolchain)
         if flexiblases:
             ml_lists.append([flexiblases[-1], blis])
         else:
@@ -64,10 +61,10 @@ def get_openblas_modules():
     """
     ml_lists = []
 
-    flexiblases = list(find_modules(r'FlexiBLAS$', avail_modules=AVAIL_MODULES))
+    flexiblases = list(find_modules(r'FlexiBLAS$'))
     for flexiblas in flexiblases:
         _, _, toolchain, _ = split_module(flexiblas)
-        blises = sorted(find_modules(rf'BLIS/.*{toolchain}$', name_only=False, avail_modules=AVAIL_MODULES))
+        blises = find_modules_in_toolchain('BLIS', toolchain)
         if blises:
             ml_lists.append([flexiblas, blises[-1]])
         else:
@@ -80,11 +77,11 @@ def get_aoclblas_modules():
     """Return available AOCL-BLAS modules + matching Flexiblas and BLIS modules as a list of lists"""
     ml_lists = []
 
-    aoclblases = list(find_modules(r'AOCL-BLAS$', avail_modules=AVAIL_MODULES))
+    aoclblases = list(find_modules(r'AOCL-BLAS$'))
     for aoclblas in aoclblases:
         _, _, toolchain, _ = split_module(aoclblas)
-        flexiblases = sorted(find_modules(rf'FlexiBLAS/.*{toolchain}$', name_only=False, avail_modules=AVAIL_MODULES))
-        blises = sorted(find_modules(rf'BLIS/.*{toolchain}$', name_only=False, avail_modules=AVAIL_MODULES))
+        flexiblases = find_modules_in_toolchain('FlexiBLAS', toolchain)
+        blises = find_modules_in_toolchain('BLIS', toolchain)
         if flexiblases and blises:
             ml_lists.append([flexiblases[-1], blises[-1], aoclblas])
         else:
@@ -100,7 +97,7 @@ def get_imkl_modules():
     """
     ml_lists = []
 
-    flexiblases = sorted(find_modules(r'FlexiBLAS$', avail_modules=AVAIL_MODULES))
+    flexiblases = sorted(find_modules(r'FlexiBLAS$'))
     if flexiblases:
         flexiblas = flexiblases[-1]
     else:
@@ -109,14 +106,14 @@ def get_imkl_modules():
 
     _, _, toolchain, _ = split_module(flexiblas)
 
-    blises = sorted(find_modules(rf'BLIS/.*{toolchain}$', name_only=False, avail_modules=AVAIL_MODULES))
+    blises = find_modules_in_toolchain('BLIS', toolchain)
     if blises:
         blis = blises[-1]
     else:
         log(f'no matching BLIS module found for module {flexiblas}')
         return ml_lists
 
-    imkls = list(find_modules(r'imkl/[^-]*$', name_only=False, avail_modules=AVAIL_MODULES))
+    imkls = list(find_modules(r'imkl/[^-]*$', name_only=False))
     for imkl in imkls:
         ml_lists.append([flexiblas, blis, imkl])
 
