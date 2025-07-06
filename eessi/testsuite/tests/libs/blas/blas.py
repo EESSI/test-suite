@@ -6,7 +6,13 @@ Customizations to the original BLAS test:
 - adapted and simplified Makefile for FlexiBLAS support
 - custom simplified run.sh script
 
-Note: a FlexiBLAS and BLIS module must always be loaded to run the test, even if BLIS or OpenBLAS are not used
+Notes:
+- a FlexiBLAS and BLIS module must always be loaded to run the test, even if BLIS or OpenBLAS are not used
+- by default OpenBLAS is already included as a dependency in FlexiBLAS.
+  this means that, if multiple OpenBLAS modules are present in the same toolchain,
+  the OpenBLAS versions not included in FlexiBLAS may fail to load due to a version conflict.
+  to fix this, you may want to run: `export LMOD_DISABLE_SAME_NAME_AUTOSWAP=no` before running the test
+- BLAS modules with hyphens in the version string are not supported
 
 Supported tags in this ReFrame test (in addition to the common tags):
 - threading: `st`, `mt`
@@ -38,80 +44,58 @@ def multi_thread_scales():
     ])
 
 
-def get_blis_modules():
-    """Return available BLIS modules + matching Flexiblas modules as a list of lists"""
-    ml_lists = []
-
-    blises = list(find_modules(r'BLIS$'))
-    for blis in blises:
-        _, _, toolchain, _ = split_module(blis)
-        flexiblases = find_modules_in_toolchain('FlexiBLAS', toolchain)
-        if flexiblases:
-            ml_lists.append([flexiblases[-1], blis])
-        else:
-            log(f'no matching FlexiBLAS module found for module {blis}')
-
-    return ml_lists
-
-
-def get_openblas_modules():
+def get_blas_modules(name):
     """
-    Return available FlexiBLAS modules + matching BLIS modules as a list of lists
-    Assume OpenBLAS is included in FlexiBLAS as a dependency
+    Find available <name> modules and (latest) Flexiblas and BLIS modules within the same toolchain
+
+    Returns a list of lists: each inner list contains the matching Flexiblas and BLIS modules,
+                             followed by the <name> module.
     """
     ml_lists = []
+    required_matches = ['FlexiBLAS']
+    if name != 'BLIS':
+        required_matches.append('BLIS')
 
-    flexiblases = list(find_modules(r'FlexiBLAS$'))
-    for flexiblas in flexiblases:
-        _, _, toolchain, _ = split_module(flexiblas)
-        blises = find_modules_in_toolchain('BLIS', toolchain)
-        if blises:
-            ml_lists.append([flexiblas, blises[-1]])
-        else:
-            log(f'no matching BLIS module found for module {flexiblas}')
+    modules = list(find_modules(rf'{name}$'))
+    for mod in modules:
+        _, _, toolchain, _ = split_module(mod)
+        matches = []
+        all_found = True
 
-    return ml_lists
+        for req_match in required_matches:
+            matching_modules = find_modules_in_toolchain(req_match, toolchain)
+            if not matching_modules:
+                log(f'No matching {req_match} module found for module {mod}')
+                all_found = False
+                break
+            matches.append(matching_modules[-1])
 
-
-def get_aoclblas_modules():
-    """Return available AOCL-BLAS modules + matching Flexiblas and BLIS modules as a list of lists"""
-    ml_lists = []
-
-    aoclblases = list(find_modules(r'AOCL-BLAS$'))
-    for aoclblas in aoclblases:
-        _, _, toolchain, _ = split_module(aoclblas)
-        flexiblases = find_modules_in_toolchain('FlexiBLAS', toolchain)
-        blises = find_modules_in_toolchain('BLIS', toolchain)
-        if flexiblases and blises:
-            ml_lists.append([flexiblases[-1], blises[-1], aoclblas])
-        else:
-            log(f'no matching FlexiBLAS and/or BLIS module found for module {aoclblas}')
+        if all_found:
+            ml_lists.append(matches + [mod])
 
     return ml_lists
 
 
 def get_imkl_modules():
     """
-    Return available imkl modules + matching Flexiblas and BLIS modules as a list of lists
-    Only select imkl modules with SYSTEM toolchain
+    Return available imkl modules + (latest) Flexiblas and BLIS modules as a list of lists
+    Only imkl modules with SYSTEM toolchain are used
     """
     ml_lists = []
 
     flexiblases = sorted(find_modules(r'FlexiBLAS$'))
-    if flexiblases:
-        flexiblas = flexiblases[-1]
-    else:
+    if not flexiblases:
         log('no FlexiBLAS module found')
         return ml_lists
+    flexiblas = flexiblases[-1]
 
     _, _, toolchain, _ = split_module(flexiblas)
 
     blises = find_modules_in_toolchain('BLIS', toolchain)
-    if blises:
-        blis = blises[-1]
-    else:
+    if not blises:
         log(f'no matching BLIS module found for module {flexiblas}')
         return ml_lists
+    blis = blises[-1]
 
     imkls = list(find_modules(r'imkl/[^-]*$', name_only=False))
     for imkl in imkls:
@@ -209,7 +193,7 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
 class EESSI_BLAS_OpenBLAS_base(EESSI_BLAS_base):
     "base OpenBLAS test"
 
-    module_name = parameter(get_openblas_modules())
+    module_name = parameter(get_blas_modules('OpenBLAS'))
     flexiblas_blas_lib = 'openblas'
     tags = {'openblas'}
 
@@ -235,7 +219,7 @@ class EESSI_BLAS_OpenBLAS_mt(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
 class EESSI_BLAS_AOCLBLAS_base(EESSI_BLAS_base):
     "base AOCL-BLAS test"
 
-    module_name = parameter(get_aoclblas_modules())
+    module_name = parameter(get_blas_modules('AOCL-BLAS'))
     flexiblas_blas_lib = 'aocl_mt'
     tags = {'aocl-blas'}
 
@@ -283,7 +267,7 @@ class EESSI_BLAS_imkl_mt(EESSI_BLAS_imkl_base, EESSI_Mixin):
 class EESSI_BLAS_BLIS_base(EESSI_BLAS_base):
     "base BLIS test"
 
-    module_name = parameter(get_blis_modules())
+    module_name = parameter(get_blas_modules('BLIS'))
     flexiblas_blas_lib = 'blis'
     tags = {'blis'}
 
