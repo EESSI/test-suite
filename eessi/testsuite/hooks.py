@@ -607,8 +607,10 @@ def set_modules(test: rfm.RegressionTest):
         return
     if isinstance(test.module_name, str):
         test.module_names = [test.module_name]
-    else:
+    elif isinstance(test.module_name, (list, tuple)):
         test.module_names = test.module_name
+    else:
+        raise TypeError(f'module_name is a {type(test.module_name).__name__}, should be string, list, or tuple')
     if test.modules:
         for name in test.module_names:
             if name not in test.modules:
