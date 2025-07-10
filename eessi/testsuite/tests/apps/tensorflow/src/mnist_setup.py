@@ -3,12 +3,28 @@ import os
 import tensorflow as tf
 import numpy as np
 
-if os.environ.get('EESSI_TEST_SUITE_NO_DOWNLOAD') is True:
+# Should go in the EESSI MIXin class and than also at a check for a path set to all the files needed
+if os.environ.get('EESSI_TEST_SUITE_NO_DOWNLOAD') == 'True':
     eessi_test_suite_download=False
 else:
-    eessi_test_suite_donwload=True
+    eessi_test_suite_download=True
 
 def mnist_dataset(batch_size, test_batch_size):
+    if eessi_test_suite_download:
+        (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+    else:
+        # Can just use a standard path do not need KERAS_HOME
+        if "KERAS_HOME" in os.environ:
+            keras_home = os.environ['KERAS_HOME']
+            mnist_path = os.path.join(keras_home, 'datasets', 'mnist.npz')
+            if os.path.exists(mnist_path):
+                with  np.load(mnist_path, allow_pickle=True) as data:
+                    x_train, y_train = data['x_train'], data['y_train']
+                    x_test, y_test = data['x_test'], data['y_test']
+            else:
+                raise ValueError(f'could not find {mnist_path} and cannot download.')
+        else:
+            raise ValueError('The TensorFlow test requires KERAS_HOME to be set if not allowed to download the dataset.')
     if eessi_test_suite_download:
         (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
     else:
