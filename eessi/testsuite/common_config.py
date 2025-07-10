@@ -75,7 +75,7 @@ def common_logging_config(prefix=None):
 def common_general_config(prefix=None):
     """
     return common configuration for the 'general' section of the ReFrame configuration file
-    :param: prefix: prefix for the report_file
+    :param prefix: prefix for the report_file
     """
     prefix = os.getenv('RFM_PREFIX', prefix if prefix else '.')
     reportdir = os.path.join(prefix, 'report_files')
@@ -131,3 +131,15 @@ def common_eessi_init(eessi_version=None):
 
     eessi_init.append(f'source {eessi_cvmfs_repo}/{version_string}/init/bash')
     return ' && '.join(eessi_init)
+
+
+def get_sbatch_account():
+    """
+    return SBATCH_ACCOUNT as a string
+    """
+    sbatch_account = os.getenv('SBATCH_ACCOUNT', None)
+    if sbatch_account is None:
+        err_msg = "Environment variable 'SBATCH_ACCOUNT' was not found."
+        err_msg += " It is required to set `SBATCH_ACCOUNT` to run on this system."
+        raise ValueError(err_msg)
+    return sbatch_account
