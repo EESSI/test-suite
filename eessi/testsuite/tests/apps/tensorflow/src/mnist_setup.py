@@ -1,9 +1,21 @@
+import os
+
 import tensorflow as tf
 import numpy as np
 
+if os.environ.get('EESSI_TEST_SUITE_NO_DOWNLOAD') is True:
+    eessi_test_suite_download=False
+else:
+    eessi_test_suite_donwload=True
 
 def mnist_dataset(batch_size, test_batch_size):
-    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+    if eessi_test_suite_download:
+        (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+    else:
+        if os.environ['KERAS_HOME']:
+            print(os.environ['KERAS_HOME'])
+        else:
+            raise ValueError('The TensorFlow test requires KERAS_HOME to be set if not allowed to download the dataset')
     # The `x` arrays are in uint8 and have values in the [0, 255] range.
     # You need to convert them to float32 with values in the [0, 1] range.
     x_train = x_train / np.float32(255)
