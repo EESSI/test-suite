@@ -13,7 +13,7 @@ E = np.random.random((int(size / 2), int(size / 4)))
 F = np.random.random((int(size / 2), int(size / 2)))
 F = np.dot(F, F.T)
 G = np.random.random((int(size / 2), int(size / 2)))
-I = (F + F.T) / 2.
+J = (F + F.T) / 2.
 
 # Matrix multiplication
 N = 20
@@ -58,7 +58,7 @@ print("Eigendecomposition of a %dx%d matrix in %0.2f s." % (size / 2,
 # Matrix Inversion
 t = time()
 for i in range(N):
-    np.linalg.inv(I)
+    np.linalg.inv(J)
 
 delta = time() - t
 print("Inversion of a %dx%d matrix in %0.2f s." % (size / 2,
