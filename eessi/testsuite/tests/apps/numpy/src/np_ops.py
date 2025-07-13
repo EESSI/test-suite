@@ -7,7 +7,7 @@ print('NumPy version:', np.__version__)
 # Let's take the randomness out of random numbers (for reproducibility)
 np.random.seed(534)
 
-size = 4096
+size = 8192
 A, B = np.random.random((size, size)), np.random.random((size, size))
 E = np.random.random((int(size / 2), int(size / 4)))
 F = np.random.random((int(size / 2), int(size / 2)))
