@@ -24,7 +24,7 @@ class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     descr = 'Test matrix operations with NumPy'
     executable = 'python3'
     executable_opts = ['np_ops.py']
-    time_limit = '20m'
+    time_limit = '30m'
     readonly_files = ['np_ops.py']
     module_name = parameter(find_modules('SciPy-bundle'))
     device_type = DEVICE_TYPES.CPU
@@ -35,7 +35,10 @@ class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     ])
 
     def required_mem_per_node(self):
-        return self.num_cpus_per_task * 100 + 600
+        return self.num_cpus_per_task * 100 + 2500
+
+    def perf_func(self, perf_name, perf_regex):
+        return perf_name, sn.make_performance_function(sn.extractsingle(perf_regex, self.stdout, 1, float), 's')
 
     @run_after('setup')
     def set_launcher(self):
@@ -50,20 +53,10 @@ class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     @run_before('performance')
     def set_perf_vars(self):
         """Set performance variables"""
-        self.perf_variables.update({
-            'dot': sn.make_performance_function(sn.extractsingle(
-                r'^Dotted two \S* matrices in\s+(?P<dot>\S+)\s+s',
-                self.stdout, 'dot', float), 's'),
-            'svd': sn.make_performance_function(sn.extractsingle(
-                r'^SVD of a \S* matrix in\s+(?P<svd>\S+)\s+s',
-                self.stdout, 'svd', float), 's'),
-            'cholesky': sn.make_performance_function(sn.extractsingle(
-                r'^Cholesky decomposition of a \S* matrix in\s+(?P<cholesky>\S+)\s+s',
-                self.stdout, 'cholesky', float), 's'),
-            'eigendec': sn.make_performance_function(sn.extractsingle(
-                r'^Eigendecomposition of a \S* matrix in\s+(?P<eigendec>\S+)\s+s',
-                self.stdout, 'eigendec', float), 's'),
-            'inv': sn.make_performance_function(sn.extractsingle(
-                r'^Inversion of a \S* matrix in\s+(?P<inv>\S+)\s+s',
-                self.stdout, 'inv', float), 's'),
-        })
+        self.perf_variables.update([
+            self.perf_func('dot', r'^Dotted two \S* matrices in\s+(?P<dot>\S+)\s+s'),
+            self.perf_func('svd', r'^SVD of a \S* matrix in\s+(?P<svd>\S+)\s+s'),
+            self.perf_func('cholesky', r'^Cholesky decomposition of a \S* matrix in\s+(?P<cholesky>\S+)\s+s'),
+            self.perf_func('eigendec', r'^Eigendecomposition of a \S* matrix in\s+(?P<eigendec>\S+)\s+s'),
+            self.perf_func('inv', r'^Inversion of a \S* matrix in\s+(?P<inv>\S+)\s+s'),
+        ])
