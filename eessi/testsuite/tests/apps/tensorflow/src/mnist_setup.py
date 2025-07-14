@@ -25,7 +25,9 @@ def mnist_dataset(batch_size, test_batch_size):
                 msg = f'could not find {mnist_path} and cannot download.'
                 raise ValueError(msg)
         else:
-            raise ValueError('The TensorFlow test requires EESSI_TEST_SUITE_DOWNLOAD_DIR to be set if not allowed to download the dataset.')
+            msg = 'The TensorFlow test requires EESSI_TEST_SUITE_DOWNLOAD_DIR to be set.'
+            msg += 'Since the dataset to run TensorFlow cannot be downloaded.'
+            raise ValueError(msg)
     if eessi_test_suite_download:
         (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
     else:
