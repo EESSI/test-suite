@@ -13,10 +13,9 @@ def mnist_dataset(batch_size, test_batch_size):
     if eessi_test_suite_download:
         (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
     else:
-        # Can just use a standard path do not need KERAS_HOME
-        if "KERAS_HOME" in os.environ:
-            keras_home = os.environ['KERAS_HOME']
-            mnist_path = os.path.join(keras_home, 'datasets', 'mnist.npz')
+        if "EESSI_TEST_SUITE_DOWNLOAD_DIR" in os.environ:
+            download_path = os.environ['EESSI_TEST_SUITE_DOWNLOAD_DIR']
+            mnist_path = os.path.join(download_path, 'datasets', 'mnist.npz')
             if os.path.exists(mnist_path):
                 with  np.load(mnist_path, allow_pickle=True) as data:
                     x_train, y_train = data['x_train'], data['y_train']
@@ -24,7 +23,7 @@ def mnist_dataset(batch_size, test_batch_size):
             else:
                 raise ValueError(f'could not find {mnist_path} and cannot download.')
         else:
-            raise ValueError('The TensorFlow test requires KERAS_HOME to be set if not allowed to download the dataset.')
+            raise ValueError('The TensorFlow test requires EESSI_TEST_SUITE_DOWNLOAD_DIR to be set if not allowed to download the dataset.')
     if eessi_test_suite_download:
         (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
     else:
