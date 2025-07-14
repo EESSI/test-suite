@@ -5,9 +5,10 @@ import numpy as np
 
 # Should go in the EESSI MIXin class and than also at a check for a path set to all the files needed
 if os.environ.get('EESSI_TEST_SUITE_NO_DOWNLOAD') == 'True':
-    eessi_test_suite_download=False
+    eessi_test_suite_download = False
 else:
-    eessi_test_suite_download=True
+    eessi_test_suite_download = True
+
 
 def mnist_dataset(batch_size, test_batch_size):
     if eessi_test_suite_download:
@@ -17,11 +18,12 @@ def mnist_dataset(batch_size, test_batch_size):
             download_path = os.environ['EESSI_TEST_SUITE_DOWNLOAD_DIR']
             mnist_path = os.path.join(download_path, 'datasets', 'mnist.npz')
             if os.path.exists(mnist_path):
-                with  np.load(mnist_path, allow_pickle=True) as data:
+                with np.load(mnist_path, allow_pickle=True) as data:
                     x_train, y_train = data['x_train'], data['y_train']
                     x_test, y_test = data['x_test'], data['y_test']
             else:
-                raise ValueError(f'could not find {mnist_path} and cannot download.')
+                msg = f'could not find {mnist_path} and cannot download.'
+                raise ValueError(msg)
         else:
             raise ValueError('The TensorFlow test requires EESSI_TEST_SUITE_DOWNLOAD_DIR to be set if not allowed to download the dataset.')
     if eessi_test_suite_download:
