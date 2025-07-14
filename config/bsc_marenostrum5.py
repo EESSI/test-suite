@@ -39,12 +39,12 @@ site_configuration = {
                         "module unuse /apps/GPP/modulefiles/applications",
                         common_eessi_init(),
                         'export OMPI_MCA_pml=ucx',
-                         # Work around "Failed to modify UD QP to INIT on mlx5_0: Operation not permitted" issue
-                         # until we can resolve this through an LMOD hook in host_injections.
-                         # (then these OMPI_MCA_btl & mtl can be removed again)
-                         # See https://github.com/EESSI/software-layer/issues/456#issuecomment-2107755266
-                         'export OMPI_MCA_mtl="^ofi"',
-                         'export OMPI_MCA_btl="^ofi"',
+                        # Work around "Failed to modify UD QP to INIT on mlx5_0: Operation not permitted" issue
+                        # until we can resolve this through an LMOD hook in host_injections.
+                        # (then these OMPI_MCA_btl & mtl can be removed again)
+                        # See https://github.com/EESSI/software-layer/issues/456#issuecomment-2107755266
+                        'export OMPI_MCA_mtl="^ofi"',
+                        'export OMPI_MCA_btl="^ofi"',
                     ],
                     'environs': ['default'],
                     'max_jobs': 4,
@@ -73,12 +73,12 @@ site_configuration = {
                         "module unuse /apps/GPP/modulefiles/applications",
                         common_eessi_init(),
                         'export OMPI_MCA_pml=ucx',
-                         # Work around "Failed to modify UD QP to INIT on mlx5_0: Operation not permitted" issue
-                         # until we can resolve this through an LMOD hook in host_injections.
-                         # (then these OMPI_MCA_btl & mtl can be removed again)
-                         # See https://github.com/EESSI/software-layer/issues/456#issuecomment-2107755266
-                         'export OMPI_MCA_mtl="^ofi"',
-                         'export OMPI_MCA_btl="^ofi"',
+                        # Work around "Failed to modify UD QP to INIT on mlx5_0: Operation not permitted" issue
+                        # until we can resolve this through an LMOD hook in host_injections.
+                        # (then these OMPI_MCA_btl & mtl can be removed again)
+                        # See https://github.com/EESSI/software-layer/issues/456#issuecomment-2107755266
+                        'export OMPI_MCA_mtl="^ofi"',
+                        'export OMPI_MCA_btl="^ofi"',
                     ],
                     'environs': ['default'],
                     'max_jobs': 4,
