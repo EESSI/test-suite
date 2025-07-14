@@ -42,27 +42,10 @@ site_configuration = {
                     ],
                     'environs': ['default'],
                     'max_jobs': 4,
-                    # We recommend to rely on ReFrame's CPU autodetection,
-                    # and only define the 'processor' field if autodetection fails
-                    # 'processor': {
-                        # 'num_cpus': 128,
-                        # 'num_sockets': 2,
-                        # 'num_cpus_per_socket': 64,
-                        # 'num_cpus_per_core': 1,
-                    # },
                     'resources': [
-                        #{
-                        #    'name': 'memory',
-                        #    'options': ['--mem={size}'],
-                        #}
+                        # memory cannot be set on MareNostrum
+                        # The test-suite will give warning which can be ignored
                     ],
-                    'extras': {
-                        # If you have slurm, check with scontrol show node <nodename> for the amount of RealMemory
-                        # on nodes in this partition
-                        # Make sure to round down, otherwise a job might ask for more mem than is available
-                        # per node
-                        EXTRAS.MEM_PER_NODE: 229376  # in MiB
-                    },
                     # list(SCALES.keys()) adds all the scales from eessi.testsuite.constants as valid for thi partition
                     # Can be modified if not all scales can run on this partition, see e.g. the surf_snellius.py config
                     'features': [FEATURES.CPU] + list(SCALES.keys()),
@@ -93,23 +76,13 @@ site_configuration = {
                     ],
                     'environs': ['default'],
                     'max_jobs': 4,
-                    # We recommend to rely on ReFrame's CPU autodetection,
-                    # and only define the 'processor' field if autodetection fails
-                    # 'processor': {
-                    #     'num_cpus': 72,
-                    #     'num_sockets': 2,
-                    #     'num_cpus_per_socket': 36,
-                    #     'num_cpus_per_core': 1,
-                    # },
                     'resources': [
                         {
                             'name': '_rfm_gpu',
                             'options': ['--gpus-per-node={num_gpus_per_node}'],
                         },
-                        #{
-                        #    'name': 'memory',
-                        #    'options': ['--mem={size}'],
-                        #}
+                        # memory cannot be set on MareNostrum
+                        # The test-suite will give warning which can be ignored
                     ],
                     'devices': [
                         {
@@ -122,11 +95,6 @@ site_configuration = {
                         FEATURES.GPU,
                     ] + list(SCALES.keys()),
                     'extras': {
-                        # If you have slurm, check with scontrol show node <nodename> for the amount of RealMemory
-                        # on nodes in this partition
-                        # Make sure to round down, otherwise a job might ask for more mem than is available
-                        # per node
-                        EXTRAS.MEM_PER_NODE: 229376,  # in MiB
                         EXTRAS.GPU_VENDOR: GPU_VENDORS.NVIDIA,
                     },
                 },
