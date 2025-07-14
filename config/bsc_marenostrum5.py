@@ -6,6 +6,12 @@ from eessi.testsuite.common_config import (common_logging_config,
                                            get_sbatch_account)
 from eessi.testsuite.constants import *
 
+# Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
+# From ReFrame 4.8.1 we can no longer rely on SBATCH_ACCOUNT completely
+# ReFrame unsets all `SBATCH_*` evironment variables before running `sbatch`
+# See https://github.com/reframe-hpc/reframe/issues/3422
+sbatch_account = get_sbatch_account()
+
 site_configuration = {
     'systems': [
         {
