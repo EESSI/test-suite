@@ -3,7 +3,6 @@ import os
 import tensorflow as tf
 import numpy as np
 
-# Should go in the EESSI MIXin class and than also at a check for a path set to all the files needed
 if os.environ.get('EESSI_TEST_SUITE_NO_DOWNLOAD') == 'True':
     eessi_test_suite_download = False
 else:
