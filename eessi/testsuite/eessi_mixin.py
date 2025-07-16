@@ -203,7 +203,7 @@ class EESSI_Mixin(RegressionMixin):
         self.postrun_cmds.append('echo "EESSI_SOFTWARE_SUBDIR: $EESSI_SOFTWARE_SUBDIR"')
         if self.module_name:
             # Get full modulepath
-            get_full_modpath = f'echo "FULL_MODULEPATH: $(module --location show {self.module_name})"'
+            get_full_modpath = f'echo "FULL_MODULEPATH: $(module --location show {self.module_name} 2>&1)"'
             self.postrun_cmds.append(get_full_modpath)
 
     @run_before('run', always_last=True)
