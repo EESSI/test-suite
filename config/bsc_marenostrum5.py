@@ -21,6 +21,7 @@ site_configuration = {
             'hostnames': ['.*'],
             # Note that the stagedir should be a shared directory available on all nodes running ReFrame tests
             'stagedir': f'{os.environ.get("RFM_PREFIX")}/stage',
+            'resourcesdir': f'{os.environ.get("RFM_PREFIX")}/resources',
             'partitions': [
                 {
                     'name': 'gp_ehpc',
@@ -30,10 +31,6 @@ site_configuration = {
                     'access': ['-q gp_ehpc', '--export=None', f'-A {sbatch_account}'],
                     'env_vars': [
                         ['EESSI_TEST_SUITE_NO_DOWNLOAD', 'True'],
-                        [
-                            'EESSI_TEST_SUITE_DOWNLOAD_DIR',
-                            '/gpfs/projects/ehpc38/EESSI/testing/test-suite-downloads',
-                        ],
                     ],
                     'prepare_cmds': [
                         "module unuse /apps/GPP/modulefiles/applications",
