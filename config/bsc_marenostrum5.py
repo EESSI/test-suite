@@ -30,7 +30,11 @@ site_configuration = {
                     'launcher': 'mpirun',
                     'access': ['-q gp_ehpc', '--export=None', f'-A {sbatch_account}'],
                     'env_vars': [
-                        ['EESSI_TEST_SUITE_NO_DOWNLOAD', 'True'],
+                        ['EESSI_TEST_SUITE_DISABLE_DOWNLOAD', 'True'],
+                        [
+                            'EESSI_TEST_SUITE_DOWNLOAD_DIR',
+                            f'{os.environ.get("RFM_PREFIX")}/resources',
+                        ],
                     ],
                     'prepare_cmds': [
                         "module unuse /apps/GPP/modulefiles/applications",
@@ -60,10 +64,10 @@ site_configuration = {
                     'launcher': 'mpirun',
                     'access': ['-p acc_ehpc', '--export=None', f'-A {sbatch_account}'],
                     'env_vars': [
-                        ['EESSI_TEST_SUITE_NO_DOWNLOAD', True],
+                        ['EESSI_TEST_SUITE_DISABLE_DOWNLOAD', True],
                         [
                             'EESSI_TEST_SUITE_DOWNLOAD_DIR',
-                            '/gpfs/projects/ehpc38/EESSI/testing/test-suite-downloads',
+                            f'{os.environ.get("RFM_PREFIX")}/resources',
                         ],
                     ],
                     'prepare_cmds': [
