@@ -72,4 +72,3 @@ for i in range(niter_eigen):
 
 delta = time() - t
 print("Eigendecomposition of a %dx%d matrix in %0.2f s." % (size / 2, size / 2, delta / niter_eigen))
-
