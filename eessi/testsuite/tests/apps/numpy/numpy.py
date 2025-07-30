@@ -12,7 +12,7 @@ Tested matrix operations with NumPy:
 import reframe as rfm
 import reframe.utility.sanity as sn
 from reframe.core.backends import getlauncher
-from reframe.core.builtins import parameter, run_after, run_before, sanity_function
+from reframe.core.builtins import parameter, run_after, run_before, sanity_function, variable
 
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
@@ -22,8 +22,7 @@ from eessi.testsuite.utils import find_modules
 @rfm.simple_test
 class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     descr = 'Test matrix operations with NumPy'
-    executable = 'python3'
-    executable_opts = ['np_ops.py']
+    executable = './np_ops.py'
     time_limit = '30m'
     readonly_files = ['np_ops.py']
     module_name = parameter(find_modules('SciPy-bundle'))
@@ -34,11 +33,28 @@ class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         if v['num_nodes'] == 1
     ])
 
+    matrix_size = variable(str, value='8192')
+    iterations = variable(str, value='4')
+    iterations_eigen = variable(str, value='1')
+
     def required_mem_per_node(self):
+        """
+        Minimum required memory for this test
+        This value is based on the default matrix size, and may have to be adapted for non-default matrix sizes.
+        """
         return self.num_cpus_per_task * 100 + 2500
 
     def perf_func(self, perf_name, perf_regex):
         return perf_name, sn.make_performance_function(sn.extractsingle(perf_regex, self.stdout, 1, float), 's')
+
+    @run_after('init')
+    def set_executable_opts(self):
+        """Set executable_opts"""
+        self.executable_opts = [
+            '--matrix-size', self.matrix_size,
+            '--iterations', self.iterations,
+            '--iterations-eigen', self.iterations_eigen,
+        ]
 
     @run_after('setup')
     def set_launcher(self):
