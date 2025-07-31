@@ -135,6 +135,9 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
 
     @run_after('setup')
     def set_up_offline_run(self):
+        """
+        Set environments variables to run offline or skip the test
+        """
         if self.current_partition.extras['internet_access'] == 'offline':
             msg = f'Test for {self.module_name} cannot be run on offline machine'
             self.skip_if(self.module_name == self.module_name, msg)
