@@ -104,15 +104,16 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         """
         Set environments variables to run offline or skip the test
         """
-        if self.current_partition.extras['internet_access'] == 'offline':
-            resourcesdir = self.current_system.resourcesdir
-            data = os.path.join(resourcesdir, self.module_name, 'datasets/mnist.npz')
-            if os.path.exists(data):
-                self.env_vars['EESSI_TEST_SUITE_DISABLE_DOWNLOAD'] = 'True'
-                self.env_vars['RFM_TENSORFLOW_DATA'] = data
-            else:
-                msg = f'{self.current_partition.name} does not have internet access. '
-                msg += f'And could not find {data}. '
-                msg += 'You can download the file running tf.keras.datasets.mnist.load_data() '
-                msg += f'with {self.module_name} on a system with internet access.'
-                self.skip_if(self.module_name == self.module_name, msg)
+        if 'internet_access' in self.current_partition.extras:
+            if self.current_partition.extras['internet_access'] == 'offline':
+                resourcesdir = self.current_system.resourcesdir
+                data = os.path.join(resourcesdir, self.module_name, 'datasets/mnist.npz')
+                if os.path.exists(data):
+                    self.env_vars['EESSI_TEST_SUITE_DISABLE_DOWNLOAD'] = 'True'
+                    self.env_vars['RFM_TENSORFLOW_DATA'] = data
+                else:
+                    msg = f'{self.current_partition.name} does not have internet access. '
+                    msg += f'And could not find {data}. '
+                    msg += 'You can download the file running tf.keras.datasets.mnist.load_data() '
+                    msg += f'with {self.module_name} on a system with internet access.'
+                    self.skip_if(self.module_name == self.module_name, msg)
