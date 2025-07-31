@@ -81,6 +81,7 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck, EESSI_Mixin):
         """
         Set environments variables to run offline or skip the test
         """
-        if self.current_partition.extras['internet_access'] == 'offline':
-            msg = f'Test for {self.module_name} cannot be run on offline machine'
-            self.skip_if(self.module_name == self.module_name, msg)
+        if 'internet_access' in self.current_partition.extras:
+            if self.current_partition.extras['internet_access'] == 'offline':
+                msg = f'Test for {self.module_name} cannot be run on offline machine'
+                self.skip_if(self.module_name == self.module_name, msg)
