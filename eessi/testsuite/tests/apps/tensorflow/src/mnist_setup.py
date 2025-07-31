@@ -3,7 +3,7 @@ import os
 import tensorflow as tf
 import numpy as np
 
-if os.environ.get('EESSI_TEST_SUITE_NO_DOWNLOAD') == 'True':
+if os.environ.get('EESSI_TEST_SUITE_DISABLE_DOWNLOAD') == 'True':
     eessi_test_suite_download = False
 else:
     eessi_test_suite_download = True
