@@ -113,5 +113,6 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
             else:
                 msg = f'{self.current_partition.name} does not have internet access. '
                 msg += f'And could not find {data}. '
-                msg += f'You can download the file running tf.keras.datasets.mnist.load_data() with {self.module_name} on a system with internet access.'
+                msg += f'You can download the file running tf.keras.datasets.mnist.load_data() '
+                msg += f'with {self.module_name} on a system with internet access.'
                 self.skip_if(self.module_name == self.module_name, msg)
