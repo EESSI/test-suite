@@ -260,7 +260,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_1M(rfm.RunOnlyRegressionTest, EESSI_Mixin
                 and sn.assert_eq(n_ranks, self.num_tasks)
                 and sn.assert_found(r"^Finalising parallel run", "./cavity3D/1M/fixedTol/log.renumberMesh",
                                     msg="Did not reach the end of the renumberMesh run. RenumberMesh failure.")
-                and sn.assert_found(r"^Time = 0.0075", "./cavity3D/1M/fixedTol/log.icofoam",
+                and sn.assert_found(r"^Time = 0.015", "./cavity3D/1M/fixedTol/log.icofoam",
                                     msg="Did not reach the last time step. IcoFoam failure.")
                 and sn.assert_found(r"^Finalising parallel run", "./cavity3D/1M/fixedTol/log.icofoam",
                                     msg="Did not reach the end of the icofoam run. IcoFoam failure."))
