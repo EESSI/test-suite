@@ -21,6 +21,7 @@ site_configuration = {
             'hostnames': ['.*'],
             # Note that the stagedir should be a shared directory available on all nodes running ReFrame tests
             'stagedir': f'{os.environ.get("RFM_PREFIX")}/stage',
+            'resourcesdir': f'{os.environ.get("RFM_PREFIX")}/resources',
             'partitions': [
                 {
                     'name': 'gp_ehpc',
@@ -28,13 +29,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access': ['-q gp_ehpc', '--export=None', f'-A {sbatch_account}'],
-                    'env_vars': [
-                        ['EESSI_TEST_SUITE_NO_DOWNLOAD', 'True'],
-                        [
-                            'EESSI_TEST_SUITE_DOWNLOAD_DIR',
-                            '/gpfs/projects/ehpc38/EESSI/testing/test-suite-downloads',
-                        ],
-                    ],
+                    'env_vars': [],
                     'prepare_cmds': [
                         "module unuse /apps/GPP/modulefiles/applications",
                         common_eessi_init(),
@@ -52,6 +47,10 @@ site_configuration = {
                         # memory cannot be set on MareNostrum
                         # The test-suite will give warning which can be ignored
                     ],
+                    'extras': {
+                        # TODO create constant
+                        EXTRAS.INTERNET_ACCESS: 'offline',
+                    },
                     # list(SCALES.keys()) adds all the scales from eessi.testsuite.constants as valid for thi partition
                     # Can be modified if not all scales can run on this partition, see e.g. the surf_snellius.py config
                     'features': [FEATURES.CPU] + list(SCALES.keys()),
@@ -62,13 +61,7 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'launcher': 'mpirun',
                     'access': ['-p acc_ehpc', '--export=None', f'-A {sbatch_account}'],
-                    'env_vars': [
-                        ['EESSI_TEST_SUITE_NO_DOWNLOAD', True],
-                        [
-                            'EESSI_TEST_SUITE_DOWNLOAD_DIR',
-                            '/gpfs/projects/ehpc38/EESSI/testing/test-suite-downloads',
-                        ],
-                    ],
+                    'env_vars': [],
                     'prepare_cmds': [
                         "module unuse /apps/GPP/modulefiles/applications",
                         common_eessi_init(),
@@ -102,6 +95,8 @@ site_configuration = {
                     ] + list(SCALES.keys()),
                     'extras': {
                         EXTRAS.GPU_VENDOR: GPU_VENDORS.NVIDIA,
+                        # TODO create constant
+                        EXTRAS.INTERNET_ACCESS: 'offline',
                     },
                 },
             ]
