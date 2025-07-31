@@ -51,6 +51,16 @@ def filter_scales_8M():
         if (v['num_nodes'] >= 1) and (0 < v.get('node_part', 0) <= 2)
     ]
 
+def filter_scales_1M():
+    """
+    Filtering function for filtering scales for the OpenFOAM 8M mesh test
+    returns all scales with at least half a node.
+    """
+    return [
+        k for (k, v) in SCALES.items()
+        if (v['num_nodes'] <= 2) and (v.get('node_part', 0) <= 2) and (v.get('num_cpus_per_node', 0) >= 2)
+    ]
+
 
 @rfm.simple_test
 class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_8M(rfm.RunOnlyRegressionTest, EESSI_Mixin):
