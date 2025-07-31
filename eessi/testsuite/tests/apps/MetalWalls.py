@@ -132,3 +132,9 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
         Set default number of OpenMP threads equal to number of CPUs per task.
         """
         hooks.set_omp_num_threads(self)
+
+    @run_after('setup')
+    def set_up_offline_run(self):
+        if self.current_partition.extras['internet_access'] == 'offline':
+            msg = f'Test for {self.module_name} cannot be run on offline machine'
+            self.skip_if(self.module_name == self.module_name, msg)

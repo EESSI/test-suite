@@ -75,3 +75,9 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck, EESSI_Mixin):
             DEVICE_TYPES.GPU: COMPUTE_UNITS.GPU,
         }
         self.compute_unit = device_to_compute_unit.get(self.device_type)
+
+    @run_after('setup')
+    def set_up_offline_run(self):
+        if self.current_partition.extras['internet_access'] == 'offline':
+            msg = f'Test for {self.module_name} cannot be run on offline machine'
+            self.skip_if(self.module_name == self.module_name, msg)
