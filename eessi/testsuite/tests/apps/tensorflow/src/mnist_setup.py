@@ -13,27 +13,8 @@ def mnist_dataset(batch_size, test_batch_size):
     if eessi_test_suite_download:
         (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
     else:
-        if "EESSI_TEST_SUITE_DOWNLOAD_DIR" in os.environ:
-            download_path = os.environ['EESSI_TEST_SUITE_DOWNLOAD_DIR']
-            mnist_path = os.path.join(download_path, 'datasets', 'mnist.npz')
-            if os.path.exists(mnist_path):
-                with np.load(mnist_path, allow_pickle=True) as data:
-                    x_train, y_train = data['x_train'], data['y_train']
-                    x_test, y_test = data['x_test'], data['y_test']
-            else:
-                msg = f'could not find {mnist_path} and cannot download.'
-                raise ValueError(msg)
-        else:
-            msg = 'The TensorFlow test requires EESSI_TEST_SUITE_DOWNLOAD_DIR to be set.'
-            msg += 'Since the dataset to run TensorFlow cannot be downloaded.'
-            raise ValueError(msg)
-    if eessi_test_suite_download:
-        (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
-    else:
-        if os.environ['KERAS_HOME']:
-            print(os.environ['KERAS_HOME'])
-        else:
-            raise ValueError('The TensorFlow test requires KERAS_HOME to be set if not allowed to download the dataset')
+        tensorflow_data = os.environ['RFM_TENSORFLOW_DATA']
+        (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data(path=tensorflow_data)
     # The `x` arrays are in uint8 and have values in the [0, 255] range.
     # You need to convert them to float32 with values in the [0, 1] range.
     x_train = x_train / np.float32(255)

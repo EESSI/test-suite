@@ -3,6 +3,7 @@ This module tests TensorFlow in available modules containing substring 'TensorFl
 The test itself is based on an official multi-worker with Keras tutoral at
 https://www.tensorflow.org/tutorials/distribute/multi_worker_with_keras
 """
+import os
 
 import reframe as rfm
 from reframe.core.builtins import deferrable, parameter, run_after, sanity_function, performance_function
@@ -97,3 +98,19 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         self.executable_opts += ['--intra-op-parallelism', '%s' % self.num_cpus_per_task]
         self.executable_opts += ['--inter-op-parallelism', '1']
         utils.log(f'executable_opts set to {self.executable_opts}')
+
+    @run_after('setup')
+    def set_up_offline_run(self):
+        """
+        Set environments variables to run offline or skip the test
+        """
+        if self.current_partition.extras['internet_access'] == 'offline':
+            resourcesdir = self.current_system.resourcesdir
+            data = os.path.join(resourcesdir, self.module_name, 'datasets/mnist.npz')
+            if os.path.exists(data):
+                self.env_vars['EESSI_TEST_SUITE_DISABLE_DOWNLOAD'] = 'True'
+                self.env_vars['RFM_TENSORFLOW_DATA'] = data
+                print(self.env_vars)
+            else:
+                # TODO implement the skip
+                print('skip')
