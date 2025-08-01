@@ -37,6 +37,8 @@ class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     iterations = variable(str, value='4')
     iterations_eigen = variable(str, value='1')
 
+    is_ci_test = True
+
     def required_mem_per_node(self):
         """
         Minimum required memory for this test
