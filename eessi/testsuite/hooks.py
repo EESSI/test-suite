@@ -781,6 +781,8 @@ def add_buildenv_module(test: rfm.RegressionTest):
             return
 
     ref_tcname, ref_tcversion = split_module(test.modules[0])[2].split('-')
+    ref_tcdict = {'name': ref_tcname, 'version': ref_tcversion}
+
     try:
         from easybuild.framework.easyconfig.easyconfig import get_toolchain_hierarchy
         from easybuild.tools.options import set_up_configuration
@@ -827,8 +829,6 @@ def add_buildenv_module(test: rfm.RegressionTest):
                 msg = (f"Could not determine toolchain hierarchy for {buildenv_tcname},{buildenv_tcversion}."
                        " You may have to update the easybuild python package.")
                 raise ReframeFatalError(msg) from exc
-
-    ref_tcdict = {'name': ref_tcname, 'version': ref_tcversion}
 
     buildenv_added = False
 
