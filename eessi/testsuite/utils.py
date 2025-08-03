@@ -7,6 +7,7 @@ import sys
 from typing import Iterator, List
 
 import reframe as rfm
+from reframe.core.exceptions import ReframeFatalError
 import reframe.core.runtime as rt
 from reframe.frontend.printer import PrettyPrinter
 
@@ -14,7 +15,7 @@ from eessi.testsuite.constants import DEVICE_TYPES
 
 printer = PrettyPrinter()
 
-all_avail_modules = None
+available_modules = []
 
 
 def log(msg, logger=printer.debug):
@@ -128,18 +129,21 @@ def find_modules(regex: str, name_only=True) -> Iterator[str]:
         raise TypeError("'substr' argument must be a string")
 
     # use global to avoid recalculating the list of available modules multiple times
-    global all_avail_modules
-    if all_avail_modules is None:
+    global available_modules
+    if not available_modules:
         ms = rt.runtime().modules_system
         # Returns e.g. ['Bison/', 'Bison/3.7.6-GCCcore-10.3.0', 'BLIS/', 'BLIS/0.8.1-GCC-10.3.0']
-        all_avail_modules = ms.available_modules('')
+        available_modules = ms.available_modules('')
         # Exclude anything without version, i.e. ending with / (e.g. Bison/)
-        all_avail_modules = [mod for mod in all_avail_modules if not mod.endswith('/')]
-        log(f"Total number of available modules: {len(all_avail_modules)}")
+        available_modules = [mod for mod in available_modules if not mod.endswith('/')]
+        log(f"Total number of available modules: {len(available_modules)}")
+    if not available_modules:
+        msg = 'No available modules found on the system.'
+        raise ReframeFatalError(msg)
 
     seen = set()
     dupes = []
-    for mod in all_avail_modules:
+    for mod in available_modules:
         # The thing we yield should always be the original module name (orig_mod), including version
         orig_mod = mod
         if name_only:

@@ -45,8 +45,10 @@ class EESSI_Mixin(RegressionMixin):
     scale = parameter(SCALES.keys())
     bench_name = None
     bench_name_ci = None
+    is_ci_test = False
     num_tasks_per_compute_unit = 1
     always_request_gpus = None
+    require_buildenv_module = False
 
     # Create ReFrame variables for logging runtime environment information
     cvmfs_repo_name = variable(str, value='None')
@@ -122,6 +124,9 @@ class EESSI_Mixin(RegressionMixin):
 
         hooks.set_modules(self)
 
+        if self.require_buildenv_module:
+            hooks.add_buildenv_module(self)
+
         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
 
         # Set scales as tags
@@ -142,7 +147,10 @@ class EESSI_Mixin(RegressionMixin):
         Also set tag on bench_name if set
         """
         tags_added = False
-        if self.bench_name_ci:
+        if self.is_ci_test:
+            self.tags.add(TAGS.CI)
+            tags_added = True
+        elif self.bench_name_ci:
             if not self.bench_name:
                 msg = "Attribute bench_name_ci is set, but bench_name is not set"
                 raise ReframeFatalError(msg)

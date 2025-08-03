@@ -4,13 +4,19 @@ Hooks for adding tags, filtering and setting job resources in ReFrame tests
 import math
 
 import reframe as rfm
+from reframe.core.exceptions import ReframeFatalError
 import reframe.core.logging as rflog
 import reframe.utility.sanity as sn
 
 from eessi.testsuite.constants import (COMPUTE_UNITS, DEVICE_TYPES, EXTRAS, FEATURES,
                                        GPU_VENDORS, INVALID_SYSTEM, SCALES)
-from eessi.testsuite.utils import (get_max_avail_gpus_per_node, is_cuda_required_module, log,
-                                   check_proc_attribute_defined, check_extras_key_defined)
+from eessi.testsuite.utils import (check_extras_key_defined, check_proc_attribute_defined, find_modules,
+                                   get_max_avail_gpus_per_node, is_cuda_required_module, log, split_module)
+
+
+eb_configuration_is_set_up = False
+buildenv_modules = []
+buildenv_tc_hierarchies = []
 
 
 def _assign_default_num_cpus_per_node(test: rfm.RegressionTest):
@@ -762,3 +768,77 @@ def extract_memory_usage(test: rfm.RegressionTest):
         return hooks.extract_memory_usage(self)
     """
     return sn.extractsingle(r'^MAX_MEM_IN_MIB=(?P<memory>\S+)', test.stdout, 'memory', int)
+
+
+def add_buildenv_module(test: rfm.RegressionTest):
+    """
+    Add a buildenv module that matches the reference module to the list of modules
+
+    """
+    for mod in test.modules:
+        if mod.split('/')[0] == 'buildenv':
+            # buildenv module already in the list
+            return
+
+    ref_tcname, ref_tcversion = split_module(test.modules[0])[2].split('-')
+    try:
+        from easybuild.framework.easyconfig.easyconfig import get_toolchain_hierarchy
+        from easybuild.tools.options import set_up_configuration
+    except ImportError as exc:
+        msg = 'Required EasyBuild Python package not available'
+        raise ReframeFatalError(msg) from exc
+
+    # setup EasyBuild configuration
+    # make global to avoid running set_up_configuration() multiple times
+    global eb_configuration_is_set_up
+    if not eb_configuration_is_set_up:
+        set_up_configuration(args='')
+        eb_configuration_is_set_up = True
+
+    # get list of buildenv modules on the system
+    # make global to avoid calculating buildenv_modules multiple times
+    global buildenv_modules
+    if not buildenv_modules:
+        buildenv_modules = list(find_modules('buildenv'))
+        for mod in buildenv_modules:
+            mod_version = split_module(mod)
+            if mod_version[3] or mod_version[1] != 'default':
+                # only use default buildenv modules without versionsuffixes
+                buildenv_modules.remove(mod)
+    if not buildenv_modules:
+        msg = 'No default buildenv modules without versionsuffixes found on the system.'
+        raise ReframeFatalError(msg)
+
+    # calculate toolchain hierarchy for each buildenv module
+    # make global to avoid calculating hierarchies multiple times
+    global buildenv_tc_hierarchies
+    if not buildenv_tc_hierarchies:
+        for buildenv_mod in buildenv_modules:
+            mod_version = split_module(buildenv_mod)
+            if mod_version[3] or mod_version[1] != 'default':
+                # skip buildenv modules with versionsuffixes and non-default buildenv modules for now
+                continue
+            buildenv_tcname, buildenv_tcversion = mod_version[2].split('-')
+            try:
+                hierarchy = get_toolchain_hierarchy({'name': buildenv_tcname, 'version': buildenv_tcversion})
+                buildenv_tc_hierarchies.append(hierarchy)
+            except Exception as exc:
+                msg = (f"Could not determine toolchain hierarchy for {buildenv_tcname},{buildenv_tcversion}."
+                       " You may have to update the easybuild python package.")
+                raise ReframeFatalError(msg) from exc
+
+    ref_tcdict = {'name': ref_tcname, 'version': ref_tcversion}
+
+    buildenv_added = False
+
+    for index, buildenv_mod in enumerate(buildenv_modules):
+        if ref_tcdict in buildenv_tc_hierarchies[index]:
+            test.modules.insert(0, buildenv_mod)  # insert to keep the most important module last
+            buildenv_added = True
+            log(f'module {buildenv_mod} added to list of modules')
+            break
+
+    test.skip_if(
+        not buildenv_added,
+        f'No matching buildenv module found for {ref_tcname}-{ref_tcversion} on the system.'
+    )
