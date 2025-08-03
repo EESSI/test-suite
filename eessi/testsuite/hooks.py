@@ -813,6 +813,7 @@ def add_buildenv_module(test: rfm.RegressionTest):
     # make global to avoid calculating hierarchies multiple times
     global buildenv_tc_hierarchies
     if not buildenv_tc_hierarchies:
+        buildenv_tc_hierarchies = []  # just to make the linter happy
         for buildenv_mod in buildenv_modules:
             mod_version = split_module(buildenv_mod)
             if mod_version[3] or mod_version[1] != 'default':
