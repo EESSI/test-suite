@@ -91,13 +91,3 @@ class EESSI_GROMACS(EESSI_GROMACS_base, EESSI_Mixin):
 
         self.env_vars['OMP_NUM_THREADS'] = omp_num_threads
         log(f'env_vars set to {self.env_vars}')
-
-    @run_after('setup')
-    def set_up_offline_run(self):
-        """
-        Set environments variables to run offline or skip the test
-        """
-        if 'internet_access' in self.current_partition.extras:
-            if self.current_partition.extras['internet_access'] == 'offline':
-                msg = f'Test for {self.module_name} cannot be run on offline machine'
-                self.skip_if(self.module_name == self.module_name, msg)
