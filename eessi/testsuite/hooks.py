@@ -4,7 +4,6 @@ Hooks for adding tags, filtering and setting job resources in ReFrame tests
 import math
 
 import reframe as rfm
-from reframe.core.exceptions import ReframeFatalError
 import reframe.core.logging as rflog
 import reframe.utility.sanity as sn
 
@@ -774,6 +773,9 @@ def add_buildenv_module(test: rfm.RegressionTest):
     """
     Add a buildenv module that matches the reference module to the list of modules
 
+    Requirements:
+    - recent enough EasyBuild
+    - compatible buildenv/default-... modules
     """
     for mod in test.modules:
         if mod.split('/')[0] == 'buildenv':
@@ -786,9 +788,11 @@ def add_buildenv_module(test: rfm.RegressionTest):
     try:
         from easybuild.framework.easyconfig.easyconfig import get_toolchain_hierarchy
         from easybuild.tools.options import set_up_configuration
-    except ImportError as exc:
+    except ImportError:
         msg = 'Required EasyBuild Python package not available'
-        raise ReframeFatalError(msg) from exc
+        log(msg)
+        test.valid_systems = [INVALID_SYSTEM]
+        return
 
     # setup EasyBuild configuration
     # make global to avoid running set_up_configuration() multiple times
@@ -809,7 +813,9 @@ def add_buildenv_module(test: rfm.RegressionTest):
                 buildenv_modules.remove(mod)
     if not buildenv_modules:
         msg = 'No default buildenv modules without versionsuffixes found on the system.'
-        raise ReframeFatalError(msg)
+        log(msg)
+        test.valid_systems = [INVALID_SYSTEM]
+        return
 
     # calculate toolchain hierarchy for each buildenv module
     # make global to avoid calculating hierarchies multiple times
@@ -825,10 +831,12 @@ def add_buildenv_module(test: rfm.RegressionTest):
             try:
                 hierarchy = get_toolchain_hierarchy({'name': buildenv_tcname, 'version': buildenv_tcversion})
                 buildenv_tc_hierarchies.append(hierarchy)
-            except Exception as exc:
+            except Exception:
                 msg = (f"Could not determine toolchain hierarchy for {buildenv_tcname},{buildenv_tcversion}."
                        " You may have to update the easybuild python package.")
-                raise ReframeFatalError(msg) from exc
+                log(msg)
+                test.valid_systems = [INVALID_SYSTEM]
+                return
 
     buildenv_added = False
 
@@ -839,7 +847,8 @@ def add_buildenv_module(test: rfm.RegressionTest):
             log(f'module {buildenv_mod} added to list of modules')
             break
 
-    test.skip_if(
-        not buildenv_added,
-        f'No matching buildenv module found for {ref_tcname}-{ref_tcversion} on the system.'
-    )
+    if not buildenv_added:
+        msg = f'No matching buildenv module found for {ref_tcname}-{ref_tcversion} on the system.'
+        log(msg)
+        test.valid_systems = [INVALID_SYSTEM]
+        return
