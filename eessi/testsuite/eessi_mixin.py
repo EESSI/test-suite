@@ -45,6 +45,7 @@ class EESSI_Mixin(RegressionMixin):
     scale = parameter(SCALES.keys())
     bench_name = None
     bench_name_ci = None
+    is_ci_test = False
     num_tasks_per_compute_unit = 1
     always_request_gpus = None
 
@@ -138,11 +139,14 @@ class EESSI_Mixin(RegressionMixin):
     @run_after('init', always_last=True)
     def EESSI_mixin_set_tag_ci(self):
         """
-        Set CI tag if bench_name_ci and bench_name are set and are equal
+        Set CI tag if is_ci_test is True or (bench_name_ci and bench_name are set and are equal)
         Also set tag on bench_name if set
         """
         tags_added = False
-        if self.bench_name_ci:
+        if self.is_ci_test:
+            self.tags.add(TAGS.CI)
+            tags_added = True
+        elif self.bench_name_ci:
             if not self.bench_name:
                 msg = "Attribute bench_name_ci is set, but bench_name is not set"
                 raise ReframeFatalError(msg)
