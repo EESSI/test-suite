@@ -94,6 +94,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_8M(rfm.RunOnlyRegressionTest, EESSI_Mixin
     def required_mem_per_node(self):
         return self.num_tasks_per_node * 1700
 
+
     @run_after('setup')
     def check_launcher_options(self):
         # We had to get the launcher command and prepend this to the prerun steps (func prepare_environment) because:
@@ -206,6 +207,13 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_1M(rfm.RunOnlyRegressionTest, EESSI_Mixin
 
     def required_mem_per_node(self):
         return self.num_tasks_per_node * 1700
+
+
+    @run_after('init')
+    def select_ci(self):
+        " Select the CI variants "
+        self.bench_name = self.bench_name_ci = 'icoFoam_1M_CI'
+
 
     @run_after('setup')
     def check_launcher_options(self):
