@@ -55,6 +55,7 @@ class EESSI_GROMACS(EESSI_GROMACS_base, EESSI_Mixin):
     readonly_files = ['']
     # executable_opts in addition to those set by the hpctestlib
     executable_opts = ['-dlb', 'yes', '-npme', '-1']
+    valid_systems = [r'-offline']
 
     def required_mem_per_node(self):
         return self.num_tasks_per_node * 1024

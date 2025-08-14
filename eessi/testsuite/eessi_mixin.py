@@ -111,7 +111,7 @@ class EESSI_Mixin(RegressionMixin):
         # i.e. exists in their respective dict from eessi.testsuite.constants
         self.EESSI_mixin_validate_item_in_list('device_type', DEVICE_TYPES[:])
         self.EESSI_mixin_validate_item_in_list('scale', SCALES.keys())
-        self.EESSI_mixin_validate_item_in_list('valid_systems', [['*']])
+        self.EESSI_mixin_validate_item_in_list('valid_systems', [['*'], [r'-offline']])
         self.EESSI_mixin_validate_item_in_list('valid_prog_environs', [['default']])
 
     @run_after('init')
