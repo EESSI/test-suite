@@ -47,13 +47,16 @@ site_configuration = {
                         # memory cannot be set on MareNostrum
                         # The test-suite will give warning which can be ignored
                     ],
-                    'extras': {
-                        # TODO create constant
-                        EXTRAS.INTERNET_ACCESS: 'offline',
-                    },
                     # list(SCALES.keys()) adds all the scales from eessi.testsuite.constants as valid for thi partition
                     # Can be modified if not all scales can run on this partition, see e.g. the surf_snellius.py config
-                    'features': [FEATURES.CPU] + list(SCALES.keys()),
+                    'features': [
+                        FEATURES.CPU,
+                        FEATURES.OFFLINE,
+                    ] + list(SCALES.keys()),
+                    'extras': {
+                        # EXTRAS.MEM_PER_NODE cannot be set
+                        # Because the memory by slurm is set to unlimited
+                    },
                 },
                 {
                     'name': 'acc_ehpc',
@@ -92,11 +95,12 @@ site_configuration = {
                     'features': [
                         FEATURES.CPU,
                         FEATURES.GPU,
+                        FEATURES.OFFLINE,
                     ] + list(SCALES.keys()),
                     'extras': {
                         EXTRAS.GPU_VENDOR: GPU_VENDORS.NVIDIA,
-                        # TODO create constant
-                        EXTRAS.INTERNET_ACCESS: 'offline',
+                        # EXTRAS.MEM_PER_NODE cannot be set
+                        # Because the memory by slurm is set to unlimited
                     },
                 },
             ]

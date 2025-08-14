@@ -8,7 +8,6 @@ class _Extras(NamedTuple):
     "extras keys"
     GPU_VENDOR: str = 'gpu_vendor'
     MEM_PER_NODE: str = 'mem_per_node'
-    INTERNET_ACCESS: str = 'internet_access'
 
 
 class _DeviceTypes(NamedTuple):
@@ -37,6 +36,7 @@ class _Features(NamedTuple):
     CPU: str = 'cpu'
     GPU: str = 'gpu'
     ALWAYS_REQUEST_GPUS: str = 'always_request_gpus'
+    OFFLINE: str = 'offline'
 
 
 class _GPUVendors(NamedTuple):
