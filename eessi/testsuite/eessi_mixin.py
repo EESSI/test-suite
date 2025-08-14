@@ -110,7 +110,7 @@ class EESSI_Mixin(RegressionMixin):
         # i.e. exists in their respective dict from eessi.testsuite.constants
         self.EESSI_mixin_validate_item_in_list('device_type', DEVICE_TYPES[:])
         self.EESSI_mixin_validate_item_in_list('scale', SCALES.keys())
-        self.EESSI_mixin_validate_item_in_list('valid_systems', [['*']])
+        self.EESSI_mixin_validate_item_in_list('valid_systems', [['*'], [r'-offline']])
         self.EESSI_mixin_validate_item_in_list('valid_prog_environs', [['default']])
 
     @run_after('init')
@@ -205,18 +205,6 @@ class EESSI_Mixin(RegressionMixin):
             # Get full modulepath
             get_full_modpath = f'echo "FULL_MODULEPATH: $(module --location show {self.module_name} 2>&1)"'
             self.postrun_cmds.append(get_full_modpath)
-
-    @run_after('setup')
-    def EESSI_mixin_skip_offline_partitions(self):
-        """
-        Skip tests when download is required to run the test.
-        And there is no workaround the run to the test without downloading the files.
-        """
-        if self.module_name.split('/')[0] in ['GROMACS', 'MetalWalls', 'QuantumESPRESSO']:
-            if 'internet_access' in self.current_partition.extras:
-                if self.current_partition.extras['internet_access'] == 'offline':
-                    msg = f'Test for {self.module_name} cannot be run on offline machine'
-                    self.skip_if(self.module_name == self.module_name, msg)
 
     @run_before('run', always_last=True)
     def EESSI_mixin_set_user_executable_opts(self):
