@@ -51,6 +51,7 @@ def filter_scales_8M():
         if (v['num_nodes'] >= 1) and (0 < v.get('node_part', 0) <= 2)
     ]
 
+
 def filter_scales_1M():
     """
     Filtering function for filtering scales for the OpenFOAM 8M mesh test
