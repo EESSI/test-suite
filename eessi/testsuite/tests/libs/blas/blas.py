@@ -30,7 +30,7 @@ import reframe.utility.sanity as sn
 
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
-from eessi.testsuite.utils import find_modules, find_modules_in_toolchain, split_module, log
+from eessi.testsuite.utils import find_modules, select_matching_modules, split_module, log
 
 
 def single_thread_scales():
@@ -55,20 +55,18 @@ def get_blas_modules(blas_name):
                              followed by the blas_name module.
     """
     ml_lists = []
-    required_matches = []
+    blas_modules = list(find_modules(rf'{blas_name}$'))
     if blas_name != 'BLIS':
-        required_matches.append('BLIS')
+        blis_modules = list(find_modules('BLIS$'))
 
-    modules = list(find_modules(rf'{blas_name}$'))
-    for mod in modules:
-        toolchain = split_module(mod)[2]
+    for mod in blas_modules:
         matches = []
         all_found = True
 
-        for req_match in required_matches:
-            matching_modules = find_modules_in_toolchain(req_match, toolchain)
+        if blas_name != 'BLIS':
+            matching_modules = sorted(select_matching_modules(blis_modules, mod))
             if not matching_modules:
-                log(f'No matching {req_match} module found for module {mod}')
+                log(f'No matching BLIS module found for module {mod}')
                 all_found = False
                 break
             matches.append(matching_modules[-1])
@@ -192,7 +190,6 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
 class EESSI_BLAS_OpenBLAS_base(EESSI_BLAS_base):
     "base OpenBLAS test"
 
-    # module_name = parameter(get_blas_modules('OpenBLAS'), fmt=lambda x: x[-1])
     module_name = parameter(get_blas_modules('OpenBLAS'))
     flexiblas_blas_lib = 'openblas'
     tags = {'openblas'}
@@ -219,7 +216,6 @@ class EESSI_BLAS_OpenBLAS_mt(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
 class EESSI_BLAS_AOCLBLAS_base(EESSI_BLAS_base):
     "base AOCL-BLAS test"
 
-    # module_name = parameter(get_blas_modules('AOCL-BLAS'), fmt=lambda x: x[-1])
     module_name = parameter(get_blas_modules('AOCL-BLAS'))
     flexiblas_blas_lib = 'aocl_mt'
     tags = {'aocl-blas'}
@@ -244,7 +240,6 @@ class EESSI_BLAS_AOCLBLAS_mt(EESSI_BLAS_AOCLBLAS_base, EESSI_Mixin):
 class EESSI_BLAS_imkl_base(EESSI_BLAS_base):
     "base imkl test"
 
-    # module_name = parameter(get_imkl_modules(), fmt=lambda x: x[-1])
     module_name = parameter(get_imkl_modules())
     flexiblas_blas_lib = 'imkl'
     tags = {'imkl'}
@@ -269,7 +264,6 @@ class EESSI_BLAS_imkl_mt(EESSI_BLAS_imkl_base, EESSI_Mixin):
 class EESSI_BLAS_BLIS_base(EESSI_BLAS_base):
     "base BLIS test"
 
-    # module_name = parameter(get_blas_modules('BLIS'), fmt=lambda x: x[-1])
     module_name = parameter(get_blas_modules('BLIS'))
     flexiblas_blas_lib = 'blis'
     tags = {'blis'}

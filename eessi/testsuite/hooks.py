@@ -10,12 +10,11 @@ import reframe.utility.sanity as sn
 from eessi.testsuite.constants import (COMPUTE_UNITS, DEVICE_TYPES, EXTRAS, FEATURES,
                                        GPU_VENDORS, INVALID_SYSTEM, SCALES)
 from eessi.testsuite.utils import (check_extras_key_defined, check_proc_attribute_defined, find_modules,
-                                   get_max_avail_gpus_per_node, is_cuda_required_module, log, split_module)
+                                   get_max_avail_gpus_per_node, is_cuda_required_module, log, split_module,
+                                   select_matching_modules)
 
-
-eb_configuration_is_set_up = False
+# global variables
 buildenv_modules = []
-buildenv_tc_hierarchies = []
 
 
 def _assign_default_num_cpus_per_node(test: rfm.RegressionTest):
@@ -773,82 +772,53 @@ def add_buildenv_module(test: rfm.RegressionTest):
     """
     Add a buildenv module that matches the reference module to the list of modules
 
+    Note: we take the first module in test.modules as the reference.
+    Thus, the first module’s toolchain should not be at the system level,
+    otherwise only system-level buildenv modules can be added.
+
     Requirements:
-    - recent enough EasyBuild
-    - compatible buildenv/default-... modules
+    - recent enough easybuild python package
+    - a matching default buildenv module (e.g. buildenv/default-foss-2024a) available on the system
     """
     for mod in test.modules:
         if mod.split('/')[0] == 'buildenv':
             # buildenv module already in the list
             return
 
-    ref_tcname, ref_tcversion = split_module(test.modules[0])[2].split('-')
-    ref_tcdict = {'name': ref_tcname, 'version': ref_tcversion}
-
-    try:
-        from easybuild.framework.easyconfig.easyconfig import get_toolchain_hierarchy
-        from easybuild.tools.options import set_up_configuration
-    except ImportError:
-        msg = 'Required EasyBuild Python package not available'
-        log(msg)
-        test.valid_systems = [INVALID_SYSTEM]
-        return
-
-    # setup EasyBuild configuration
-    # make global to avoid running set_up_configuration() multiple times
-    global eb_configuration_is_set_up
-    if not eb_configuration_is_set_up:
-        set_up_configuration(args='')
-        eb_configuration_is_set_up = True
-
     # get list of buildenv modules on the system
     # make global to avoid calculating buildenv_modules multiple times
     global buildenv_modules
     if not buildenv_modules:
-        buildenv_modules = list(find_modules('buildenv'))
+        buildenv_modules = set(find_modules('buildenv'))
+        to_remove = []
         for mod in buildenv_modules:
-            mod_version = split_module(mod)
-            if mod_version[3] or mod_version[1] != 'default':
-                # only use default buildenv modules without versionsuffixes
-                buildenv_modules.remove(mod)
-    if not buildenv_modules:
-        msg = 'No default buildenv modules without versionsuffixes found on the system.'
+            mod_parts = split_module(mod)
+            if mod_parts[4] or mod_parts[1] != 'default':
+                # only consider default buildenv modules without versionsuffixes
+                to_remove.append(mod)
+
+        buildenv_modules = [x for x in buildenv_modules if x not in to_remove]
+
+        if not buildenv_modules:
+            msg = 'No default buildenv modules without versionsuffixes found on the system.'
+            log(msg)
+            test.valid_systems = [INVALID_SYSTEM]
+            return
+
+    ref_module = test.modules[0]
+    matching_buildenv_modules = select_matching_modules(list(buildenv_modules), ref_module)
+
+    if not matching_buildenv_modules:
+        msg = f'No matching buildenv module for {ref_module} found on the system.'
         log(msg)
         test.valid_systems = [INVALID_SYSTEM]
         return
 
-    # calculate toolchain hierarchy for each buildenv module
-    # make global to avoid calculating hierarchies multiple times
-    global buildenv_tc_hierarchies
-    if not buildenv_tc_hierarchies:
-        buildenv_tc_hierarchies = []  # just to make the linter happy
-        for buildenv_mod in buildenv_modules:
-            mod_version = split_module(buildenv_mod)
-            if mod_version[3] or mod_version[1] != 'default':
-                # skip buildenv modules with versionsuffixes and non-default buildenv modules for now
-                continue
-            buildenv_tcname, buildenv_tcversion = mod_version[2].split('-')
-            try:
-                hierarchy = get_toolchain_hierarchy({'name': buildenv_tcname, 'version': buildenv_tcversion})
-                buildenv_tc_hierarchies.append(hierarchy)
-            except Exception:
-                msg = (f"Could not determine toolchain hierarchy for {buildenv_tcname},{buildenv_tcversion}."
-                       " You may have to update the easybuild python package.")
-                log(msg)
-                test.valid_systems = [INVALID_SYSTEM]
-                return
-
-    buildenv_added = False
-
-    for index, buildenv_mod in enumerate(buildenv_modules):
-        if ref_tcdict in buildenv_tc_hierarchies[index]:
-            test.modules.insert(0, buildenv_mod)  # insert to keep the most important module last
-            buildenv_added = True
-            log(f'module {buildenv_mod} added to list of modules')
-            break
-
-    if not buildenv_added:
-        msg = f'No matching buildenv module found for {ref_tcname}-{ref_tcversion} on the system.'
+    if len(matching_buildenv_modules) > 1:
+        msg = f'Multiple matching buildenv modules found, will use the first one: {buildenv_modules}.'
         log(msg)
-        test.valid_systems = [INVALID_SYSTEM]
-        return
+
+    buildenv_mod = matching_buildenv_modules[0]
+    # insert to keep the most important module last
+    test.modules.insert(0, buildenv_mod)
+    log(f'Module {buildenv_mod} added to list of modules')
