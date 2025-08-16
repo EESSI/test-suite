@@ -14,7 +14,7 @@ from eessi.testsuite.utils import (check_extras_key_defined, check_proc_attribut
                                    select_matching_modules)
 
 # global variables
-buildenv_modules = []
+_buildenv_modules = []
 
 
 def _assign_default_num_cpus_per_node(test: rfm.RegressionTest):
@@ -786,39 +786,39 @@ def add_buildenv_module(test: rfm.RegressionTest):
             return
 
     # get list of buildenv modules on the system
-    # make global to avoid calculating buildenv_modules multiple times
-    global buildenv_modules
-    if not buildenv_modules:
-        buildenv_modules = set(find_modules('buildenv'))
+    # make global to avoid calculating _buildenv_modules multiple times
+    global _buildenv_modules
+    if not _buildenv_modules:
+        _buildenv_modules = set(find_modules('buildenv'))
         to_remove = []
-        for mod in buildenv_modules:
+        for mod in _buildenv_modules:
             mod_parts = split_module(mod)
             if mod_parts[4] or mod_parts[1] != 'default':
                 # only consider default buildenv modules without versionsuffixes
                 to_remove.append(mod)
 
-        buildenv_modules = [x for x in buildenv_modules if x not in to_remove]
+        _buildenv_modules = [x for x in _buildenv_modules if x not in to_remove]
 
-        if not buildenv_modules:
+        if not _buildenv_modules:
             msg = 'No default buildenv modules without versionsuffixes found on the system.'
             log(msg)
             test.valid_systems = [INVALID_SYSTEM]
             return
 
     ref_module = test.modules[0]
-    matching_buildenv_modules = select_matching_modules(list(buildenv_modules), ref_module)
+    matching_modules = select_matching_modules(list(_buildenv_modules), ref_module)
 
-    if not matching_buildenv_modules:
+    if not matching_modules:
         msg = f'No matching buildenv module for {ref_module} found on the system.'
         log(msg)
         test.valid_systems = [INVALID_SYSTEM]
         return
 
-    if len(matching_buildenv_modules) > 1:
-        msg = f'Multiple matching buildenv modules found, will use the first one: {buildenv_modules}.'
+    if len(matching_modules) > 1:
+        msg = f'Multiple matching buildenv modules found, will use the first one: {_buildenv_modules}.'
         log(msg)
 
-    buildenv_mod = matching_buildenv_modules[0]
+    buildenv_mod = matching_modules[0]
     # insert to keep the most important module last
     test.modules.insert(0, buildenv_mod)
     log(f'Module {buildenv_mod} added to list of modules')

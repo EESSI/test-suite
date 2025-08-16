@@ -18,9 +18,9 @@ from eessi.testsuite.constants import DEVICE_TYPES
 printer = PrettyPrinter()
 
 # global variables
-available_modules = []
-eb_is_available = False
-eb_avail_warning_is_printed = False
+_available_modules = []
+_eb_is_available = False
+_eb_avail_warning_is_printed = False
 
 try:
     from easybuild.framework.easyconfig.easyconfig import get_toolchain_hierarchy
@@ -28,7 +28,7 @@ try:
     # avoid checking index
     os.environ['EASYBUILD_IGNORE_INDEX'] = '1'
     set_up_configuration(args='')
-    eb_is_available = True
+    _eb_is_available = True
 except ImportError:
     pass
 
@@ -117,18 +117,18 @@ def split_module(module: str) -> tuple:
 def get_avail_modules() -> List[str]:
     "get all available modules in the system"
     # use global to avoid recalculating the list of available modules multiple times
-    global available_modules
-    if not available_modules:
+    global _available_modules
+    if not _available_modules:
         ms = rt.runtime().modules_system
         # Returns e.g. ['Bison/', 'Bison/3.7.6-GCCcore-10.3.0', 'BLIS/', 'BLIS/0.8.1-GCC-10.3.0']
-        available_modules = ms.available_modules('')
+        _available_modules = ms.available_modules('')
         # Exclude anything without version, i.e. ending with / (e.g. Bison/)
-        available_modules = [mod for mod in available_modules if not mod.endswith('/')]
-        log(f"Total number of available modules: {len(available_modules)}")
-    if not available_modules:
+        _available_modules = [mod for mod in _available_modules if not mod.endswith('/')]
+        log(f"Total number of available modules: {len(_available_modules)}")
+    if not _available_modules:
         msg = 'No available modules found on the system.'
         raise ReframeFatalError(msg)
-    return available_modules
+    return _available_modules
 
 
 def find_modules(regex: str, name_only=True) -> Iterator[str]:
@@ -197,8 +197,8 @@ def get_tc_hierarchy(tcdict):
     """
     Set up EasyBuild configuration and get toolchain hierarchy from a toolchain dict
     """
-    global eb_avail_warning_is_printed
-    if eb_is_available:
+    global _eb_avail_warning_is_printed
+    if _eb_is_available:
         hierarchy = get_toolchain_hierarchy(tcdict)
         if not hierarchy:
             msg = (f'cannot determine toolchain hierarchy for {tcdict}. '
@@ -206,11 +206,11 @@ def get_tc_hierarchy(tcdict):
             rflog.getlogger().warning(msg)
         return hierarchy
     else:
-        if not eb_avail_warning_is_printed:
+        if not _eb_avail_warning_is_printed:
             msg = ("EasyBuild is not available, so cannot determine toolchain hierarchy."
                    " Make sure the easybuild python package is installed.")
             rflog.getlogger().warning(msg)
-            eb_avail_warning_is_printed = True
+            _eb_avail_warning_is_printed = True
 
 
 def select_matching_modules(modules: List[str], ref_module: str) -> List[str]:
