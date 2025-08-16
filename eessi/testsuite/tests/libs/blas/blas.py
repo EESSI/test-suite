@@ -30,7 +30,7 @@ import reframe.utility.sanity as sn
 
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
-from eessi.testsuite.utils import find_modules, select_matching_modules, split_module, log
+from eessi.testsuite.utils import find_modules, select_matching_modules, log
 
 
 def single_thread_scales():
