@@ -105,7 +105,6 @@ def split_module(module: str) -> tuple:
     if not parts[1]:  # system toolchain, no versionsuffix
         parts.extend(['system', 'system'])
 
-    # print(parts)
     tcname = parts[1]
     tcversion = parts[2]
 
@@ -214,7 +213,7 @@ def get_tc_hierarchy(tcdict):
             eb_avail_warning_is_printed = True
 
 
-def select_matching_modules(modules: list[str], ref_module: str) -> list[str]:
+def select_matching_modules(modules: List[str], ref_module: str) -> List[str]:
     """
     Return from a list of modules all modules that match the
     toolchain of a reference module.
@@ -232,7 +231,6 @@ def select_matching_modules(modules: list[str], ref_module: str) -> list[str]:
     ref_tcname, ref_tcversion = split_module(ref_module)[2:4]
     ref_tcdict = {'name': ref_tcname, 'version': ref_tcversion}
     ref_hierarchy = get_tc_hierarchy(ref_tcdict)
-    # print('ref_hierarchy', ref_hierarchy)
     if not ref_hierarchy:
         return []
 
@@ -241,7 +239,6 @@ def select_matching_modules(modules: list[str], ref_module: str) -> list[str]:
         mod_tcdict = {'name': mod_tcname, 'version': mod_tcversion}
 
         mod_hierarchy = get_tc_hierarchy(mod_tcdict)
-        # print('mod_hierarchy', mod_hierarchy)
         if not mod_hierarchy:
             return []
 
@@ -249,8 +246,6 @@ def select_matching_modules(modules: list[str], ref_module: str) -> list[str]:
         if ref_tcdict in mod_hierarchy or mod_tcdict in ref_hierarchy:
             selected_mods.append(mod)
 
-    # if not selected_mods:
-        # print(f'none matching {modules}')
     return selected_mods
 
 
