@@ -294,4 +294,3 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_1M(rfm.RunOnlyRegressionTest, EESSI_Mixin
             self.assert_completion(),
             self.assert_convergence(),
         ])
-
