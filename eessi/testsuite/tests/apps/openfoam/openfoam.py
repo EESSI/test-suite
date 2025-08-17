@@ -59,8 +59,8 @@ def filter_scales_1M():
     """
     return [
         k for (k, v) in SCALES.items()
-        if ((v['num_nodes'] <= 2) and (v.get('node_part', 0) != 0)) or (v.get('num_cpus_per_node', 0) *
-                                                                        v.get('num_nodes') > 1)
+        if ((v['num_nodes'] <= 2) and (v.get('node_part', 0) != 0)) or (v.get('num_cpus_per_node', 0)
+                                                                        * v.get('num_nodes', 0) > 1)
     ]
 
 
