@@ -59,7 +59,7 @@ def filter_scales_1M():
     """
     return [
         k for (k, v) in SCALES.items()
-        if (v['num_nodes'] <= 2) and (v.get('node_part', 0) <= 2) and (v.get('num_cpus_per_node', 0) >= 2)
+        if (v['num_nodes'] <= 2) and (v.get('node_part', 0) <= 2) and (v.get('num_cpus_per_node', 0) != 1)
     ]
 
 
@@ -93,7 +93,6 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_8M(rfm.RunOnlyRegressionTest, EESSI_Mixin
 
     def required_mem_per_node(self):
         return self.num_tasks_per_node * 1700
-
 
     @run_after('setup')
     def check_launcher_options(self):
@@ -208,12 +207,10 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_1M(rfm.RunOnlyRegressionTest, EESSI_Mixin
     def required_mem_per_node(self):
         return self.num_tasks_per_node * 1700
 
-
     @run_after('init')
     def select_ci(self):
         " Select the CI variants "
         self.bench_name = self.bench_name_ci = 'icoFoam_1M_CI'
-
 
     @run_after('setup')
     def check_launcher_options(self):
@@ -297,3 +294,4 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_1M(rfm.RunOnlyRegressionTest, EESSI_Mixin
             self.assert_completion(),
             self.assert_convergence(),
         ])
+
