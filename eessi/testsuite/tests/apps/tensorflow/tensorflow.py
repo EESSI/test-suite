@@ -9,7 +9,7 @@ import reframe as rfm
 from reframe.core.builtins import deferrable, parameter, run_after, sanity_function, performance_function
 import reframe.utility.sanity as sn
 
-from eessi.testsuite import utils
+from eessi.testsuite import utils, hooks
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
@@ -92,6 +92,24 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         }
         self.compute_unit = device_to_compute_unit.get(self.device_type)
 
+    @run_after('init')
+    def check_files_for_offline_run(self):
+        """
+        Set valid_systems for offline partitions if data is not present for offline run
+        """
+
+        resourcesdir = self.current_system.resourcesdir
+        data = os.path.join(resourcesdir, self.module_name, 'datasets/mnist.npz')
+        if os.path.exists(data):
+            self.env_vars['RFM_TENSORFLOW_DATA'] = data
+        else:
+            txt = f'Warning: will exclude {self.module_name} tests on offline partitions.\n'
+            txt += f'Because reframe could not find {data}.\n'
+            txt += 'You can download the file running tf.keras.datasets.mnist.load_data() '
+            txt += f'with {self.module_name} on a system with internet access.'
+            utils.log(txt)
+            hooks.filter_valid_systems_for_offline_partitions(self)
+
     @run_after('setup')
     def set_thread_count_args(self):
         """Set executable opts defining the thread count"""
@@ -105,14 +123,4 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         Set environments variables to run offline or skip the test
         """
         if 'offline' in self.current_partition.features:
-            resourcesdir = self.current_system.resourcesdir
-            data = os.path.join(resourcesdir, self.module_name, 'datasets/mnist.npz')
-            if os.path.exists(data):
-                self.env_vars['EESSI_TEST_SUITE_DISABLE_DOWNLOAD'] = 'True'
-                self.env_vars['RFM_TENSORFLOW_DATA'] = data
-            else:
-                msg = f'{self.current_partition.name} does not have internet access. '
-                msg += f'And could not find {data}. '
-                msg += 'You can download the file running tf.keras.datasets.mnist.load_data() '
-                msg += f'with {self.module_name} on a system with internet access.'
-                self.skip_if(self.module_name == self.module_name, msg)
+            self.env_vars['EESSI_TEST_SUITE_DISABLE_DOWNLOAD'] = 'True'
