@@ -48,6 +48,7 @@ class EESSI_Mixin(RegressionMixin):
     is_ci_test = False
     num_tasks_per_compute_unit = 1
     always_request_gpus = None
+    require_buildenv_module = False
 
     # Create ReFrame variables for logging runtime environment information
     cvmfs_repo_name = variable(str, value='None')
@@ -121,9 +122,12 @@ class EESSI_Mixin(RegressionMixin):
         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
         hooks.filter_supported_scales(self)
 
-        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
-
         hooks.set_modules(self)
+
+        if self.require_buildenv_module:
+            hooks.add_buildenv_module(self)
+
+        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
 
         # Set scales as tags
         hooks.set_tag_scale(self)
@@ -205,10 +209,11 @@ class EESSI_Mixin(RegressionMixin):
         path to the modulefile, EESSI software subdir, EESSI testsuite version"""
         self.postrun_cmds.append('echo "EESSI_CVMFS_REPO: $EESSI_CVMFS_REPO"')
         self.postrun_cmds.append('echo "EESSI_SOFTWARE_SUBDIR: $EESSI_SOFTWARE_SUBDIR"')
-        if self.module_name:
-            # Get full modulepath
-            get_full_modpath = f'echo "FULL_MODULEPATH: $(module --location show {self.module_name} 2>&1)"'
-            self.postrun_cmds.append(get_full_modpath)
+        if self.module_names:
+            for mod in self.module_names:
+                # Get full modulepath
+                get_full_modpath = f'echo "FULL_MODULEPATH: $(module --location show {mod} 2>&1)"'
+                self.postrun_cmds.append(get_full_modpath)
 
     @run_before('run', always_last=True)
     def EESSI_mixin_set_user_executable_opts(self):

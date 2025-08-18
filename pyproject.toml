@@ -13,6 +13,9 @@ classifiers = [
 requires-python = ">=3.6"
 dynamic = ["version"]
 
+[project.optional-dependencies]
+compilation = ["easybuild"]
+
 [project.urls]
 "Homepage" = "https://eessi.io/docs/test-suite"
 "Bug Tracker" = "https://github.com/EESSI/test-suite/issues"
