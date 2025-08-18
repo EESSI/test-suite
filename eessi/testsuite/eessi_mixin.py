@@ -118,9 +118,9 @@ class EESSI_Mixin(RegressionMixin):
     def EESSI_mixin_run_after_init(self):
         """Hooks to run after init phase"""
 
-        # Make sure the tests that require internet ac    cess are not run on offline partitions
+        # Make sure the tests that require internet access are not run on offline partitions
         if self.require_internet:
-            hooks.filter_valid_systems_for_offline_par    titions(self)
+            hooks.filter_valid_systems_for_offline_partitions(self)
 
         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
         hooks.filter_supported_scales(self)
