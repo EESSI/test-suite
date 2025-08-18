@@ -54,23 +54,21 @@ def get_blas_modules(blas_name):
     Returns a list of lists: each inner list contains the matching BLIS module,
                              followed by the blas_name module.
     """
-    ml_lists = []
     blas_modules = list(find_modules(rf'{blas_name}$'))
-    if blas_name != 'BLIS':
-        blis_modules = list(find_modules('BLIS$'))
+    if blas_name == 'BLIS':
+        return [[x] for x in blas_modules]
+
+    ml_lists = []
+    blis_modules = list(find_modules('BLIS$'))
 
     for mod in blas_modules:
-        blaslist = []
-        if blas_name != 'BLIS':
-            matching_modules = sorted(select_matching_modules(blis_modules, mod))
-            if not matching_modules:
-                msg = f'Skipping BLAS module {mod}: no matching BLIS module found.'
-                rflog.getlogger().warning(msg)
-                continue
-            blaslist.append(matching_modules[-1])
-
-        blaslist.append(mod)
-        ml_lists.append(blaslist)
+        matching_blises = sorted(select_matching_modules(blis_modules, mod))
+        if not matching_blises:
+            msg = f'Skipping BLAS module {mod}: no matching BLIS module found.'
+            rflog.getlogger().warning(msg)
+            continue
+        blis = matching_blises[-1]
+        ml_lists.append([blis, mod])
 
     return ml_lists
 
