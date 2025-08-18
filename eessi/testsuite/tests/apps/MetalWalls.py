@@ -68,7 +68,7 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
         # Also support setting valid_systems on the cmd line.
         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.compute_device)
 
-        # Make sure the test is not run on offline par    titions
+        # Make sure the test is not run on offline partitions
         hooks.filter_valid_systems_for_offline_partitions(self)
 
         # Support selecting modules on the cmd line.
