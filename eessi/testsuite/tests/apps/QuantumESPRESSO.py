@@ -44,7 +44,7 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck, EESSI_Mixin):
     # For now, QE is built for CPU targets only
     device_type = parameter([DEVICE_TYPES.CPU])
     readonly_files = ['']
-    valid_systems = [r'-offline']
+    require_internet = True
 
     def required_mem_per_node(self):
         return (self.num_tasks_per_node * 0.9 + 4) * 1024

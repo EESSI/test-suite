@@ -45,7 +45,7 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
 
     scale = parameter(SCALES.keys())
 
-    valid_systems = [r'-offline']
+    valid_systems = ['*']
     valid_prog_environs = ['default']
     time_limit = '60m'
     # input files are downloaded
@@ -67,6 +67,9 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
         # and that CPU-only tests run in partitions that support running CPU-only.
         # Also support setting valid_systems on the cmd line.
         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.compute_device)
+
+        # Make sure the test is not run on offline par    titions
+        hooks.filter_valid_systems_for_offline_partitions(self)
 
         # Support selecting modules on the cmd line.
         hooks.set_modules(self)
