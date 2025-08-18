@@ -489,11 +489,11 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     log(f'valid_systems set to {test.valid_systems}')
 
 
-def filter_valid_systems_for_offline_partitions(test:     rfm.RegressionTest):
+def filter_valid_systems_for_offline_partitions(test: rfm.RegressionTest):
     """
     Filter tests if they require internet access to run.
     Filtering is done using features, i.e. when offline is requested as a feature.
-    Any partition that includes this feature in the ReFrame configuration file will effectively be filtered out.
+    Any test that includes this feature in the ReFrame configuration file will effectively be filtered out.
     """
     valid_systems = r'-offline'
 
