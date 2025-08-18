@@ -26,6 +26,7 @@ Supported tags in this ReFrame test (in addition to the common tags):
 import reframe as rfm
 from reframe.core.backends import getlauncher
 from reframe.core.builtins import parameter, run_after, run_before, sanity_function
+import reframe.core.logging as rflog
 import reframe.utility.sanity as sn
 
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
@@ -48,8 +49,7 @@ def multi_thread_scales():
 
 def get_blas_modules(blas_name):
     """
-    Find available blas_name modules and (latest) BLIS module within the same toolchain
-    Assumes that the blas_name and BLIS modules have these toolchain name
+    Find available blas_name modules and (latest) matching BLIS module
 
     Returns a list of lists: each inner list contains the matching BLIS module,
                              followed by the blas_name module.
@@ -60,19 +60,17 @@ def get_blas_modules(blas_name):
         blis_modules = list(find_modules('BLIS$'))
 
     for mod in blas_modules:
-        matches = []
-        all_found = True
-
+        blaslist = []
         if blas_name != 'BLIS':
             matching_modules = sorted(select_matching_modules(blis_modules, mod))
             if not matching_modules:
-                log(f'No matching BLIS module found for module {mod}')
-                all_found = False
-                break
-            matches.append(matching_modules[-1])
+                msg = f'Skipping BLAS module {mod}: no matching BLIS module found.'
+                rflog.getlogger().warning(msg)
+                continue
+            blaslist.append(matching_modules[-1])
 
-        if all_found:
-            ml_lists.append(matches + [mod])
+        blaslist.append(mod)
+        ml_lists.append(blaslist)
 
     return ml_lists
 
