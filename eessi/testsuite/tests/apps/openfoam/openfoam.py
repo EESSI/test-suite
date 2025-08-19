@@ -81,7 +81,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_64M(rfm.RunOnlyRegressionTest, EESSI_Mixi
     This is the main OPENFOAM class for the Lid-driven cavity test. The test consists of many steps which are run as
     pre-run commands and the main test with the executable `icoFoam` is measured for performance.
     """
-#    ldc_8M = fixture(EESSI_OPENFOAM_base, scope='partition')
+#    ldc_64M = fixture(EESSI_OPENFOAM_base, scope='partition')
     executable = 'icoFoam'
     executable_opts = ['-parallel', '2>&1', '|', 'tee log.icofoam']
     time_limit = '60m'
@@ -123,16 +123,16 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_64M(rfm.RunOnlyRegressionTest, EESSI_Mixi
 
     @run_after('setup')
     def check_minimum_cores(self):
-        # The 8M test case requires minimally 8 cores to run within reasonable time.
-        if self.num_tasks < 8:
+        # The 64M test case requires minimally 8 cores to run within reasonable time.
+        if self.num_tasks < 512:
             self.skip(msg="The minimum number of cores required by this test is 8. Launch on a scale with higher core"
                       "count.")
 
     @run_before('run')
     def prepare_environment(self):
-        # fullpath = os.path.join(self.ldc_8M.stagedir, 'fixedTol')
+        # fullpath = os.path.join(self.ldc_64M.stagedir, 'fixedTol')
         self.prerun_cmds = [
-            'cd ./cavity3D/8M/fixedTol',
+            'cd ./cavity3D/64M/fixedTol',
             'source $FOAM_BASH',
             f"foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} "
             "system/decomposeParDict",
@@ -143,30 +143,30 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_64M(rfm.RunOnlyRegressionTest, EESSI_Mixi
     @deferrable
     def check_files(self):
         ''' Check for all the log files present. '''
-        return (sn.path_isfile("./cavity3D/8M/fixedTol/log.blockMesh")
-                and sn.path_isfile("./cavity3D/8M/fixedTol/log.decompose")
-                and sn.path_isfile("./cavity3D/8M/fixedTol/log.renumberMesh")
-                and sn.path_isfile("./cavity3D/8M/fixedTol/log.icofoam"))
+        return (sn.path_isfile("./cavity3D/64M/fixedTol/log.blockMesh")
+                and sn.path_isfile("./cavity3D/64M/fixedTol/log.decompose")
+                and sn.path_isfile("./cavity3D/64M/fixedTol/log.renumberMesh")
+                and sn.path_isfile("./cavity3D/64M/fixedTol/log.icofoam"))
 
     @deferrable
     def assert_completion(self):
         n_ranks = sn.count(sn.extractall(
-            '^Processor (?P<rank>[0-9]+)', "./cavity3D/8M/fixedTol/log.decompose", tag='rank'))
-        return (sn.assert_found("^Writing polyMesh with 0 cellZones", "./cavity3D/8M/fixedTol/log.blockMesh",
+            '^Processor (?P<rank>[0-9]+)', "./cavity3D/64M/fixedTol/log.decompose", tag='rank'))
+        return (sn.assert_found("^Writing polyMesh with 0 cellZones", "./cavity3D/64M/fixedTol/log.blockMesh",
                                 msg="BlockMesh failure.")
-                and sn.assert_found(r"\s+nCells: 8000000", "./cavity3D/8M/fixedTol/log.blockMesh",
+                and sn.assert_found(r"\s+nCells: 8000000", "./cavity3D/64M/fixedTol/log.blockMesh",
                                     msg="BlockMesh failure.")
                 and sn.assert_eq(n_ranks, self.num_tasks)
-                and sn.assert_found(r"^Finalising parallel run", "./cavity3D/8M/fixedTol/log.renumberMesh",
+                and sn.assert_found(r"^Finalising parallel run", "./cavity3D/64M/fixedTol/log.renumberMesh",
                                     msg="Did not reach the end of the renumberMesh run. RenumberMesh failure.")
-                and sn.assert_found(r"^Time = 0.0075", "./cavity3D/8M/fixedTol/log.icofoam",
+                and sn.assert_found(r"^Time = 0.0075", "./cavity3D/64M/fixedTol/log.icofoam",
                                     msg="Did not reach the last time step. IcoFoam failure.")
-                and sn.assert_found(r"^Finalising parallel run", "./cavity3D/8M/fixedTol/log.icofoam",
+                and sn.assert_found(r"^Finalising parallel run", "./cavity3D/64M/fixedTol/log.icofoam",
                                     msg="Did not reach the end of the icofoam run. IcoFoam failure."))
 
     @deferrable
     def assert_convergence(self):
-        cumulative_cont_err = sn.extractall(r'cumulative = (?P<cont>\S+)', "./cavity3D/8M/fixedTol/log.icofoam",
+        cumulative_cont_err = sn.extractall(r'cumulative = (?P<cont>\S+)', "./cavity3D/64M/fixedTol/log.icofoam",
                                             'cont', float)
         abs_cumulative_cont_err = sn.abs(cumulative_cont_err[-1])
         return sn.assert_le(abs_cumulative_cont_err, 1e-15,
@@ -174,7 +174,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_64M(rfm.RunOnlyRegressionTest, EESSI_Mixi
 
     @performance_function('s/timestep')
     def perf(self):
-        perftimes = sn.extractall(r'ClockTime = (?P<perf>\S+)', "./cavity3D/8M/fixedTol/log.icofoam", 'perf',
+        perftimes = sn.extractall(r'ClockTime = (?P<perf>\S+)', "./cavity3D/64M/fixedTol/log.icofoam", 'perf',
                                   float)
         seconds_per_timestep = perftimes[-1] / 15.0
         return seconds_per_timestep
