@@ -495,7 +495,7 @@ def filter_valid_systems_for_offline_partitions(test: rfm.RegressionTest):
     Filtering is done using features, i.e. when offline is requested as a feature.
     Any partition that includes this feature in the ReFrame configuration file will effectively be filtered out.
     """
-    valid_systems = r'-offline'
+    valid_systems = r'-{FEATURES.OFFLINE}'
 
     # Change test.valid_systems accordingly:
     _set_or_append_valid_systems(test, valid_systems)
