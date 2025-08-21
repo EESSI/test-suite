@@ -48,6 +48,7 @@ class EESSI_Mixin(RegressionMixin):
     is_ci_test = False
     num_tasks_per_compute_unit = 1
     always_request_gpus = None
+    require_internet = False
 
     # Create ReFrame variables for logging runtime environment information
     cvmfs_repo_name = variable(str, value='None')
@@ -117,6 +118,10 @@ class EESSI_Mixin(RegressionMixin):
     @run_after('init')
     def EESSI_mixin_run_after_init(self):
         """Hooks to run after init phase"""
+
+        # Make sure the tests that require internet access are not run on offline partitions
+        if self.require_internet:
+            hooks.filter_valid_systems_for_offline_partitions(self)
 
         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
         hooks.filter_supported_scales(self)
