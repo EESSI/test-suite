@@ -154,12 +154,12 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_64M(rfm.RunOnlyRegressionTest, EESSI_Mixi
             '^Processor (?P<rank>[0-9]+)', "./cavity3D/64M/fixedTol/log.decompose", tag='rank'))
         return (sn.assert_found("^Writing polyMesh with 0 cellZones", "./cavity3D/64M/fixedTol/log.blockMesh",
                                 msg="BlockMesh failure.")
-                and sn.assert_found(r"\s+nCells: 8000000", "./cavity3D/64M/fixedTol/log.blockMesh",
+                and sn.assert_found(r"\s+nCells: 64000000", "./cavity3D/64M/fixedTol/log.blockMesh",
                                     msg="BlockMesh failure.")
                 and sn.assert_eq(n_ranks, self.num_tasks)
                 and sn.assert_found(r"^Finalising parallel run", "./cavity3D/64M/fixedTol/log.renumberMesh",
                                     msg="Did not reach the end of the renumberMesh run. RenumberMesh failure.")
-                and sn.assert_found(r"^Time = 0.0075", "./cavity3D/64M/fixedTol/log.icofoam",
+                and sn.assert_found(r"^Time = 0.00375", "./cavity3D/64M/fixedTol/log.icofoam",
                                     msg="Did not reach the last time step. IcoFoam failure.")
                 and sn.assert_found(r"^Finalising parallel run", "./cavity3D/64M/fixedTol/log.icofoam",
                                     msg="Did not reach the end of the icofoam run. IcoFoam failure."))
