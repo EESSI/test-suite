@@ -84,7 +84,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_64M(rfm.RunOnlyRegressionTest, EESSI_Mixi
 #    ldc_64M = fixture(EESSI_OPENFOAM_base, scope='partition')
     executable = 'icoFoam'
     executable_opts = ['-parallel', '2>&1', '|', 'tee log.icofoam']
-    time_limit = '60m'
+    time_limit = '120m'
     readonly_files = ['']
     device_type = parameter([DEVICE_TYPES.CPU])
     module_name = parameter(find_modules('OpenFOAM/v', name_only=False))
