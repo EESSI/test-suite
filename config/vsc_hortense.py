@@ -133,14 +133,14 @@ site_configuration = {
                     },
                 },
                 {
-                    'name': 'cpu_milan',
+                    'name': 'cpu_milan_rhel9',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
                         prepare_eessi_init,
                         common_eessi_init(),
                         post_init,
                     ],
-                    'access': hortense_access + ['--partition=cpu_milan'],
+                    'access': hortense_access + ['--partition=cpu_milan_rhel9'],
                     'env_vars': common_env_vars,
                     'sched_options': {
                         'sched_access_in_submit': True,
@@ -149,7 +149,7 @@ site_configuration = {
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module.format('cpu_milan')],
+                    'modules': [mpi_module.format('cpu_milan_rhel9')],
                     'resources': [
                         {
                             'name': 'memory',
