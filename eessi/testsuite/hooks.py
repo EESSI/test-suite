@@ -536,7 +536,7 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
     check_extras_key_defined(test, EXTRAS.MEM_PER_NODE)
     # Skip if the current partition doesn't have sufficient memory to run the application
     msg = f"Skipping test: nodes in this partition only have {test.current_partition.extras[EXTRAS.MEM_PER_NODE]} MiB"
-    msg += " memory available (per node) accodring to the current ReFrame configuration,"
+    msg += " memory available (per node) according to the current ReFrame configuration,"
     msg += f" but {app_mem_req} MiB is needed"
     test.skip_if(test.current_partition.extras[EXTRAS.MEM_PER_NODE] < app_mem_req, msg)
 
