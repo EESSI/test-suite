@@ -52,8 +52,9 @@ def get_blas_modules(blas_name):
     """
     Find available blas_name modules and (latest) matching BLIS module
 
-    Returns a list of lists: each inner list contains the matching BLIS module,
-                             followed by the blas_name module.
+    Returns: a list of lists: each inner list has the blas_name module as first item,
+             and the matching BLIS module as second item.  The BLIS module must
+             be second to avoid segmentation fault for AOCL-BLAS
     """
     blas_modules = list(find_modules(rf'{blas_name}$'))
     if blas_name == 'BLIS':
@@ -69,7 +70,7 @@ def get_blas_modules(blas_name):
             rflog.getlogger().warning(msg)
             continue
         blis = matching_blises[-1]
-        ml_lists.append([blis, mod])
+        ml_lists.append([mod, blis])
 
     return ml_lists
 
@@ -79,8 +80,8 @@ def get_imkl_modules():
     Find available imkl modules and (latest) BLIS module
     Only imkl modules with SYSTEM toolchain are used
 
-    Returns a list of lists: each inner list contains the latest BLIS module,
-                             followed by the imkl module.
+    Returns: a list of lists: each inner list has the imkl module as first item,
+             and the latest BLIS module as second item.
     """
     ml_lists = []
 
@@ -92,7 +93,7 @@ def get_imkl_modules():
 
     imkls = list(find_modules(r'imkl/[^-]*$', name_only=False))
     for imkl in imkls:
-        ml_lists.append([blis, imkl])
+        ml_lists.append([imkl, blis])
 
     return ml_lists
 
