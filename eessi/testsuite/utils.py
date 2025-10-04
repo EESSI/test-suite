@@ -98,12 +98,12 @@ def split_module(module: str) -> tuple:
     version = parts[0]
     versionsuffix = ''
 
+    if len(parts) == 1:  # system toolchain, no versionsuffix
+        parts.extend(['system', 'system'])
+
     # special casing intel-compilers:
     if parts[1] == 'intel' and parts[2] == 'compilers':
         parts = [parts[0], '-'.join(parts[1:3])] + parts[3:]
-
-    if not parts[1]:  # system toolchain, no versionsuffix
-        parts.extend(['system', 'system'])
 
     tcname = parts[1]
     tcversion = parts[2]
