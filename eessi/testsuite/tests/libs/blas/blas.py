@@ -32,6 +32,7 @@ import reframe.utility.sanity as sn
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules, select_matching_modules, log
+from eessi.testsuite.hooks import set_compact_thread_binding
 
 
 def single_thread_scales():
@@ -148,6 +149,11 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
         self.env_vars.update({
             'FLEXIBLAS': self.flexiblas_blas_lib,
         })
+
+    @run_after('init')
+    def set_thread_binding(self):
+        """Set compact thread binding"""
+        set_compact_thread_binding(self)
 
     @run_after('setup')
     def set_launcher(self):
