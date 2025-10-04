@@ -36,6 +36,7 @@ class _Features(NamedTuple):
     CPU: str = 'cpu'
     GPU: str = 'gpu'
     ALWAYS_REQUEST_GPUS: str = 'always_request_gpus'
+    OFFLINE: str = 'offline'
 
 
 class _GPUVendors(NamedTuple):

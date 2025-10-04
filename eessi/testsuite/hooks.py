@@ -493,6 +493,20 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     log(f'valid_systems set to {test.valid_systems}')
 
 
+def filter_valid_systems_for_offline_partitions(test: rfm.RegressionTest):
+    """
+    Filter tests if they require internet access to run.
+    Filtering is done using features, i.e. when offline is requested as a feature.
+    Any partition that includes this feature in the ReFrame configuration file will effectively be filtered out.
+    """
+    valid_systems = rf'-{FEATURES.OFFLINE}'
+
+    # Change test.valid_systems accordingly:
+    _set_or_append_valid_systems(test, valid_systems)
+
+    log(f'valid_systems set to {test.valid_systems}')
+
+
 def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
     """
     This hook will request a specific amount of memory per node to the batch scheduler.
@@ -526,7 +540,7 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
     check_extras_key_defined(test, EXTRAS.MEM_PER_NODE)
     # Skip if the current partition doesn't have sufficient memory to run the application
     msg = f"Skipping test: nodes in this partition only have {test.current_partition.extras[EXTRAS.MEM_PER_NODE]} MiB"
-    msg += " memory available (per node) accodring to the current ReFrame configuration,"
+    msg += " memory available (per node) according to the current ReFrame configuration,"
     msg += f" but {app_mem_req} MiB is needed"
     test.skip_if(test.current_partition.extras[EXTRAS.MEM_PER_NODE] < app_mem_req, msg)
 
