@@ -768,13 +768,16 @@ def extract_memory_usage(test: rfm.RegressionTest):
     return sn.extractsingle(r'^MAX_MEM_IN_MIB=(?P<memory>\S+)', test.stdout, 'memory', int)
 
 
-def add_buildenv_module(test: rfm.RegressionTest):
+def add_buildenv_module(test: rfm.RegressionTest, index=-1):
     """
     Add a buildenv module that matches the reference module to the list of modules
 
-    Note: we take the first module in test.modules as the reference.
-    Thus, the first module’s toolchain should not be at the system level,
-    otherwise only system-level buildenv modules can be added.
+
+    Arguments:
+    - test: ReFrame test to which this hook should apply
+    - index: module index in test.modules to take as the reference (default is last);
+             note that the reference module’s toolchain should not be at the system
+             level: otherwise only buildenv modules at the system level can be added
 
     Requirements:
     - recent enough easybuild python package
@@ -805,7 +808,7 @@ def add_buildenv_module(test: rfm.RegressionTest):
             test.valid_systems = [INVALID_SYSTEM]
             return
 
-    ref_module = test.modules[0]
+    ref_module = test.modules[index]
     matching_modules = select_matching_modules(list(_buildenv_modules), ref_module)
 
     if not matching_modules:
