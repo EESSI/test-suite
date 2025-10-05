@@ -38,10 +38,13 @@ class EESSI_Mixin(RegressionMixin):
     - Init phase: time_limit, measure_memory_usage, bench_name_ci
     """
 
-    # Set defaults for these class variables, can be overwritten by child class if desired
+    # Defaults for ReFrame variables that can be overwritten on the cmd line
     measure_memory_usage = variable(bool, value=False)
     exact_memory = variable(bool, value=False)
     user_executable_opts = variable(str, value='')
+    thread_binding = variable(str, value='None')  # takes priority over compact_thread_binding
+
+    # Set defaults for these class variables, can be overwritten by child class if desired
     scale = parameter(SCALES.keys())
     bench_name = None
     bench_name_ci = None
@@ -50,6 +53,7 @@ class EESSI_Mixin(RegressionMixin):
     always_request_gpus = None
     require_buildenv_module = False
     require_internet = False
+    compact_thread_binding = False
 
     # Create ReFrame variables for logging runtime environment information
     cvmfs_repo_name = variable(str, value='None')
@@ -131,6 +135,10 @@ class EESSI_Mixin(RegressionMixin):
 
         if self.require_buildenv_module:
             hooks.add_buildenv_module(self)
+
+        thread_binding = self.thread_binding.lower()
+        if thread_binding == 'true' or (thread_binding == 'none' and self.compact_thread_binding):
+            hooks.set_compact_thread_binding(self)
 
         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
 
