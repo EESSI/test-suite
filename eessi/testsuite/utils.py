@@ -2,6 +2,7 @@
 Utility functions for ReFrame tests
 """
 
+import inspect
 import re
 import sys
 from typing import Iterator, Union
@@ -199,16 +200,17 @@ def check_extras_key_defined(test: rfm.RegressionTest, extra_key) -> bool:
     raise AttributeError(msg)
 
 
-def scale_parameter(testname: str, scales: Union[list, tuple, set]):
+def scale_parameter(scales: Union[list, tuple, set]):
     """
-    log the list of supported scales, print to stdout, and return a ReFrame parameter created from this list
+    log the list of supported scales of the calling test class,
+    print to stdout, and return a ReFrame parameter created from this list
 
     Arguments:
-    - testname: name of the test. in the class body, the class name is __qualname__
     - scales: list of supported scales
 
     Return:
     - ReFrame parameter created from scales
     """
-    rflog.getlogger().info(f'Scales supported by {testname}: {scales}')
+    caller = inspect.currentframe().f_back.f_code.co_name
+    rflog.getlogger().info(f'Scales supported by {caller}: {scales}')
     return parameter(scales)

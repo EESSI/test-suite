@@ -32,7 +32,7 @@ class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         k for (k, v) in SCALES.items()
         if v['num_nodes'] == 1
     ]
-    scale = scale_parameter(__qualname__, scales)
+    scale = scale_parameter(scales)
 
     matrix_size = variable(str, value='8192')
     iterations = variable(str, value='4')
