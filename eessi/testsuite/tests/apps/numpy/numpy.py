@@ -16,7 +16,7 @@ from reframe.core.builtins import parameter, run_after, run_before, sanity_funct
 
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
-from eessi.testsuite.utils import find_modules
+from eessi.testsuite.utils import find_modules, scale_parameter
 
 
 @rfm.simple_test
@@ -28,10 +28,11 @@ class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     module_name = parameter(find_modules('SciPy-bundle'))
     device_type = DEVICE_TYPES.CPU
     compute_unit = COMPUTE_UNITS.NODE
-    scale = parameter([
+    scales = [
         k for (k, v) in SCALES.items()
         if v['num_nodes'] == 1
-    ])
+    ]
+    scale = scale_parameter(__qualname__, scales)
 
     matrix_size = variable(str, value='8192')
     iterations = variable(str, value='4')
