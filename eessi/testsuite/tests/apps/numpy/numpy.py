@@ -28,11 +28,10 @@ class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     module_name = parameter(find_modules('SciPy-bundle'))
     device_type = DEVICE_TYPES.CPU
     compute_unit = COMPUTE_UNITS.NODE
-    scales = [
+    scale = scale_parameter([
         k for (k, v) in SCALES.items()
         if v['num_nodes'] == 1
-    ]
-    scale = scale_parameter(scales)
+    ])
 
     matrix_size = variable(str, value='8192')
     iterations = variable(str, value='4')
