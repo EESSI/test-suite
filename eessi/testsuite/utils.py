@@ -4,12 +4,9 @@ Utility functions for ReFrame tests
 
 import inspect
 import re
-import sys
-from typing import Iterator, Union
+from typing import Iterator
 
 import reframe as rfm
-from reframe.core.builtins import parameter
-import reframe.core.logging as rflog
 import reframe.core.runtime as rt
 from reframe.frontend.printer import PrettyPrinter
 
@@ -19,7 +16,7 @@ printer = PrettyPrinter()
 
 
 def log(msg, logger=printer.debug):
-    funcname = sys._getframe().f_back.f_code.co_name
+    funcname = inspect.currentframe().f_back.f_code.co_name
     logger(f'[{funcname}]: {msg}')
 
 
@@ -198,19 +195,3 @@ def check_extras_key_defined(test: rfm.RegressionTest, extra_key) -> bool:
             "This is a programming error, please report this issue."
         )
     raise AttributeError(msg)
-
-
-def scale_parameter(scales: Union[list, tuple, set]):
-    """
-    log the list of supported scales of the calling test class,
-    print to stdout, and return a ReFrame parameter created from this list
-
-    Arguments:
-    - scales: list of supported scales
-
-    Return:
-    - ReFrame parameter created from scales
-    """
-    caller = inspect.currentframe().f_back.f_code.co_name
-    rflog.getlogger().info(f'Scales supported by {caller}: {scales}')
-    return parameter(scales)

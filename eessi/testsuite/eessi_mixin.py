@@ -1,5 +1,6 @@
 from reframe.core.builtins import parameter, run_after, run_before, variable
 from reframe.core.exceptions import ReframeFatalError
+from reframe.core.logging import getlogger
 from reframe.core.pipeline import RegressionMixin
 from reframe.utility.sanity import make_performance_function
 import reframe.utility.sanity as sn
@@ -81,6 +82,8 @@ class EESSI_Mixin(RegressionMixin):
                 "set `readonly_files = ['']`.",
             ])
             raise ReframeFatalError(msg)
+        if cls._rfm_local_param_space.get('scale'):
+            getlogger().info(f"Scales supported by {cls.__qualname__}: {cls._rfm_local_param_space['scale'].values}")
 
     # Helper function to validate if an attribute is present it item_dict.
     # If not, print it's current name, value, and the valid_values
