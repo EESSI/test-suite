@@ -83,7 +83,7 @@ class EESSI_Mixin(RegressionMixin):
             ])
             raise ReframeFatalError(msg)
         if cls._rfm_local_param_space.get('scale'):
-            getlogger().info(f"Scales supported by {cls.__qualname__}: {cls._rfm_local_param_space['scale'].values}")
+            getlogger().verbose(f"Scales supported by {cls.__qualname__}: {cls._rfm_local_param_space['scale'].values}")
 
     # Helper function to validate if an attribute is present it item_dict.
     # If not, print it's current name, value, and the valid_values
