@@ -1,3 +1,4 @@
+from reframe.core.backends import getlauncher
 from reframe.core.builtins import parameter, run_after, run_before, variable
 from reframe.core.exceptions import ReframeFatalError
 from reframe.core.pipeline import RegressionMixin
@@ -49,6 +50,7 @@ class EESSI_Mixin(RegressionMixin):
     num_tasks_per_compute_unit = 1
     always_request_gpus = None
     require_internet = False
+    launcher = None
 
     # Create ReFrame variables for logging runtime environment information
     cvmfs_repo_name = variable(str, value='None')
@@ -198,6 +200,12 @@ class EESSI_Mixin(RegressionMixin):
 
         # Set compact process binding
         hooks.set_compact_process_binding(self)
+
+    @run_after('setup')
+    def EESSI_set_launcher(self):
+        """Select custom launcher"""
+        if self.launcher:
+            self.job.launcher = getlauncher(self.launcher)()
 
     @run_after('setup')
     def EESSI_mixin_request_mem(self):

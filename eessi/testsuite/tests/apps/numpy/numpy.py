@@ -11,7 +11,6 @@ Tested matrix operations with NumPy:
 """
 import reframe as rfm
 import reframe.utility.sanity as sn
-from reframe.core.backends import getlauncher
 from reframe.core.builtins import parameter, run_after, run_before, sanity_function, variable
 
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
@@ -32,6 +31,8 @@ class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         k for (k, v) in SCALES.items()
         if v['num_nodes'] == 1
     ])
+    compact_thread_binding = True
+    launcher = 'local'  # no MPI module is loaded in this test
 
     matrix_size = variable(str, value='8192')
     iterations = variable(str, value='4')
@@ -57,11 +58,6 @@ class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
             '--iterations', self.iterations,
             '--iterations-eigen', self.iterations_eigen,
         ]
-
-    @run_after('setup')
-    def set_launcher(self):
-        """Select local launcher"""
-        self.job.launcher = getlauncher('local')()
 
     @sanity_function
     def assert_numpy_found(self):
