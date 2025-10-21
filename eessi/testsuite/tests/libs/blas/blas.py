@@ -17,9 +17,8 @@ Notes:
 - BLAS modules with hyphens in the version string are not supported.
 
 Supported tags in this ReFrame test (in addition to the common tags):
-- threading: `st`, `mt`
 - BLAS implementation: `openblas`, `blis`, `aocl-blas`, `imkl`
-- `CI` tag: runs only openblas st + mt
+- `CI` tag: runs only openblas
 """
 
 
@@ -34,13 +33,8 @@ from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules, select_matching_modules, log
 
 
-def single_thread_scales():
-    """Scales for the single-threaded tests"""
-    return parameter(['1_core', '1_node'])
-
-
 def multi_thread_scales():
-    """Scales for the multi-threaded tests"""
+    """Scales for multi-threaded BLAS tests"""
     return parameter([
         k for (k, v) in SCALES.items()
         if v['num_nodes'] == 1
@@ -111,11 +105,9 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
     nrepeats = '5'
     dts = ['s', 'd', 'c', 'z']
     ops = ['gemm_nn', 'hemm_ll', 'herk_ln', 'trmm_llnn', 'trsm_runn']
-    sizes = {
-        'st': ['100', '1000', '100'],
-        'mt': ['200', '2000', '200'],
-    }
+    size = ['200', '2000', '200']
     require_buildenv_module = True
+    threading = 'mt'
 
     def required_mem_per_node(self):
         return self.num_cpus_per_task * 100 + 250
@@ -126,15 +118,8 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
         self.prerun_cmds = [f'make flexiblas-{self.threading}']
 
     @run_after('init')
-    def _tags(self):
-        """Add threading tag (st or mt)"""
-        self.tags.add(self.threading)
-        log(f'tags set to {self.tags}')
-
-    @run_after('init')
     def set_executable_opts(self):
         """Set executable_opts"""
-        self.size = self.sizes[self.threading]
         self.executable_opts = [
             self.threading,
             self.nrepeats,
@@ -184,107 +169,45 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
         })
 
 
-class EESSI_BLAS_OpenBLAS_base(EESSI_BLAS_base):
-    "base OpenBLAS test"
-
-    module_name = parameter(get_blas_modules('OpenBLAS'))
-    flexiblas_blas_lib = 'openblas'
-    tags = {'openblas'}
-
-
 @rfm.simple_test
-class EESSI_BLAS_OpenBLAS_st(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
-    "single-threaded OpenBLAS test"
-
-    scale = single_thread_scales()
-    is_ci_test = True
-    threading = 'st'
-    thread_binding = 'compact'
-
-
-@rfm.simple_test
-class EESSI_BLAS_OpenBLAS_mt(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
+class EESSI_BLAS_OpenBLAS_mt(EESSI_BLAS_base, EESSI_Mixin):
     "multi-threaded OpenBLAS test"
 
     scale = multi_thread_scales()
+    module_name = parameter(get_blas_modules('OpenBLAS'))
+    flexiblas_blas_lib = 'openblas'
+    tags = {'openblas'}
     is_ci_test = True
-    threading = 'mt'
-    thread_binding = 'compact'
-
-
-class EESSI_BLAS_AOCLBLAS_base(EESSI_BLAS_base):
-    "base AOCL-BLAS test"
-
-    module_name = parameter(get_blas_modules('AOCL-BLAS'))
-    flexiblas_blas_lib = 'aocl_mt'
-    tags = {'aocl-blas'}
-
-
-@rfm.simple_test
-class EESSI_BLAS_AOCLBLAS_st(EESSI_BLAS_AOCLBLAS_base, EESSI_Mixin):
-    "single-threaded AOCL-BLAS test"
-
-    scale = single_thread_scales()
-    threading = 'st'
     thread_binding = 'compact'
 
 
 @rfm.simple_test
-class EESSI_BLAS_AOCLBLAS_mt(EESSI_BLAS_AOCLBLAS_base, EESSI_Mixin):
+class EESSI_BLAS_AOCLBLAS_mt(EESSI_BLAS_base, EESSI_Mixin):
     "multi-threaded AOCL-BLAS test"
 
     scale = multi_thread_scales()
-    threading = 'mt'
-    thread_binding = 'compact'
-
-
-class EESSI_BLAS_imkl_base(EESSI_BLAS_base):
-    "base imkl test"
-
-    module_name = parameter(get_imkl_modules())
-    flexiblas_blas_lib = 'imkl'
-    tags = {'imkl'}
-
-
-@rfm.simple_test
-class EESSI_BLAS_imkl_st(EESSI_BLAS_imkl_base, EESSI_Mixin):
-    "single-threaded imkl test"
-
-    scale = single_thread_scales()
-    threading = 'st'
+    module_name = parameter(get_blas_modules('AOCL-BLAS'))
+    flexiblas_blas_lib = 'aocl_mt'
+    tags = {'aocl-blas'}
     thread_binding = 'compact'
 
 
 @rfm.simple_test
-class EESSI_BLAS_imkl_mt(EESSI_BLAS_imkl_base, EESSI_Mixin):
+class EESSI_BLAS_imkl_mt(EESSI_BLAS_base, EESSI_Mixin):
     "multi-threaded imkl test"
 
     scale = multi_thread_scales()
-    threading = 'mt'
+    module_name = parameter(get_imkl_modules())
+    flexiblas_blas_lib = 'imkl'
+    tags = {'imkl'}
     thread_binding = 'compact'
 
 
-class EESSI_BLAS_BLIS_base(EESSI_BLAS_base):
-    "base BLIS test"
-
-    module_name = parameter(get_blas_modules('BLIS'))
-    flexiblas_blas_lib = 'blis'
-    tags = {'blis'}
-
-
-@rfm.simple_test
-class EESSI_BLAS_BLIS_st(EESSI_BLAS_BLIS_base, EESSI_Mixin):
-    "single-threaded BLIS test"
-
-    scale = single_thread_scales()
-    threading = 'st'
-    thread_binding = 'compact'
-
-
-@rfm.simple_test
-class EESSI_BLAS_BLIS_mt(EESSI_BLAS_BLIS_base, EESSI_Mixin):
+class EESSI_BLAS_BLIS_mt(EESSI_BLAS_base, EESSI_Mixin):
     "multi-threaded BLIS test"
 
     scale = multi_thread_scales()
-    threading = 'mt'
+    module_name = parameter(get_blas_modules('BLIS'))
+    flexiblas_blas_lib = 'blis'
+    tags = {'blis'}
     thread_binding = 'compact'
