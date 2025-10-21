@@ -1,5 +1,6 @@
 from reframe.core.builtins import parameter, run_after, run_before, variable
 from reframe.core.exceptions import ReframeFatalError
+# from reframe.core.logging import getlogger
 from reframe.core.pipeline import RegressionMixin
 from reframe.utility.sanity import make_performance_function
 import reframe.utility.sanity as sn
@@ -42,7 +43,7 @@ class EESSI_Mixin(RegressionMixin):
     measure_memory_usage = variable(bool, value=False)
     exact_memory = variable(bool, value=False)
     user_executable_opts = variable(str, value='')
-    thread_binding = variable(str, value='None')  # takes priority over compact_thread_binding
+    thread_binding = variable(str, value='false')
 
     # Set defaults for these class variables, can be overwritten by child class if desired
     scale = parameter(SCALES.keys())
@@ -53,7 +54,6 @@ class EESSI_Mixin(RegressionMixin):
     always_request_gpus = None
     require_buildenv_module = False
     require_internet = False
-    compact_thread_binding = False
 
     # Create ReFrame variables for logging runtime environment information
     cvmfs_repo_name = variable(str, value='None')
@@ -137,8 +137,11 @@ class EESSI_Mixin(RegressionMixin):
             hooks.add_buildenv_module(self)
 
         thread_binding = self.thread_binding.lower()
-        if thread_binding == 'true' or (thread_binding == 'none' and self.compact_thread_binding):
+        if thread_binding in ('true', 'compact'):
             hooks.set_compact_thread_binding(self)
+        elif thread_binding != 'false':
+            err_msg = f"Invalid thread_binding value '{thread_binding}'. Valid values: 'true', 'compact', or 'false'."
+            raise ReframeFatalError(err_msg)
 
         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
 

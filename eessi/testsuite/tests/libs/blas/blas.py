@@ -116,7 +116,6 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
         'mt': ['200', '2000', '200'],
     }
     require_buildenv_module = True
-    compact_thread_binding = True
 
     def required_mem_per_node(self):
         return self.num_cpus_per_task * 100 + 250
@@ -200,6 +199,7 @@ class EESSI_BLAS_OpenBLAS_st(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
     scale = single_thread_scales()
     is_ci_test = True
     threading = 'st'
+    thread_binding = 'compact'
 
 
 @rfm.simple_test
@@ -209,6 +209,7 @@ class EESSI_BLAS_OpenBLAS_mt(EESSI_BLAS_OpenBLAS_base, EESSI_Mixin):
     scale = multi_thread_scales()
     is_ci_test = True
     threading = 'mt'
+    thread_binding = 'compact'
 
 
 class EESSI_BLAS_AOCLBLAS_base(EESSI_BLAS_base):
@@ -225,6 +226,7 @@ class EESSI_BLAS_AOCLBLAS_st(EESSI_BLAS_AOCLBLAS_base, EESSI_Mixin):
 
     scale = single_thread_scales()
     threading = 'st'
+    thread_binding = 'compact'
 
 
 @rfm.simple_test
@@ -233,6 +235,7 @@ class EESSI_BLAS_AOCLBLAS_mt(EESSI_BLAS_AOCLBLAS_base, EESSI_Mixin):
 
     scale = multi_thread_scales()
     threading = 'mt'
+    thread_binding = 'compact'
 
 
 class EESSI_BLAS_imkl_base(EESSI_BLAS_base):
@@ -249,6 +252,7 @@ class EESSI_BLAS_imkl_st(EESSI_BLAS_imkl_base, EESSI_Mixin):
 
     scale = single_thread_scales()
     threading = 'st'
+    thread_binding = 'compact'
 
 
 @rfm.simple_test
@@ -257,6 +261,7 @@ class EESSI_BLAS_imkl_mt(EESSI_BLAS_imkl_base, EESSI_Mixin):
 
     scale = multi_thread_scales()
     threading = 'mt'
+    thread_binding = 'compact'
 
 
 class EESSI_BLAS_BLIS_base(EESSI_BLAS_base):
@@ -273,6 +278,7 @@ class EESSI_BLAS_BLIS_st(EESSI_BLAS_BLIS_base, EESSI_Mixin):
 
     scale = single_thread_scales()
     threading = 'st'
+    thread_binding = 'compact'
 
 
 @rfm.simple_test
@@ -281,3 +287,4 @@ class EESSI_BLAS_BLIS_mt(EESSI_BLAS_BLIS_base, EESSI_Mixin):
 
     scale = multi_thread_scales()
     threading = 'mt'
+    thread_binding = 'compact'
