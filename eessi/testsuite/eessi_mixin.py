@@ -39,16 +39,20 @@ class EESSI_Mixin(RegressionMixin):
     - Init phase: time_limit, measure_memory_usage, bench_name_ci
     """
 
-    # Set defaults for these class variables, can be overwritten by child class if desired
+    # Defaults for ReFrame variables that can be overwritten on the cmd line
     measure_memory_usage = variable(bool, value=False)
     exact_memory = variable(bool, value=False)
     user_executable_opts = variable(str, value='')
+    thread_binding = variable(str, value='false')
+
+    # Set defaults for these class variables, can be overwritten by child class if desired
     scale = parameter(SCALES.keys())
     bench_name = None
     bench_name_ci = None
     is_ci_test = False
     num_tasks_per_compute_unit = 1
     always_request_gpus = None
+    require_buildenv_module = False
     require_internet = False
     launcher = None
 
@@ -128,9 +132,19 @@ class EESSI_Mixin(RegressionMixin):
         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
         hooks.filter_supported_scales(self)
 
-        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
-
         hooks.set_modules(self)
+
+        if self.require_buildenv_module:
+            hooks.add_buildenv_module(self)
+
+        thread_binding = self.thread_binding.lower()
+        if thread_binding in ('true', 'compact'):
+            hooks.set_compact_thread_binding(self)
+        elif thread_binding != 'false':
+            err_msg = f"Invalid thread_binding value '{thread_binding}'. Valid values: 'true', 'compact', or 'false'."
+            raise ReframeFatalError(err_msg)
+
+        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
 
         # Set scales as tags
         hooks.set_tag_scale(self)
@@ -218,10 +232,11 @@ class EESSI_Mixin(RegressionMixin):
         path to the modulefile, EESSI software subdir, EESSI testsuite version"""
         self.postrun_cmds.append('echo "EESSI_CVMFS_REPO: $EESSI_CVMFS_REPO"')
         self.postrun_cmds.append('echo "EESSI_SOFTWARE_SUBDIR: $EESSI_SOFTWARE_SUBDIR"')
-        if self.module_name:
-            # Get full modulepath
-            get_full_modpath = f'echo "FULL_MODULEPATH: $(module --location show {self.module_name} 2>&1)"'
-            self.postrun_cmds.append(get_full_modpath)
+        if self.module_names:
+            for mod in self.module_names:
+                # Get full modulepath
+                get_full_modpath = f'echo "FULL_MODULEPATH: $(module --location show {mod} 2>&1)"'
+                self.postrun_cmds.append(get_full_modpath)
 
     @run_before('run', always_last=True)
     def EESSI_mixin_set_user_executable_opts(self):
