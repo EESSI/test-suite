@@ -31,7 +31,7 @@ class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         k for (k, v) in SCALES.items()
         if v['num_nodes'] == 1
     ])
-    compact_thread_binding = True
+    thread_binding = 'compact'
     launcher = 'local'  # no MPI module is loaded in this test
 
     matrix_size = variable(str, value='8192')
