@@ -65,7 +65,7 @@ def filter_scales_8M():
 
 def filter_scales_1M():
     """
-    Filtering function for filtering scales for the OpenFOAM 8M mesh test
+    Filtering function for filtering scales for the OpenFOAM 1M mesh test
     returns all scales with at least half a node.
     """
     return [
