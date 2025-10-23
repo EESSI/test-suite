@@ -2,9 +2,9 @@
 Utility functions for ReFrame tests
 """
 
+import inspect
 import os
 import re
-import sys
 from typing import Iterator, List
 
 import reframe as rfm
@@ -34,7 +34,7 @@ except ImportError:
 
 
 def log(msg, logger=printer.debug):
-    funcname = sys._getframe().f_back.f_code.co_name
+    funcname = inspect.currentframe().f_back.f_code.co_name
     logger(f'[{funcname}]: {msg}')
 
 
