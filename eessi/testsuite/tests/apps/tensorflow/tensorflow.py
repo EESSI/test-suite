@@ -7,10 +7,11 @@ import os
 
 import reframe as rfm
 from reframe.core.builtins import deferrable, parameter, run_after, sanity_function, performance_function
+import reframe.core.logging as rflog
 import reframe.utility.sanity as sn
 
 from eessi.testsuite import utils, hooks
-from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, FEATURES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
 
@@ -98,16 +99,36 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         Set valid_systems for offline partitions if data is not present for offline run
         """
 
+        # Check if ANY partition on this system is an offline partition. If not, we can return immediately.
+        # This prevents printing warnings unnecessarily
+        offline_partitions = False
+        for partition in self.current_system.partitions:
+            if FEATURES.OFFLINE in partition.features:
+                offline_partitions = True
+                break
+
+        if not offline_partitions:
+            return
+
         resourcesdir = self.current_system.resourcesdir
-        data = os.path.join(resourcesdir, self.module_name, 'datasets/mnist.npz')
+
+        # If resourcesdir is the 'current working dir', resolve to a full path so we can print a clear instruction
+        if resourcesdir == '.':
+            resourcesdir = os.getcwd()
+
+        datadir = os.path.join(resourcesdir, self.module_name, 'datasets')
+        data = os.path.join(datadir, 'mnist.npz')
         if os.path.exists(data):
             self.env_vars['RFM_TENSORFLOW_DATA'] = data
         else:
-            txt = f'Warning: will exclude {self.module_name} tests on offline partitions.\n'
+            txt = f'Will exclude {self.name} tests on offline partitions.\n'
             txt += f'Because reframe could not find {data}.\n'
-            txt += 'You can download the file running tf.keras.datasets.mnist.load_data() '
-            txt += f'with {self.module_name} on a system with internet access.'
-            utils.log(txt)
+            txt += 'The download the data, please run:.\n'
+            txt += f'mkdir -p {datadir} && '
+            txt += f'module load {self.module_name} && '
+            txt += f'python -c "import tensorflow as tf; tf.keras.datasets.mnist.load_data({data})" '
+            txt += f'on a system with internet access.'
+            rflog.getlogger().warning(txt)
             hooks.filter_valid_systems_for_offline_partitions(self)
 
     @run_after('setup')

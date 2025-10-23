@@ -458,7 +458,7 @@ def filter_valid_systems_for_offline_partitions(test: rfm.RegressionTest):
     """
     Filter offline partitions for tests that require internet
     """
-    _set_or_append_valid_systems(test, '-offline')
+    _set_or_append_valid_systems(test, f'-{FEATURES.OFFLINE}')
 
 
 def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_device_type: str):
