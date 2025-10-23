@@ -123,9 +123,9 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_64M(rfm.RunOnlyRegressionTest, EESSI_Mixi
 
     @run_after('setup')
     def check_minimum_cores(self):
-        # The 64M test case requires minimally 8 cores to run within reasonable time.
+        # The 64M test case requires minimally 512 cores to run within reasonable time.
         if self.num_tasks < 512:
-            self.skip(msg="The minimum number of cores required by this test is 8. Launch on a scale with higher core"
+            self.skip(msg="The minimum number of cores required by this test is 512. Launch on a scale with higher core"
                       "count.")
 
     @run_before('run')
