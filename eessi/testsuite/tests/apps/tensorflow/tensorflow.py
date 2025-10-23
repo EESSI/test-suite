@@ -126,8 +126,8 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
             txt += 'The download the data, please run:.\n'
             txt += f'mkdir -p {datadir} && '
             txt += f'module load {self.module_name} && '
-            txt += f'python -c "import tensorflow as tf; tf.keras.datasets.mnist.load_data({data})" '
-            txt += f'on a system with internet access.'
+            txt += f'python -c "import tensorflow as tf; tf.keras.datasets.mnist.load_data(\'{data}\')"\n'
+            txt += 'on a system with internet access.'
             rflog.getlogger().warning(txt)
             hooks.filter_valid_systems_for_offline_partitions(self)
 
