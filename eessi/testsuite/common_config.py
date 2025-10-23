@@ -100,8 +100,8 @@ def common_eessi_init(eessi_version=None):
     if eessi_cvmfs_repo is None:
         rflog.getlogger().warning(' '.join([
             "Environment variable 'EESSI_CVMFS_REPO' is not defined.",
-            "If you do not intend to use the EESSI software stack, this is perfectly fine.",
-            "To use EESSI, initialize the EESSI environment before running the test suite.",
+            "If you plan to use the EESSI software stack,",
+            "make sure to initialize the EESSI environment before running the test suite.",
         ]))
         return ''
 
