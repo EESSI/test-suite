@@ -108,7 +108,6 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
     size = ['200', '2000', '200']
     require_buildenv_module = True
     threading = 'mt'
-    thread_binding = 'compact'
     launcher = 'local'  # No MPI module is loaded in this test
 
     def required_mem_per_node(self):
@@ -180,6 +179,7 @@ class EESSI_BLAS_OpenBLAS_mt(EESSI_BLAS_base, EESSI_Mixin):
     flexiblas_blas_lib = 'openblas'
     tags = {'openblas'}
     is_ci_test = True
+    thread_binding = 'compact'
 
 
 @rfm.simple_test
@@ -190,6 +190,7 @@ class EESSI_BLAS_AOCLBLAS_mt(EESSI_BLAS_base, EESSI_Mixin):
     module_name = parameter(get_blas_modules('AOCL-BLAS'))
     flexiblas_blas_lib = 'aocl_mt'
     tags = {'aocl-blas'}
+    thread_binding = 'compact'
 
 
 @rfm.simple_test
@@ -200,6 +201,7 @@ class EESSI_BLAS_imkl_mt(EESSI_BLAS_base, EESSI_Mixin):
     module_name = parameter(get_imkl_modules())
     flexiblas_blas_lib = 'imkl'
     tags = {'imkl'}
+    thread_binding = 'compact'
 
 
 class EESSI_BLAS_BLIS_mt(EESSI_BLAS_base, EESSI_Mixin):
@@ -209,3 +211,4 @@ class EESSI_BLAS_BLIS_mt(EESSI_BLAS_base, EESSI_Mixin):
     module_name = parameter(get_blas_modules('BLIS'))
     flexiblas_blas_lib = 'blis'
     tags = {'blis'}
+    thread_binding = 'compact'
