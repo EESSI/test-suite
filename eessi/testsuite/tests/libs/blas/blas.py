@@ -23,7 +23,6 @@ Supported tags in this ReFrame test (in addition to the common tags):
 
 
 import reframe as rfm
-from reframe.core.backends import getlauncher
 from reframe.core.builtins import parameter, run_after, run_before, sanity_function
 import reframe.core.logging as rflog
 import reframe.utility.sanity as sn
@@ -108,6 +107,7 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
     size = ['200', '2000', '200']
     require_buildenv_module = True
     threading = 'mt'
+    launcher = 'local'  # No MPI module is loaded in this test
 
     def required_mem_per_node(self):
         return self.num_cpus_per_task * 100 + 250
@@ -134,11 +134,6 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
         self.env_vars.update({
             'FLEXIBLAS': self.flexiblas_blas_lib,
         })
-
-    @run_after('setup')
-    def set_launcher(self):
-        """Select local launcher"""
-        self.job.launcher = getlauncher('local')()
 
     @sanity_function
     def assert_sanity(self):
