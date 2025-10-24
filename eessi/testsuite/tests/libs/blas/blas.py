@@ -136,11 +136,6 @@ class EESSI_BLAS_base(rfm.RunOnlyRegressionTest):
             'FLEXIBLAS': self.flexiblas_blas_lib,
         })
 
-    @run_after('setup')
-    def set_launcher(self):
-        """Select local launcher"""
-        self.job.launcher = getlauncher('local')()
-
     @sanity_function
     def assert_sanity(self):
         assert_backend = sn.assert_not_found(
