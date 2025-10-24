@@ -23,7 +23,6 @@ Supported tags in this ReFrame test (in addition to the common tags):
 
 
 import reframe as rfm
-from reframe.core.backends import getlauncher
 from reframe.core.builtins import parameter, run_after, run_before, sanity_function
 import reframe.core.logging as rflog
 import reframe.utility.sanity as sn
