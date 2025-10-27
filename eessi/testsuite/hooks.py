@@ -9,8 +9,12 @@ import reframe.utility.sanity as sn
 
 from eessi.testsuite.constants import (COMPUTE_UNITS, DEVICE_TYPES, EXTRAS, FEATURES,
                                        GPU_VENDORS, INVALID_SYSTEM, SCALES)
-from eessi.testsuite.utils import (get_max_avail_gpus_per_node, is_cuda_required_module, log,
-                                   check_proc_attribute_defined, check_extras_key_defined)
+from eessi.testsuite.utils import (check_extras_key_defined, check_proc_attribute_defined, find_modules,
+                                   get_max_avail_gpus_per_node, is_cuda_required_module, log, split_module,
+                                   select_matching_modules)
+
+# global variables
+_buildenv_modules = []
 
 
 def _assign_default_num_cpus_per_node(test: rfm.RegressionTest):
@@ -470,7 +474,7 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     cause the valid_systems to be set to an empty string, and consequently the
     test.valid_systems to an invalid system name (eessi.testsuite.constants.INVALID_SYSTEM).
     """
-    is_cuda_module = is_cuda_required_module(test.module_name)
+    is_cuda_module = is_cuda_required_module(test.module_names)
 
     if is_cuda_module and required_device_type == DEVICE_TYPES.GPU:
         # CUDA modules and when using a GPU require partitions with FEATURES.GPU feature and
@@ -489,6 +493,20 @@ def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_devic
     elif not is_cuda_module and required_device_type == DEVICE_TYPES.GPU:
         # Invalid combination: a module without GPU support cannot use a GPU
         valid_systems = ''
+
+    # Change test.valid_systems accordingly:
+    _set_or_append_valid_systems(test, valid_systems)
+
+    log(f'valid_systems set to {test.valid_systems}')
+
+
+def filter_valid_systems_for_offline_partitions(test: rfm.RegressionTest):
+    """
+    Filter tests if they require internet access to run.
+    Filtering is done using features, i.e. when offline is requested as a feature.
+    Any partition that includes this feature in the ReFrame configuration file will effectively be filtered out.
+    """
+    valid_systems = rf'-{FEATURES.OFFLINE}'
 
     # Change test.valid_systems accordingly:
     _set_or_append_valid_systems(test, valid_systems)
@@ -529,7 +547,7 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
     check_extras_key_defined(test, EXTRAS.MEM_PER_NODE)
     # Skip if the current partition doesn't have sufficient memory to run the application
     msg = f"Skipping test: nodes in this partition only have {test.current_partition.extras[EXTRAS.MEM_PER_NODE]} MiB"
-    msg += " memory available (per node) accodring to the current ReFrame configuration,"
+    msg += " memory available (per node) according to the current ReFrame configuration,"
     msg += f" but {app_mem_req} MiB is needed"
     test.skip_if(test.current_partition.extras[EXTRAS.MEM_PER_NODE] < app_mem_req, msg)
 
@@ -606,14 +624,25 @@ def req_memory_per_node(test: rfm.RegressionTest, app_mem_req: float):
 
 def set_modules(test: rfm.RegressionTest):
     """
-    Skip current test if module_name is not among a list of modules,
+    Set modules test parameter via module_name, which can be a string or a list of strings
+    Skip current test if any of the module names is not present in the list of modules,
     specified with --setvar modules=<comma-separated-list>.
     """
-    if test.modules and test.module_name not in test.modules:
-        test.valid_systems = []
-        log(f'valid_systems set to {test.valid_systems}')
+    if not test.module_name:
+        return
+    if isinstance(test.module_name, str):
+        test.module_names = [test.module_name]
+    elif isinstance(test.module_name, (list, tuple)):
+        test.module_names = test.module_name
+    else:
+        raise TypeError(f'module_name is a {type(test.module_name).__name__}, should be string, list, or tuple')
+    if test.modules:
+        for name in test.module_names:
+            if name not in test.modules:
+                test.valid_systems = []
+                log(f'module {name} not in {test.modules}, valid_systems set to {test.valid_systems}')
 
-    test.modules = [test.module_name]
+    test.modules = test.module_names
     log(f'modules set to {test.modules}')
 
 
@@ -758,3 +787,62 @@ def extract_memory_usage(test: rfm.RegressionTest):
         return hooks.extract_memory_usage(self)
     """
     return sn.extractsingle(r'^MAX_MEM_IN_MIB=(?P<memory>\S+)', test.stdout, 'memory', int)
+
+
+def add_buildenv_module(test: rfm.RegressionTest, index=-1):
+    """
+    Add a buildenv module that matches the reference module to the list of modules
+
+
+    Arguments:
+    - test: ReFrame test to which this hook should apply
+    - index: module index in test.modules to take as the reference (default is last);
+             note that the reference module’s toolchain should not be at the system
+             level: otherwise only buildenv modules at the system level can be added
+
+    Requirements:
+    - recent enough easybuild python package
+    - a matching default buildenv module (e.g. buildenv/default-foss-2024a) available on the system
+    """
+    for mod in test.modules:
+        if mod.split('/')[0] == 'buildenv':
+            # buildenv module already in the list
+            return
+
+    # get list of buildenv modules on the system
+    # make global to avoid calculating _buildenv_modules multiple times
+    global _buildenv_modules
+    if not _buildenv_modules:
+        _buildenv_modules = set(find_modules('buildenv'))
+        to_remove = []
+        for mod in _buildenv_modules:
+            mod_parts = split_module(mod)
+            if mod_parts[4] or mod_parts[1] != 'default':
+                # only consider default buildenv modules without versionsuffixes
+                to_remove.append(mod)
+
+        _buildenv_modules = [x for x in _buildenv_modules if x not in to_remove]
+
+        if not _buildenv_modules:
+            msg = 'No default buildenv modules without versionsuffixes found on the system.'
+            log(msg)
+            test.valid_systems = [INVALID_SYSTEM]
+            return
+
+    ref_module = test.modules[index]
+    matching_modules = select_matching_modules(list(_buildenv_modules), ref_module)
+
+    if not matching_modules:
+        msg = f'No matching buildenv module for {ref_module} found on the system.'
+        log(msg)
+        test.valid_systems = [INVALID_SYSTEM]
+        return
+
+    if len(matching_modules) > 1:
+        msg = f'Multiple matching buildenv modules found, will use the first one: {_buildenv_modules}.'
+        log(msg)
+
+    buildenv_mod = matching_modules[0]
+    # insert to keep the most important module last
+    test.modules.insert(0, buildenv_mod)
+    log(f'Module {buildenv_mod} added to list of modules')
