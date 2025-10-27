@@ -458,13 +458,6 @@ def filter_supported_scales(test: rfm.RegressionTest):
     log(f'valid_systems set to {test.valid_systems}')
 
 
-def filter_valid_systems_for_offline_partitions(test: rfm.RegressionTest):
-    """
-    Filter out offline partitions for tests that require internet
-    """
-    _set_or_append_valid_systems(test, f'-{FEATURES.OFFLINE}')
-
-
 def filter_valid_systems_by_device_type(test: rfm.RegressionTest, required_device_type: str):
     """
     Filter valid_systems by required device type and by whether the module supports CUDA,
