@@ -333,8 +333,6 @@ def log_once(test: rfm.RegressionTest, msg: str, msg_id: str, level: str = 'info
     This is useful in e.g. making sure the logging output doesn't get flooded
     when a highly parameterized test has many different test instances.
     """
-
-    global _unique_msg_ids
     unique_id = f'{test.__class__.__name__}_{msg_id}'
 
     if unique_id in _unique_msg_ids:
