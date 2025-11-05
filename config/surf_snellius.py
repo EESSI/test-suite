@@ -43,6 +43,9 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
+                    'sched_options': {
+                        'use_nodes_option': True,
+                    },
                     'access': ['-p rome', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
@@ -72,6 +75,9 @@ site_configuration = {
                         common_eessi_init()
                     ],
                     'launcher': 'mpirun',
+                    'sched_options': {
+                        'use_nodes_option': True,
+                    },
                     'access': ['-p genoa', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
@@ -96,6 +102,9 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
+                    'sched_options': {
+                        'use_nodes_option': True,
+                    },
                     'access': ['-p gpu_a100', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 60,
@@ -132,6 +141,9 @@ site_configuration = {
                     'scheduler': 'slurm',
                     'prepare_cmds': [common_eessi_init()],
                     'launcher': 'mpirun',
+                    'sched_options': {
+                        'use_nodes_option': True,
+                    },
                     'access': ['-p gpu_h100', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 60,
