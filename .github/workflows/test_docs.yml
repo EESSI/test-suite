@@ -1,5 +1,5 @@
 # documentation: https://help.github.com/en/articles/workflow-syntax-for-github-actions
-name: Tests for EESSI test suite, using EESSI production repo
+name: Tests for EESSI test suite API docs
 on: [push, pull_request, workflow_dispatch]
 permissions: read-all
 jobs:
@@ -23,11 +23,9 @@ jobs:
 
         - name: debug workflow
           run: |
-            ls 
-            ls docs
+            ls
             ls test-suite
-            ls docs/test-suite
-            ls docs/test-suite/test-suite
+            ls test-suite/test-suite
         - name: install mkdocs + plugins
           run: |
             pip install -r requirements.txt
