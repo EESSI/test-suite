@@ -10,7 +10,6 @@ jobs:
           uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
           with:
             repository: EESSI/docs
-            #    path: docs
             ref: main
             persist-credentials: false
             fetch-depth: 0
@@ -21,15 +20,11 @@ jobs:
             persist-credentials: false
             path: test-suite/test-suite
 
-        - name: debug workflow
-          run: |
-            ls
-            ls test-suite
-            ls test-suite/test-suite
         - name: install mkdocs + plugins
           run: |
             pip install -r requirements.txt
             pip list | grep mkdocs
             mkdocs --version
+
         - name: build docs
           run: make test
