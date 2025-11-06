@@ -1,6 +1,20 @@
 This file contains a description of the major changes to the EESSI test suite.
 For more detailed information, please see the git log.
 
+v0.8.1 (30 June 2025)
+---------------------
+
+This is a bug fix release of the EESSI test-suite
+
+Bug fixes:
+
+* Adding __init__.py to fix the docs. (#293)
+
+Other changes:
+
+* Changes in Snellius config specifying the exact number of nodes and not leaving it up for interpretation by SLURM.
+ (#292)
+
 v0.8.0 (5 November 2025)
 ---------------------
 
