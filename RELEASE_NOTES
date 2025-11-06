@@ -9,6 +9,8 @@ This is a bug fix release of the EESSI test-suite
 Bug fixes:
 
 * Adding __init__.py to fix the docs. (#293)
+* Add possibility for tests to use predownloaded data, and otherwise mark themselves as requiring an online node. Also: implemented this for TensorFlow (#275)
+* Add Mare Nostrum ReFrame config (#277)
 
 Other changes:
 
