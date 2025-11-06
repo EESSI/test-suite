@@ -1,6 +1,34 @@
 This file contains a description of the major changes to the EESSI test suite.
 For more detailed information, please see the git log.
 
+v0.8.0 (5 November 2025)
+---------------------
+
+This is a minor release of the EESSI test-suite
+
+New tests:
+* BLAS (gemm, hemm, herk, trmm, trsm) (#268)
+* OpenFOAM CI (small scale, 1-128 MPI tasks) (#278)
+* numpy (Dot product, SVD, Cholesky decomposition, Inversion, Eigen decomposition) (#276)
+
+Bug fixes:
+
+* Skip tests that require internet on offline machines. (#279)
+* Fix output of full module path. (#274)
+
+Enhancements:
+
+* Print list of supported scales for each test class with non-standard scales or a filtered set. (#285)
+* Set compact thread-binding for numpy test. (#286)
+* Added a launcher variable for test classes rather than using a separate function in each test to use a non-standard
+launcher. (#286)
+* BLAS test uses the launcher variable. (#288)
+
+Other changes:
+
+* Changes in VSC config. (#282)
+* Fixing a typo. (#283)
+
 v0.7.1 (30 June 2025)
 ---------------------
 

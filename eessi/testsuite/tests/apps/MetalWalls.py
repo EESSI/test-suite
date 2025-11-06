@@ -63,13 +63,16 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
         hooks.filter_supported_scales(self)
 
+        # Support selecting modules on the cmd line.
+        hooks.set_modules(self)
+
         # Make sure that GPU tests run in partitions that support running on a GPU,
         # and that CPU-only tests run in partitions that support running CPU-only.
         # Also support setting valid_systems on the cmd line.
         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.compute_device)
 
-        # Support selecting modules on the cmd line.
-        hooks.set_modules(self)
+        # Make sure the test is not run on offline partitions
+        hooks.filter_valid_systems_for_offline_partitions(self)
 
         # Support selecting scales on the cmd line via tags.
         hooks.set_tag_scale(self)
