@@ -17,12 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
+import time
+import argparse
+import numpy as np
 import espressomd
 import espressomd.version
 import espressomd.electrostatics
-import argparse
-import time
-import numpy as np
 
 parser = argparse.ArgumentParser(description="Benchmark P3M simulations.")
 parser.add_argument("--size", metavar="S", action="store",
@@ -34,12 +35,20 @@ parser.add_argument("--gpu", action=argparse.BooleanOptionalAction,
                     default=False, required=False, help="Use GPU implementation")
 parser.add_argument("--topology", metavar=("X", "Y", "Z"), nargs=3, action="store",
                     default=None, required=False, type=int, help="Cartesian topology")
+parser.add_argument("--single-precision", action="store_true", required=False,
+                    help="Using single-precision floating point accuracy")
 group = parser.add_mutually_exclusive_group()
 group.add_argument("--weak-scaling", action="store_true",
                    help="Weak scaling benchmark (Gustafson's law: constant work per core)")
 group.add_argument("--strong-scaling", action="store_true",
                    help="Strong scaling benchmark (Amdahl's law: constant total work)")
 args = parser.parse_args()
+
+required_features = ["LENNARD_JONES"]
+if args.gpu:
+    required_features.append("CUDA")
+espressomd.assert_features(required_features)
+espresso_version = (espressomd.version.major(), espressomd.version.minor())
 
 
 def get_reference_values_per_ion(base_vector):
@@ -65,10 +74,18 @@ system.time_step = 0.01
 system.cell_system.skin = 0.4
 
 # set MPI Cartesian topology
-node_grid = system.cell_system.node_grid.copy()
-n_cores = int(np.prod(node_grid))
+node_grid = np.array(system.cell_system.node_grid)
+n_mpi_ranks = int(np.prod(node_grid))
+n_omp_threads = int(os.environ.get("OMP_NUM_THREADS", 1))
 if args.topology:
     system.cell_system.node_grid = node_grid = args.topology
+
+# set CUDA topology
+devices = {}
+if args.gpu:
+    devices = espressomd.cuda_init.CudaInitHandle().list_devices()
+    if len(devices) > 1 and espresso_version >= (5, 0):
+        system.cuda_init_handle.call_method("set_device_id_per_rank")
 
 # place ions on a cubic lattice
 base_vector = np.array([1., 1., 1.])
@@ -82,24 +99,34 @@ for var_j in range(lattice_size[0]):
             _ = system.part.add(pos=np.multiply([var_j, var_k, var_l], base_vector),
                                 q=(-1.)**(var_j + var_k + var_l), fix=3 * [True])
 
-# setup P3M algorithm
-algorithm = espressomd.electrostatics.P3M
+# setup P3M solver
+p3m_kwargs = {"prefactor": 1., "accuracy": 1e-6}
+p3m_class = espressomd.electrostatics.P3M
 if args.gpu:
-    algorithm = espressomd.electrostatics.P3MGPU
-solver = algorithm(prefactor=1., accuracy=1e-6)
-if (espressomd.version.major(), espressomd.version.minor()) == (4, 2):
+    p3m_class = espressomd.electrostatics.P3MGPU
+    assert args.single_precision, "ESPResSo P3M GPU only available in single-precision"
+    assert len(devices) == 1, "ESPResSo P3M only supports 1 GPU accelerator"
+elif espresso_version == (4, 2):
+    assert not args.single_precision, "ESPResSo 4.2 P3M CPU only available in double-precision"
+if espresso_version == (4, 2):
+    assert n_omp_threads == 1, "ESPResSo 4.2 doesn't support OpenMP"
+if espresso_version >= (5, 0):
+    p3m_kwargs["single_precision"] = args.single_precision
+solver = p3m_class(**p3m_kwargs)
+if espresso_version == (4, 2):
     system.actors.add(solver)
 else:
     system.electrostatics.solver = solver
 
 
-print("Algorithm executed. \n")
+print("Algorithm executed.")
 
 # Old rtol_pressure = 2e-5
 # This resulted in failures especially at high number of nodes therefore increased
 # to a larger value.
 
-atol_energy = atol_pressure = 1e-12
+atol_energy = 1e-12
+atol_pressure = 1e-5
 atol_forces = 1e-5
 atol_abs_forces = 2e-6
 
@@ -108,7 +135,7 @@ rtol_pressure = 1e-4
 rtol_forces = 0.
 rtol_abs_forces = 0.
 # run checks
-print("Executing sanity checks...\n")
+print("Sanity checks")
 forces = np.copy(system.part.all().f)
 energy, p_scalar, p_tensor = get_normalized_values_per_ion(system)
 ref_energy, ref_pressure = get_reference_values_per_ion(base_vector)
@@ -126,23 +153,28 @@ print("Final convergence met with tolerances: \n\
             forces: ", atol_forces, "\n\
             abs_forces: ", atol_abs_forces, "\n")
 
-print("Sampling runtime...\n")
-# sample runtime
+print("Benchmark")
 n_steps = 10
+n_loops = 10
 timings = []
-for _ in range(10):
+for _ in range(n_loops):
     tick = time.time()
     system.integrator.run(n_steps)
     tock = time.time()
     timings.append((tock - tick) / n_steps)
 
-print("10 steps executed...\n")
+print(f"{n_loops * n_steps} steps executed...")
 # write results to file
-header = '"mode","cores","mpi.x","mpi.y","mpi.z","particles","mean","std"\n'
+header = '"mode","cores","mpi.x","mpi.y","mpi.z","omp.threads","gpus",\
+"particles","mean","std","box.x","box.y","box.z","precision","hardware"'
 report = f'''"{"weak scaling" if args.weak_scaling else "strong scaling"}",\
-{n_cores},{node_grid[0]},{node_grid[1]},{node_grid[2]},{len(system.part)},\
-{np.mean(timings):.3e},{np.std(timings,ddof=1):.3e}\n'''
+{n_mpi_ranks * n_omp_threads},{node_grid[0]},{node_grid[1]},{node_grid[2]},\
+{n_omp_threads},{len(devices)},{len(system.part)},\
+{np.mean(timings):.3e},{np.std(timings,ddof=1):.3e},\
+{system.box_l[0]:.2f},{system.box_l[1]:.2f},{system.box_l[2]:.2f},\
+"{'sp' if args.single_precision else 'dp'}",\
+"{'gpu' if args.gpu else 'cpu'}"'''
 print(header)
 print(report)
 
-print(f"Performance: {np.mean(timings):.3e} \n")
+print(f"Performance: {np.mean(timings)*1000:.2f} ms/step")
