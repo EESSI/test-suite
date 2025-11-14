@@ -33,8 +33,8 @@ from reframe.core.builtins import run_after
 from reframe.core.parameters import TestParam as parameter
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES, TAGS
-from eessi.testsuite.utils import find_modules, log
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
+from eessi.testsuite.utils import find_modules
 
 
 @rfm.simple_test
