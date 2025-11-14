@@ -81,8 +81,7 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
     def set_tag_ci(self):
         """Set tag CI on smallest benchmark, so it can be selected on the cmd line via --tag CI"""
         if self.benchmark_info[0] == 'hackathonGPU/benchmark':
-            self.tags.add(TAGS.CI)
-            log(f'tags set to {self.tags}')
+            self.is_ci_test = True
 
     @run_after('init')
     def set_increased_walltime(self):

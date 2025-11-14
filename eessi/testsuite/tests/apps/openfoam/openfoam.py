@@ -192,6 +192,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_1M(rfm.RunOnlyRegressionTest, EESSI_Mixin
     module_name = parameter(find_modules('OpenFOAM/v', name_only=False))
     valid_systems = ['*']
     scale = parameter(filter_scales_1M())
+    is_ci_test = True
 
     @run_after('init')
     def set_compute_unit(self):
@@ -207,11 +208,6 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_1M(rfm.RunOnlyRegressionTest, EESSI_Mixin
 
     def required_mem_per_node(self):
         return self.num_tasks_per_node * 1700
-
-    @run_after('init')
-    def select_ci(self):
-        " Select the CI variants "
-        self.bench_name = self.bench_name_ci = 'icoFoam_1M_CI'
 
     @run_after('setup')
     def check_launcher_options(self):

@@ -45,7 +45,7 @@ class EESSI_ESPRESSO_base(rfm.RunOnlyRegressionTest):
         # TODO: revisit this for more recent versions of ESPResSo
         # see also: https://github.com/EESSI/test-suite/issues/154
         if SCALES[self.scale]['num_nodes'] < 2:
-            self.bench_name_ci = self.bench_name
+            self.is_ci_test = True
 
     @sanity_function
     def assert_sanity(self):
@@ -67,7 +67,6 @@ class EESSI_ESPRESSO_P3M_IONIC_CRYSTALS(EESSI_ESPRESSO_base, EESSI_Mixin):
     executable = 'python3 madelung.py'
     sourcesdir = 'src/p3m'
     readonly_files = ['madelung.py']
-    bench_name = 'ionic_crystals_p3m'
 
     default_weak_scaling_system_size = 6
 
@@ -102,7 +101,6 @@ class EESSI_ESPRESSO_LJ_PARTICLES(EESSI_ESPRESSO_base, EESSI_Mixin):
     executable = 'python3 lj.py'
     sourcesdir = 'src/lj'
     readonly_files = ['lj.py']
-    bench_name = 'particles_lj'
 
     def required_mem_per_node(self):
         "LJ requires 200 MB per core"

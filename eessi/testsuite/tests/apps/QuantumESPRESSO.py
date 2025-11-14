@@ -55,7 +55,7 @@ class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck, EESSI_Mixin):
         min_ecut = min(QEspressoPWCheck.ecut.values)
         min_nbnd = min(QEspressoPWCheck.nbnd.values)
         if self.ecut == min_ecut and self.nbnd == min_nbnd:
-            self.bench_name = self.bench_name_ci = 'bench_ci'
+            self.is_ci_test = True
 
     @run_after('init')
     def set_increased_walltime(self):
