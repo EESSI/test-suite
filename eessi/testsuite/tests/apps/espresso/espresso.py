@@ -1,10 +1,13 @@
 """
-This module tests Espresso in available modules containing substring 'ESPResSo' which is different from Quantum
-Espresso. Tests included:
+This module tests ESPResSo in available modules containing substring 'ESPResSo'
+which is different from Quantum Espresso.
+Tests included:
 - P3M benchmark - Ionic crystals
     - Weak scaling
     - Strong scaling Weak and strong scaling are options that are needed to be provided to the script and the system is
       either scaled based on number of cores or kept constant.
+- LJ benchmark
+- LB benchmark
 """
 
 import reframe as rfm
