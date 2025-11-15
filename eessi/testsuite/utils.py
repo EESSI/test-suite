@@ -2,14 +2,14 @@
 Utility functions for ReFrame tests
 """
 
+import inspect
 import os
 import re
-import sys
 from typing import Iterator, List
 
 import reframe as rfm
 from reframe.core.exceptions import ReframeFatalError
-import reframe.core.logging as rflog
+from reframe.core.logging import getlogger
 import reframe.core.runtime as rt
 from reframe.frontend.printer import PrettyPrinter
 
@@ -21,6 +21,7 @@ printer = PrettyPrinter()
 _available_modules = []
 _eb_is_available = False
 _eb_avail_warning_is_printed = False
+_unique_msg_ids = []
 
 try:
     from easybuild.framework.easyconfig.easyconfig import get_toolchain_hierarchy
@@ -34,7 +35,7 @@ except ImportError:
 
 
 def log(msg, logger=printer.debug):
-    funcname = sys._getframe().f_back.f_code.co_name
+    funcname = inspect.currentframe().f_back.f_code.co_name
     logger(f'[{funcname}]: {msg}')
 
 
@@ -203,13 +204,13 @@ def get_tc_hierarchy(tcdict):
         if not hierarchy:
             msg = (f'cannot determine toolchain hierarchy for {tcdict}. '
                    ' You may have to update the easybuild python package.')
-            rflog.getlogger().warning(msg)
+            getlogger().warning(msg)
         return hierarchy
     else:
         if not _eb_avail_warning_is_printed:
             msg = ("EasyBuild is not available, so cannot determine toolchain hierarchy."
                    " Make sure the easybuild python package is installed.")
-            rflog.getlogger().warning(msg)
+            getlogger().warning(msg)
             _eb_avail_warning_is_printed = True
 
 
@@ -307,16 +308,36 @@ def check_extras_key_defined(test: rfm.RegressionTest, extra_key) -> bool:
     if test.current_partition:
         if extra_key in test.current_partition.extras:
             return True
-        else:
-            msg = (
-                f"Key '{extra_key}' missing in the 'extras' dictionary for partition '{test.current_partition.name}'."
-                "Please define this key for the relevant partition in the ReFrame configuration file (see "
-                "https://reframe-hpc.readthedocs.io/en/stable/config_reference.html#config.systems.partitions.extras)."
-            )
+
+        msg = ' '.join([
+            f"Key '{extra_key}' missing in the 'extras' dictionary for partition '{test.current_partition.name}'.",
+            "Please define this key for the relevant partition in the ReFrame configuration file (see",
+            "https://reframe-hpc.readthedocs.io/en/stable/config_reference.html#config.systems.partitions.extras).",
+        ])
+
     else:
-        msg = (
-            "This test's current_partition is not set yet. "
-            "The function utils.check_extras_key_defined should only be called after the setup() phase of ReFrame."
-            "This is a programming error, please report this issue."
-        )
+        msg = ' '.join([
+            "This test's current_partition is not set yet.",
+            "The function utils.check_extras_key_defined should only be called after the setup() phase of ReFrame.",
+            "This is a programming error, please report this issue.",
+        ])
     raise AttributeError(msg)
+
+
+def log_once(test: rfm.RegressionTest, msg: str, msg_id: str, level: str = 'info'):
+    """
+    This function only prints message msg to the reframe logger once for a
+    given unique combination of test class and msg_id. In other words: for a
+    given test, one can come up with a a unique msg_id, and call this function
+    multiple times with the same msg_id - yet only one message will be logged.
+    This is useful in e.g. making sure the logging output doesn't get flooded
+    when a highly parameterized test has many different test instances.
+    """
+    unique_id = f'{test.__class__.__name__}_{msg_id}'
+
+    if unique_id in _unique_msg_ids:
+        return
+
+    _unique_msg_ids.append(unique_id)
+    loglevel = getattr(getlogger(), level)
+    loglevel(msg)

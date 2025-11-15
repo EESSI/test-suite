@@ -3,13 +3,15 @@ This module tests TensorFlow in available modules containing substring 'TensorFl
 The test itself is based on an official multi-worker with Keras tutoral at
 https://www.tensorflow.org/tutorials/distribute/multi_worker_with_keras
 """
+import os
 
 import reframe as rfm
 from reframe.core.builtins import deferrable, parameter, run_after, sanity_function, performance_function
 import reframe.utility.sanity as sn
 
-from eessi.testsuite import utils
-from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES
+from eessi.testsuite import hooks
+from eessi.testsuite.utils import find_modules, log, log_once
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, FEATURES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
 
@@ -17,7 +19,7 @@ from eessi.testsuite.eessi_mixin import EESSI_Mixin
 class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     # Parameterize over all modules that start with TensorFlow
-    module_name = parameter(utils.find_modules('TensorFlow'))
+    module_name = parameter(find_modules('TensorFlow'))
 
     # Make CPU and GPU versions of this test
     device_type = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])
@@ -73,7 +75,7 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     def set_executable_opts(self):
         """Set executable opts based on device_type parameter"""
         self.executable_opts += ['--device', self.device_type]
-        utils.log(f'executable_opts set to {self.executable_opts}')
+        log(f'executable_opts set to {self.executable_opts}')
 
     @run_after('init')
     def set_test_descr(self):
@@ -91,9 +93,58 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         }
         self.compute_unit = device_to_compute_unit.get(self.device_type)
 
+    @run_after('init')
+    def check_files_for_offline_run(self):
+        """
+        Set valid_systems for offline partitions if data is not present for offline run
+        """
+
+        # Check if ANY partition on this system is an offline partition. If not, we can return immediately.
+        # This prevents printing warnings unnecessarily
+        offline_partitions = False
+        for partition in self.current_system.partitions:
+            if FEATURES.OFFLINE in partition.features:
+                offline_partitions = True
+                break
+
+        if not offline_partitions:
+            return
+
+        resourcesdir = self.current_system.resourcesdir
+
+        # If resourcesdir is the 'current working dir', resolve to a full path so we can print a clear instruction
+        if resourcesdir == '.':
+            resourcesdir = os.getcwd()
+
+        datadir = os.path.join(resourcesdir, self.module_name, 'datasets')
+        data = os.path.join(datadir, 'mnist.npz')
+
+        if os.path.exists(data):
+            self.env_vars['RFM_TENSORFLOW_DATA'] = data
+            return
+
+        warn_msg = '\n'.join([
+            f'Some partitions are labeled {FEATURES.OFFLINE} and will be excluded from {self.__class__.__name__},',
+            f'because ReFrame could not find the data at {data}.',
+            'To pre-download the data, please run (on a system with internet access):',
+            f'mkdir -p {datadir}',
+            f'module load {self.module_name}',
+            f'python -c "import tensorflow as tf; tf.keras.datasets.mnist.load_data(\'{data}\')"',
+        ])
+        log_once(self, warn_msg, msg_id='1', level='warning')
+        hooks.filter_valid_systems_for_offline_partitions(self)
+
     @run_after('setup')
     def set_thread_count_args(self):
         """Set executable opts defining the thread count"""
         self.executable_opts += ['--intra-op-parallelism', '%s' % self.num_cpus_per_task]
         self.executable_opts += ['--inter-op-parallelism', '1']
-        utils.log(f'executable_opts set to {self.executable_opts}')
+        log(f'executable_opts set to {self.executable_opts}')
+
+    @run_after('setup')
+    def set_up_offline_run(self):
+        """
+        Set environments variables to run offline or skip the test
+        """
+        if 'offline' in self.current_partition.features:
+            self.env_vars['EESSI_TEST_SUITE_DISABLE_DOWNLOAD'] = 'True'
