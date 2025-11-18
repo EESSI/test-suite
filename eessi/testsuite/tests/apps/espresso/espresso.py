@@ -1,10 +1,13 @@
 """
-This module tests Espresso in available modules containing substring 'ESPResSo' which is different from Quantum
-Espresso. Tests included:
+This module tests ESPResSo in available modules containing substring 'ESPResSo'
+which is different from Quantum Espresso.
+Tests included:
 - P3M benchmark - Ionic crystals
     - Weak scaling
     - Strong scaling Weak and strong scaling are options that are needed to be provided to the script and the system is
       either scaled based on number of cores or kept constant.
+- LJ benchmark
+- LB benchmark
 """
 
 import reframe as rfm
@@ -118,4 +121,35 @@ class EESSI_ESPRESSO_LJ_PARTICLES(EESSI_ESPRESSO_base, EESSI_Mixin):
         '''Check convergence'''
         check_string = sn.assert_found(r'Final convergence met with relative tolerances:', self.stdout)
         energy = sn.extractsingle(r'^\s+sim_energy:\s+(?P<energy>\S+)', self.stdout, 'energy', float)
+        return (check_string and (energy != 0.0))
+
+
+@rfm.simple_test
+class EESSI_ESPRESSO_LB(EESSI_ESPRESSO_base, EESSI_Mixin):
+    executable = 'python3 lb.py'
+    sourcesdir = 'src/lb'
+    readonly_files = ['lb.py']
+    bench_name = 'lb_without_particles'
+
+    def required_mem_per_node(self):
+        "LB requires 250 MB per core"
+        return (self.num_tasks_per_node * 0.25) * 1024
+
+    @run_after('init')
+    def set_executable_opts(self):
+        """Set executable opts based on device_type parameter"""
+        # Weak scaling (Gustafson's law: constant work per core): size scales with number of cores
+        self.executable_opts += ['--kT', '1.2', '--weak-scaling']
+        log(f'executable_opts set to {self.executable_opts}')
+
+    @deferrable
+    def assert_completion(self):
+        '''Check completion'''
+        return sn.assert_found(r'^Algorithm executed.', self.stdout)
+
+    @deferrable
+    def assert_convergence(self):
+        '''Check convergence'''
+        check_string = sn.assert_found(r'Final convergence met with relative tolerances:', self.stdout)
+        energy = sn.extractsingle(r'^\s+energy:\s+(?P<energy>\S+)', self.stdout, 'energy', float)
         return (check_string and (energy != 0.0))
