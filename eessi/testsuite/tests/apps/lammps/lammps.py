@@ -11,6 +11,8 @@ from eessi.testsuite import utils
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, TAGS
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
+# Todo should find a way to set the tag CI when the module of LAMMPS is not a fat-build
+# The only way to easily check it without running lmp is to check the easyconfig in software dir
 
 class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
     time_limit = '30m'
@@ -49,6 +51,7 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
         n_atoms = sn.extractsingle(regex, self.stdout, 'atoms', int)
 
         return sn.assert_eq(n_atoms, 32000)
+
 
     @run_after('init')
     def set_compute_unit(self):
@@ -172,3 +175,169 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
             else:
                 self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
                 utils.log(f'executable_opts set to {self.executable_opts}')
+
+
+
+
+
+@rfm.simple_test
+class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
+    tags = {TAGS.CI}
+    
+    sourcesdir = 'src/ALL'
+    executable = 'lmp -in in.balance.staggered.global'
+    readonly_files = ['in.balance.staggered.global']
+
+    @deferrable
+    def check_number_neighbors(self):
+        '''Assert that the test calulated the right number of neighbours'''
+        regex = r'Neighbor list builds = (?P<neigh>\S+)'
+        n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
+        n_neigh_diff = sn.abs(n_neigh - 2529)
+        return sn.assert_lt(n_neigh_diff, 1100)
+
+    @deferrable
+    def assert_inbalence(self):
+        '''Asert that the calculated energy at timestep 100 is with the margin of error'''
+        regex = r'^\s+100\s+[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+(?P<energy>[-+]?[.0-9]+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+)'
+        energy = sn.extractsingle(regex, self.stdout, 'energy', float)
+        energy_diff = sn.abs(energy - (1.1361545))
+        return sn.assert_lt(energy_diff, 1e-4)
+
+    @performance_function('timesteps/s')
+    def perf(self):
+        regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
+        return sn.extractsingle(regex, self.stdout, 'perf', float)
+
+    @deferrable
+    def assert_run_s_10000(self):
+        '''Assert that the test calulated the right number of neighbours'''
+        regex = r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for 10000 steps with (?P<atoms>\S+) atoms'
+        n_atoms = sn.extractsingle(regex, self.stdout, 'atoms', int)
+        return sn.assert_eq(n_atoms, 361)
+
+    @sanity_function
+    def assert_sanity(self):
+        '''Check all sanity criteria'''
+        return sn.all([
+            self.assert_lammps_openmp_treads(),
+            self.assert_lammps_processor_grid(),
+            self.assert_run_s_10000(),
+            #self.check_number_neighbors(),
+            #self.assert_inbalence(),
+        ])
+
+    @run_after('init')
+    def check_if_ALL_included(self):
+        """Only run this test when LAMMPS has the ALL package."""
+        # Can determine if this is included based on the versionsuffix.
+        # At this moment the package is not upstream available and has the versionsuffix ALL.
+        # See https://github.com/multixscale/dev.eessi.io-lammps-plugin-obmd/pull/7
+        if 'ALL' in self.module_name:
+            #  print(self)
+            return
+        else:
+            self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
+                          "test will definitely fail, therefore skipping this test.")
+            
+    
+
+    @run_after('setup')
+    def set_executable_opts(self):
+        """Set executable opts based on device_type parameter"""
+        # should also check if the lammps is installed with kokkos.
+        # Because this executable opt is only for that case.
+        if self.device_type == DEVICE_TYPES.GPU:
+            if 'kokkos' in self.module_name:
+                self.executable_opts += [
+                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
+                    '-suffix kk',
+                    '-package kokkos newton on neigh half',
+                ]
+                utils.log(f'executable_opts set to {self.executable_opts}')
+            else:
+                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
+                utils.log(f'executable_opts set to {self.executable_opts}')
+
+
+
+
+
+@rfm.simple_test
+class EESSI_LAMMPS_ALL_OBMD_simmulation_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
+    tags = {TAGS.CI}
+    
+    sourcesdir = 'src/ALL+OBMD'
+    executable = 'lmp -in in.simulation.staggered.global'
+    readonly_files = ['in.simulation.staggered.global']
+
+    @deferrable
+    def check_number_neighbors(self):
+        '''Assert that the test calulated the right number of neighbours'''
+        regex = r'Neighbor list builds = (?P<neigh>\S+)'
+        n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
+        return sn.assert_eq(n_neigh, 10000)
+
+    @deferrable
+    def assert_energy(self):
+        '''Asert that the calculated energy at timestep 100 is with the margin of error'''
+        regex = r'^\s+100\s+[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+(?P<energy>[-+]?[.0-9]+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+)'
+        energy = sn.extractsingle(regex, self.stdout, 'energy', float)
+        energy_diff = sn.abs(energy - (1.1361545))
+        return sn.assert_lt(energy_diff, 1e-4)
+
+    @performance_function('timesteps/s')
+    def perf(self):
+        regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
+        return sn.extractsingle(regex, self.stdout, 'perf', float)
+
+    @deferrable
+    def assert_run_s_10000(self):
+        '''Assert that the test calulated the right number of neighbours'''
+        regex = r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for 10000 steps with (?P<atoms>\S+) atoms'
+        n_atoms = sn.extractsingle(regex, self.stdout, 'atoms', int)
+        n_atoms_diff = sn.abs(n_atoms - 11193)
+        return sn.assert_lt(n_atoms_diff, 50)
+
+    @sanity_function
+    def assert_sanity(self):
+        '''Check all sanity criteria'''
+        return sn.all([
+            self.assert_lammps_openmp_treads(),
+            self.assert_lammps_processor_grid(),
+            self.assert_run_s_10000(),
+            self.check_number_neighbors(),
+            #self.assert_energy(),
+        ])
+
+    @run_after('init')
+    def check_if_ALL_OBMD_included(self):
+        """Only run this test when LAMMPS has the ALL package."""
+        # Can determine if this is included based on the versionsuffix.
+        # At this moment the package is not upstream available and has the versionsuffix ALL.
+        # See https://github.com/multixscale/dev.eessi.io-lammps-plugin-obmd/pull/7
+        if 'ALL' in self.module_name and 'OBMD' in self.module_name:
+            # print(self)
+            return
+        else:
+            self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
+                          "test will definitely fail, therefore skipping this test.")
+
+    @run_after('setup')
+    def set_executable_opts(self):
+        """Set executable opts based on device_type parameter"""
+        # should also check if the lammps is installed with kokkos.
+        # Because this executable opt is only for that case.
+        if self.device_type == DEVICE_TYPES.GPU:
+            if 'kokkos' in self.module_name:
+                self.executable_opts += [
+                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
+                    '-suffix kk',
+                    '-package kokkos newton on neigh half',
+                ]
+                utils.log(f'executable_opts set to {self.executable_opts}')
+            else:
+                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
+                utils.log(f'executable_opts set to {self.executable_opts}')
+
+
