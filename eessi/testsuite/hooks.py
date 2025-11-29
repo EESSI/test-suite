@@ -704,7 +704,7 @@ def set_compact_process_binding(test: rfm.RegressionTest):
 
     for key, value in env_vars.items():
         test.env_vars[key] = value
-        log(f'Set environment variable {key} to {test.env_vars[value]}')
+        log(f'Set environment variable {key} to {test.env_vars[key]}')
 
 
 def set_compact_thread_binding(test: rfm.RegressionTest):
