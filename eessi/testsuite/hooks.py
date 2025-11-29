@@ -702,7 +702,7 @@ def set_compact_process_binding(test: rfm.RegressionTest):
         # Warnings will, at default loglevel, be printed on stdout when executing the ReFrame command
         rflog.getlogger().warning(msg)
 
-    for key, value in env_vars:
+    for key, value in env_vars.items():
         test.env_vars[key] = value
         log(f'Set environment variable {key} to {test.env_vars[value]}')
 
