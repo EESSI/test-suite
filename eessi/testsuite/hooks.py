@@ -694,6 +694,7 @@ def set_compact_process_binding(test: rfm.RegressionTest):
             'SLURM_CPU_BIND': 'verbose',
         }
     else:
+        env_vars = {}
         msg = "hooks.set_compact_process_binding does not support the current launcher"
         msg += f" ({test.current_partition.launcher_type().registered_name})."
         msg += " The test will run, but using the default binding strategy of your parallel launcher."
