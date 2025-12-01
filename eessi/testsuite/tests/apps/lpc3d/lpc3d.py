@@ -6,12 +6,13 @@ import reframe as rfm
 import reframe.utility.sanity as sn
 
 # added only to make the linter happy
-from reframe.core.builtins import variable, parameter, performance_function, sanity_function
+from reframe.core.builtins import parameter, performance_function, sanity_function, deferrable
 
 # Import the EESSI_Mixin class so that we can inherit from it
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.utils import find_modules
+
 
 def filter_singlenode_scales():
     """
@@ -19,6 +20,7 @@ def filter_singlenode_scales():
     since LPC3D is parallelized through OpenMP only.
     """
     return [k for (k, v) in SCALES.items() if v['num_nodes'] == 1]
+
 
 @rfm.simple_test
 class EESSI_LPC3D(rfm.RunOnlyRegressionTest, EESSI_Mixin):
@@ -51,7 +53,7 @@ class EESSI_LPC3D(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     @deferrable
     def assert_diffusion(self):
         '''Assert that the diffusion coefficient at timestep 1000 matches to within a certain margin'''
-        regex = "VACF Diffusion coefficient_1: (?P<diff>\S+)"
+        regex = r"VACF Diffusion coefficient_1: (?P<diff>\S+)"
         diffusion_coef = sn.extractsingle(regex, self.stdout, 'diff', float)
         # Note that the reference (5088.891) is dependent on the number of iterations
         # This is the reference for 100 iterations. If the iteration count is ever changed, the reference
