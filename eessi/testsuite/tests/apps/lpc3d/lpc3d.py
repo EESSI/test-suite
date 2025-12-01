@@ -16,14 +16,16 @@ from eessi.testsuite.utils import find_modules
 
 def filter_singlenode_scales():
     """
-    Filtering function that makes sure only single node scales are selected,
-    since LPC3D is parallelized through OpenMP only.
+    Filtering function that returns only single node scales.
     """
     return [k for (k, v) in SCALES.items() if v['num_nodes'] == 1]
 
 
 @rfm.simple_test
 class EESSI_LPC3D(rfm.RunOnlyRegressionTest, EESSI_Mixin):
+    """
+    TODO: insert sensible description of this test case
+    """
 
     # LPC3D is only parallelized with OpenMP, so no multi-node tests should be ran
     scale = parameter(filter_singlenode_scales())
