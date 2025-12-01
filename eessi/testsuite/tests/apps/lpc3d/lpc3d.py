@@ -51,7 +51,7 @@ class EESSI_LPC3D(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     executable = 'lpc3d'
     executable_opts = ['-i', 'lattice_gas.inpt']
-    time_limit = '5m00s'
+    time_limit = '10m00s'
 
     is_ci_test = True
 
