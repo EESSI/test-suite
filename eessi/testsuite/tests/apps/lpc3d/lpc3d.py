@@ -25,6 +25,13 @@ def filter_singlenode_scales():
 class EESSI_LPC3D(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     """
     TODO: insert sensible description of this test case
+
+    LPC3D is an OpenMP parallelized code. As such, this test will only be instantiated on scales up to 1 full node.
+
+    The runtime is in the order of seconds to minutes.
+
+    The input file contains a number of steps on the 9th line. This may be adjusted to adjust the total runtime of
+    this test. However, the reference number for the sanity check then also needs to be adjusted.
     """
 
     # LPC3D is only parallelized with OpenMP, so no multi-node tests should be ran
@@ -48,30 +55,37 @@ class EESSI_LPC3D(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     is_ci_test = True
 
-    # Define the class method that returns the required memory per node
     def required_mem_per_node(self):
-        return self.num_tasks_per_node * 1 + 800
+        """
+        Defines the required memory per node to run this test
+        """
+        return self.num_cpus_per_task * 1 + 800
 
     @deferrable
     def assert_diffusion(self):
-        '''Assert that the diffusion coefficient at timestep 1000 matches to within a certain margin'''
+        """
+        Assert that the diffusion coefficient at timestep 100 matches to within a certain margin.
+        Note that if the number of iterations is changed in the lattice_gas.inpt file, the reference
+        for the diffusion coefficient (ref_diffusion_coef) needs to be adjusted.
+        """
         regex = r"VACF Diffusion coefficient_1: (?P<diff>\S+)"
         diffusion_coef = sn.extractsingle(regex, self.stdout, 'diff', float)
-        # Note that the reference (5088.891) is dependent on the number of iterations
-        # This is the reference for 100 iterations. If the iteration count is ever changed, the reference
-        # should be updated
-        diffusion_coef_diff = sn.abs(diffusion_coef - 5088.891)
+        ref_diffusion_coef = 5088.891
+        diffusion_coef_diff = sn.abs(diffusion_coef - ref_diffusion_coef)
         return sn.assert_lt(diffusion_coef_diff, 0.001)
 
     @sanity_function
     def validate(self):
-        # We may want to turn this into an assert_all and check some more numbers later
-        # For now, just check the diffusion coefficient
+        """
+        This is the sanity function for this test. Currently, it only checks that assert_diffusion is true,
+        but this may be expanded with additional sanity checking if needed.
+        """
         return sn.assert_true(self.assert_diffusion())
 
-    # Now, we define a pattern to extract a number that reflects the performance of this test
-    # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.builtins.performance_function
     @performance_function('s')
     def time(self):
-        # https://reframe-hpc.readthedocs.io/en/stable/deferrable_functions_reference.html#reframe.utility.sanity.extractsingle
+        """
+        LPC3D reports total runtime as a performance number. Note that this times an aggregate of both serial
+        and parallel sections of the code.
+        """
         return sn.extractsingle(r'^The execution time is (?P<perf>\S+) seconds', self.stdout, 'perf', float)
