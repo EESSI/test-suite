@@ -150,8 +150,6 @@ else:
 if n_part:
     system.thermostat.set_lb(LB_fluid=lbf, seed=42, gamma=1.)
 
-print("Algorithm executed.")
-
 print("LB equilibration")
 system.integrator.run(100)
 
@@ -196,6 +194,7 @@ for _ in range(n_loops):
     timings.append((tock - tick) / n_steps)
 
 print(f"{n_loops * n_steps} steps executed...")
+print("Algorithm executed.")
 # write results to file
 header = '"mode","cores","mpi.x","mpi.y","mpi.z","omp.threads","gpus",\
 "particles","mean","std","box.x","box.y","box.z","precision","hardware"'
@@ -209,4 +208,4 @@ report = f'''"{"weak scaling" if args.weak_scaling else "strong scaling"}",\
 print(header)
 print(report)
 
-print(f"Performance: {np.mean(timings)*1000:.2f} ms/step")
+print(f"Performance: {np.mean(timings):.3e} s/step")

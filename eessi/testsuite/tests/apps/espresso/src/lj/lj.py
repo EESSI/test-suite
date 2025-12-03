@@ -166,4 +166,4 @@ report = f'''"weak scaling",{n_mpi_ranks * n_omp_threads},{node_grid[0]},{node_g
 print(header)
 print(report)
 
-print(f"Performance: {np.mean(timings)*1000:.3f} ms/step")
+print(f"Performance: {np.mean(timings):.3e} s/step")

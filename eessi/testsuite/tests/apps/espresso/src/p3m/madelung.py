@@ -119,8 +119,6 @@ else:
     system.electrostatics.solver = solver
 
 
-print("Algorithm executed.")
-
 # Old rtol_pressure = 2e-5
 # This resulted in failures especially at high number of nodes therefore increased
 # to a larger value.
@@ -164,6 +162,7 @@ for _ in range(n_loops):
     timings.append((tock - tick) / n_steps)
 
 print(f"{n_loops * n_steps} steps executed...")
+print("Algorithm executed.")
 # write results to file
 header = '"mode","cores","mpi.x","mpi.y","mpi.z","omp.threads","gpus",\
 "particles","mean","std","box.x","box.y","box.z","precision","hardware"'
@@ -177,4 +176,4 @@ report = f'''"{"weak scaling" if args.weak_scaling else "strong scaling"}",\
 print(header)
 print(report)
 
-print(f"Performance: {np.mean(timings)*1000:.2f} ms/step")
+print(f"Performance: {np.mean(timings):.3e} s/step")

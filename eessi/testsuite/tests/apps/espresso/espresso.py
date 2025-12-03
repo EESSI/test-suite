@@ -150,6 +150,6 @@ class EESSI_ESPRESSO_LB(EESSI_ESPRESSO_base, EESSI_Mixin):
     @deferrable
     def assert_convergence(self):
         '''Check convergence'''
-        check_string = sn.assert_found(r'Final convergence met with relative tolerances:', self.stdout)
+        check_string = sn.assert_found(r'Final convergence met with tolerances:', self.stdout)
         energy = sn.extractsingle(r'^\s+energy:\s+(?P<energy>\S+)', self.stdout, 'energy', float)
         return (check_string and (energy != 0.0))
