@@ -24,10 +24,10 @@ def filter_singlenode_scales():
 @rfm.simple_test
 class EESSI_LPC3D(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     """
-    TODO: insert sensible description of this test case
+    This test case simulates NMR spectra and diffusion of a liquid within a disorder porous carbon, based on a
+    mesoscopic model.
 
     LPC3D is an OpenMP parallelized code. As such, this test will only be instantiated on scales up to 1 full node.
-
     The runtime is in the order of seconds to minutes.
 
     The input file contains a number of steps on the 9th line. This may be adjusted to adjust the total runtime of
