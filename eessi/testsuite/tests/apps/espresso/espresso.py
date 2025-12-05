@@ -148,10 +148,9 @@ class EESSI_ESPRESSO_LB(EESSI_ESPRESSO_base, EESSI_Mixin):
         module_version = split_module(self.module_name)[1]
         if re.match(r"\d+\.\d+\.\d+", module_version):
             major_version = re.search(r"\d+", module_version)
-            major_version = int(major_version.group()) if major_version != None else -1
-            self.skip_if(0 <= major_version < 5, msg = "LB tests scale only with walberla modules introduced in version"
+            major_version = int(major_version.group()) if major_version is not None else -1
+            self.skip_if(0 <= major_version < 5, msg="LB tests scale only with walberla modules introduced in version"
                          " 5.0.0 and above otherwise setup phase takes way too long even for simple cases.")
-
 
     @run_after('init')
     def set_executable_opts(self):
