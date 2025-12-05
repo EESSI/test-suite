@@ -12,13 +12,14 @@ Tests included:
 
 import reframe as rfm
 import reframe.utility.sanity as sn
+import re
 
 from reframe.core.builtins import deferrable, parameter, performance_function, run_after, sanity_function
 from reframe.utility import reframe
 
 from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNITS
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
-from eessi.testsuite.utils import find_modules, log
+from eessi.testsuite.utils import find_modules, log, split_module
 
 
 def filter_scales():
@@ -134,6 +135,23 @@ class EESSI_ESPRESSO_LB(EESSI_ESPRESSO_base, EESSI_Mixin):
     def required_mem_per_node(self):
         "LB requires 250 MB per core"
         return (self.num_tasks_per_node * 0.25) * 1024
+
+    @run_after('init')
+    def skip_tests_module_version_LB(self):
+        """
+        The LB module versions need to be >= 5.0.0 or a expermental release version which includes walberla. The earlier
+        lb method does not scale beyond 16 MPI tasks and is extremely slow in terms of case setup.
+        Assumption:
+            1. Versions with commit hashes have walberla in them. If not then they will not be filtered here and will
+            run.
+        """
+        module_version = split_module(self.module_name)[1]
+        if re.match(r"\d+\.\d+\.\d+", module_version):
+            major_version = re.search(r"\d+", module_version)
+            major_version = int(major_version.group()) if major_version != None else -1
+            self.skip_if(0 <= major_version < 5, msg = "LB tests scale only with walberla modules introduced in version"
+                         " 5.0.0 and above otherwise setup phase takes way too long even for simple cases.")
+
 
     @run_after('init')
     def set_executable_opts(self):
