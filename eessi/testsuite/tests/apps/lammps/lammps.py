@@ -16,19 +16,10 @@ from eessi.testsuite.eessi_mixin import EESSI_Mixin
 # Todo should find a way to set the tag CI when the module of LAMMPS is not a fat-build
 # The only way to easily check it without running lmp is to check the easyconfig in software dir
 
-# General funtions used for Calculating NDS
+# General funtion used for Calculating NDS
 def split(list,size):
     return [list[i:i+size] for i in range(0, len(list), size)]
 
-def colwise_mean(matrix):
-    """Compute mean along axis=0 for a list of lists."""
-    cols = zip(*matrix)
-    return [mean(col) for col in cols]
-
-def colwise_std(matrix):
-    """Compute std along axis=0 for a list of lists."""
-    cols = zip(*matrix)
-    return [pstdev(col) for col in cols]   # or stdev(col)
 
 class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
     time_limit = '30m'
@@ -199,9 +190,6 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
                 utils.log(f'executable_opts set to {self.executable_opts}')
 
 
-
-
-
 @rfm.simple_test
 class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
     tags = {TAGS.CI}
@@ -245,17 +233,13 @@ class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
         else:
             self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
                           "test will definitely fail, therefore skipping this test.")
-            
+
     @deferrable
     def assert_inbalence(self):
         '''Asert that the calculated energy at timestep 100 is with the margin of error'''
         regex = r'^\s+10000\s+50\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[0-9]+\s+(?P<var14>[-+]?[.0-9]+)\s'
         inbalence = sn.extractsingle(regex, self.stdout, 'var14', float)
         return sn.assert_lt(inbalence, 1.1)
-
-    # Step          Time        c_mom_1[1]     c_mom_1[2]     c_mom_1[3]     c_mom_2[1]     c_mom_2[2]     c_mom_2[3]        Temp          E_pair         KinEng         Press          f_5[1]         f_5[2]         f_5[3]         f_5[4]         f_5[5]         f_5[6]
-    # 10000         50          -0.098053386   -0.040092014   0             -0.098053386   -0.040092014    0                 5.4842579     -7.9737197     5.469066       0.57696605     47             1.0415512      0              0.000400911    0.00040177013 -1
-   # (?:(?:[+\-]?(?:\d*\.)?\d+)(?:e[+\-]?\d+)?)
 
     @run_after('setup')
     def set_executable_opts(self):
@@ -275,11 +259,10 @@ class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
                 utils.log(f'executable_opts set to {self.executable_opts}')
 
 
-
 @rfm.simple_test
 class EESSI_LAMMPS_ALL_OBMD_simmulation_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
     tags = {TAGS.CI}
-    
+
     sourcesdir = 'src/ALL+OBMD'
     executable = 'lmp -in in.simulation.staggered.global'
     readonly_files = ['in.simulation.staggered.global']
@@ -288,11 +271,10 @@ class EESSI_LAMMPS_ALL_OBMD_simmulation_staggered_global(EESSI_LAMMPS_base, EESS
     def compute_ndenprof(self, values, bins, start, stop):
         """Checking the values in nden_profile.out"""
         # check nden_profile.out
-        Lx = 33.59462486002239
         LbufferEnd = 5.039193729003359
         RbufferStart = 28.555431131019034
-        
-        timestep, nds_all, dist_all, nds_avg_all = [], [], [], []
+
+        nds_all, dist_all, nds_avg_all = [], [], []
         for value in values:
             value = value.split()
             dist = float(value[1])
@@ -301,17 +283,7 @@ class EESSI_LAMMPS_ALL_OBMD_simmulation_staggered_global(EESSI_LAMMPS_base, EESS
             nds_all.append(nds)
             if (dist > LbufferEnd and dist < RbufferStart):
                 nds_avg_all.append(nds)
-     
-        distances = split(dist_all,bins)
-        nds = split(nds_all,bins)
 
-        distancesEDT = distances[start:stop] # SKIP some steps 
-        ndsEDT = nds[start:stop]
-
-        dist_avg = colwise_mean(distancesEDT)
-        nds_avg = colwise_mean(ndsEDT)
-        nds_err = colwise_std(ndsEDT)
-    
         # mean NDS should be around 3.0 (+-0.05) in between buffer regions
         mean_nds = mean(nds_avg_all)
         if (abs(mean_nds - 3.0) > 0.05):
@@ -323,7 +295,6 @@ class EESSI_LAMMPS_ALL_OBMD_simmulation_staggered_global(EESSI_LAMMPS_base, EESS
     @deferrable
     def assert_NDS(self):
         '''Asert that the calculated energy at timestep 100 is with the margin of error'''
-        #print(dir(self))
         regex = r'^\s+[.0-9]+\s+[.0-9]+\s+[.0-9]+\s+[.0-9]+$'
         values = sn.extractall(regex, 'nden_profile.out')
         return self.compute_ndenprof(values, 30, 10, 100)
