@@ -3,8 +3,6 @@ This module tests the binary 'lmp' in available modules containing substring 'LA
 The tests come from the lammps github repository (https://github.com/lammps/lammps/)
 """
 
-from statistics import mean, pstdev
-
 import reframe as rfm
 from reframe.core.builtins import deferrable, parameter, performance_function, run_after, sanity_function
 import reframe.utility.sanity as sn
@@ -13,12 +11,15 @@ from eessi.testsuite import utils
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, TAGS
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
+from statistics import mean
+
 # Todo should find a way to set the tag CI when the module of LAMMPS is not a fat-build
 # The only way to easily check it without running lmp is to check the easyconfig in software dir
 
 # General funtion used for Calculating NDS
-def split(list,size):
-    return [list[i:i+size] for i in range(0, len(list), size)]
+
+def split(list, size):
+    return [list[i:i + size] for i in range(0, len(list), size)]
 
 
 class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
@@ -193,7 +194,7 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
 @rfm.simple_test
 class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
     tags = {TAGS.CI}
-    
+
     sourcesdir = 'src/ALL'
     executable = 'lmp -in in.balance.staggered.global'
     readonly_files = ['in.balance.staggered.global']
@@ -237,7 +238,11 @@ class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
     @deferrable
     def assert_inbalence(self):
         '''Asert that the calculated energy at timestep 100 is with the margin of error'''
-        regex = r'^\s+10000\s+50\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[0-9]+\s+(?P<var14>[-+]?[.0-9]+)\s'
+        regex = (
+            r'^\s+10000\s+50\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+'
+            r'[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+'
+            r'[-+]?[.0-9]+\s+[-+]?[0-9]+\s+(?P<var14>[-+]?[.0-9]+)\s'
+        )
         inbalence = sn.extractsingle(regex, self.stdout, 'var14', float)
         return sn.assert_lt(inbalence, 1.1)
 
