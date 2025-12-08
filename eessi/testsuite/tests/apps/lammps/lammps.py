@@ -3,6 +3,8 @@ This module tests the binary 'lmp' in available modules containing substring 'LA
 The tests come from the lammps github repository (https://github.com/lammps/lammps/)
 """
 
+from statistics import mean, pstdev
+
 import reframe as rfm
 from reframe.core.builtins import deferrable, parameter, performance_function, run_after, sanity_function
 import reframe.utility.sanity as sn
@@ -13,6 +15,20 @@ from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
 # Todo should find a way to set the tag CI when the module of LAMMPS is not a fat-build
 # The only way to easily check it without running lmp is to check the easyconfig in software dir
+
+# General funtions used for Calculating NDS
+def split(list,size):
+    return [list[i:i+size] for i in range(0, len(list), size)]
+
+def colwise_mean(matrix):
+    """Compute mean along axis=0 for a list of lists."""
+    cols = zip(*matrix)
+    return [mean(col) for col in cols]
+
+def colwise_std(matrix):
+    """Compute std along axis=0 for a list of lists."""
+    cols = zip(*matrix)
+    return [pstdev(col) for col in cols]   # or stdev(col)
 
 class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
     time_limit = '30m'
@@ -52,6 +68,12 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
 
         return sn.assert_eq(n_atoms, 32000)
 
+    @deferrable
+    def assert_run_steps(self):
+        '''Assert that the test calulated the right number of neighbours'''
+        regex = r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for (?P<steps>\S+) steps with [0-9]+ atoms'
+        n_steps = sn.extractsingle(regex, self.stdout, 'steps', int)
+        return sn.assert_eq(n_steps, 10000)
 
     @run_after('init')
     def set_compute_unit(self):
@@ -196,25 +218,10 @@ class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
         n_neigh_diff = sn.abs(n_neigh - 2529)
         return sn.assert_lt(n_neigh_diff, 1100)
 
-    @deferrable
-    def assert_inbalence(self):
-        '''Asert that the calculated energy at timestep 100 is with the margin of error'''
-        regex = r'^\s+100\s+[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+(?P<energy>[-+]?[.0-9]+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+)'
-        energy = sn.extractsingle(regex, self.stdout, 'energy', float)
-        energy_diff = sn.abs(energy - (1.1361545))
-        return sn.assert_lt(energy_diff, 1e-4)
-
     @performance_function('timesteps/s')
     def perf(self):
         regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
         return sn.extractsingle(regex, self.stdout, 'perf', float)
-
-    @deferrable
-    def assert_run_s_10000(self):
-        '''Assert that the test calulated the right number of neighbours'''
-        regex = r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for 10000 steps with (?P<atoms>\S+) atoms'
-        n_atoms = sn.extractsingle(regex, self.stdout, 'atoms', int)
-        return sn.assert_eq(n_atoms, 361)
 
     @sanity_function
     def assert_sanity(self):
@@ -222,9 +229,8 @@ class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
         return sn.all([
             self.assert_lammps_openmp_treads(),
             self.assert_lammps_processor_grid(),
-            self.assert_run_s_10000(),
-            #self.check_number_neighbors(),
-            #self.assert_inbalence(),
+            self.assert_run_steps(),
+            self.assert_inbalence(),
         ])
 
     @run_after('init')
@@ -240,7 +246,16 @@ class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
             self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
                           "test will definitely fail, therefore skipping this test.")
             
-    
+    @deferrable
+    def assert_inbalence(self):
+        '''Asert that the calculated energy at timestep 100 is with the margin of error'''
+        regex = r'^\s+10000\s+50\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[0-9]+\s+(?P<var14>[-+]?[.0-9]+)\s'
+        inbalence = sn.extractsingle(regex, self.stdout, 'var14', float)
+        return sn.assert_lt(inbalence, 1.1)
+
+    # Step          Time        c_mom_1[1]     c_mom_1[2]     c_mom_1[3]     c_mom_2[1]     c_mom_2[2]     c_mom_2[3]        Temp          E_pair         KinEng         Press          f_5[1]         f_5[2]         f_5[3]         f_5[4]         f_5[5]         f_5[6]
+    # 10000         50          -0.098053386   -0.040092014   0             -0.098053386   -0.040092014    0                 5.4842579     -7.9737197     5.469066       0.57696605     47             1.0415512      0              0.000400911    0.00040177013 -1
+   # (?:(?:[+\-]?(?:\d*\.)?\d+)(?:e[+\-]?\d+)?)
 
     @run_after('setup')
     def set_executable_opts(self):
@@ -261,8 +276,6 @@ class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
 
 
 
-
-
 @rfm.simple_test
 class EESSI_LAMMPS_ALL_OBMD_simmulation_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
     tags = {TAGS.CI}
@@ -271,33 +284,54 @@ class EESSI_LAMMPS_ALL_OBMD_simmulation_staggered_global(EESSI_LAMMPS_base, EESS
     executable = 'lmp -in in.simulation.staggered.global'
     readonly_files = ['in.simulation.staggered.global']
 
-    @deferrable
-    def check_number_neighbors(self):
-        '''Assert that the test calulated the right number of neighbours'''
-        regex = r'Neighbor list builds = (?P<neigh>\S+)'
-        n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
-        return sn.assert_eq(n_neigh, 10000)
+    # Function to check NDS
+    def compute_ndenprof(self, values, bins, start, stop):
+        """Checking the values in nden_profile.out"""
+        # check nden_profile.out
+        Lx = 33.59462486002239
+        LbufferEnd = 5.039193729003359
+        RbufferStart = 28.555431131019034
+        
+        timestep, nds_all, dist_all, nds_avg_all = [], [], [], []
+        for value in values:
+            value = value.split()
+            dist = float(value[1])
+            nds = float(value[3])
+            dist_all.append(dist)
+            nds_all.append(nds)
+            if (dist > LbufferEnd and dist < RbufferStart):
+                nds_avg_all.append(nds)
+     
+        distances = split(dist_all,bins)
+        nds = split(nds_all,bins)
+
+        distancesEDT = distances[start:stop] # SKIP some steps 
+        ndsEDT = nds[start:stop]
+
+        dist_avg = colwise_mean(distancesEDT)
+        nds_avg = colwise_mean(ndsEDT)
+        nds_err = colwise_std(ndsEDT)
+    
+        # mean NDS should be around 3.0 (+-0.05) in between buffer regions
+        mean_nds = mean(nds_avg_all)
+        if (abs(mean_nds - 3.0) > 0.05):
+            utils.log('NDS is WRONG!')
+            return False
+        else:
+            return True
 
     @deferrable
-    def assert_energy(self):
+    def assert_NDS(self):
         '''Asert that the calculated energy at timestep 100 is with the margin of error'''
-        regex = r'^\s+100\s+[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+(?P<energy>[-+]?[.0-9]+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+0\s+)'
-        energy = sn.extractsingle(regex, self.stdout, 'energy', float)
-        energy_diff = sn.abs(energy - (1.1361545))
-        return sn.assert_lt(energy_diff, 1e-4)
+        #print(dir(self))
+        regex = r'^\s+[.0-9]+\s+[.0-9]+\s+[.0-9]+\s+[.0-9]+$'
+        values = sn.extractall(regex, 'nden_profile.out')
+        return self.compute_ndenprof(values, 30, 10, 100)
 
     @performance_function('timesteps/s')
     def perf(self):
         regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
         return sn.extractsingle(regex, self.stdout, 'perf', float)
-
-    @deferrable
-    def assert_run_s_10000(self):
-        '''Assert that the test calulated the right number of neighbours'''
-        regex = r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for 10000 steps with (?P<atoms>\S+) atoms'
-        n_atoms = sn.extractsingle(regex, self.stdout, 'atoms', int)
-        n_atoms_diff = sn.abs(n_atoms - 11193)
-        return sn.assert_lt(n_atoms_diff, 50)
 
     @sanity_function
     def assert_sanity(self):
@@ -305,9 +339,8 @@ class EESSI_LAMMPS_ALL_OBMD_simmulation_staggered_global(EESSI_LAMMPS_base, EESS
         return sn.all([
             self.assert_lammps_openmp_treads(),
             self.assert_lammps_processor_grid(),
-            self.assert_run_s_10000(),
-            self.check_number_neighbors(),
-            #self.assert_energy(),
+            self.assert_run_steps(),
+            self.assert_NDS(),
         ])
 
     @run_after('init')
@@ -339,5 +372,3 @@ class EESSI_LAMMPS_ALL_OBMD_simmulation_staggered_global(EESSI_LAMMPS_base, EESS
             else:
                 self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
                 utils.log(f'executable_opts set to {self.executable_opts}')
-
-
