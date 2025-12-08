@@ -16,7 +16,6 @@ from statistics import mean
 # Todo should find a way to set the tag CI when the module of LAMMPS is not a fat-build
 # The only way to easily check it without running lmp is to check the easyconfig in software dir
 
-# General funtion used for Calculating NDS
 
 def split(list, size):
     return [list[i:i + size] for i in range(0, len(list), size)]
