@@ -12,12 +12,13 @@ def compute_N(rho, Lx, Ly, Lz):
     N = int(rho * Lx * Ly * Lz)
     return N
 
+
 # -------------------------------------------------------- #
 
-# simulation box   
+# simulation box
 xlo = 0.0
 ylo = 0.0
-zlo = 0.0                                                                                                    
+zlo = 0.0
 xhi = 33.59462486002239
 yhi = 11.198208286674133
 zhi = 11.198208286674133

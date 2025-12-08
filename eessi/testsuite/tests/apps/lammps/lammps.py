@@ -356,8 +356,8 @@ class EESSI_LAMMPS_OBMD_simmulation(EESSI_LAMMPS_base, EESSI_Mixin):
     sourcesdir = 'src/OBMD'
     readonly_files = ['input.py', 'dpd_8map_obmd.data']
 
-    prerun_cmds= ['python input.py']
-    
+    prerun_cmds = ['python input.py']
+
     executable = 'lmp -in in.simulation'
 
     @performance_function('timesteps/s')
