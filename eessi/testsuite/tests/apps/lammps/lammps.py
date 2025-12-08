@@ -77,6 +77,38 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
             msg = f"No mapping of device type {self.device_type} to a COMPUTE_UNITS was specified in this test"
             raise NotImplementedError(msg)
 
+    # Function to check NDS
+    def compute_ndenprof(self, values, bins, start, stop):
+        """Checking the values in nden_profile.out"""
+        # check nden_profile.out
+        LbufferEnd = 5.039193729003359
+        RbufferStart = 28.555431131019034
+
+        nds_all, dist_all, nds_avg_all = [], [], []
+        for value in values:
+            value = value.split()
+            dist = float(value[1])
+            nds = float(value[3])
+            dist_all.append(dist)
+            nds_all.append(nds)
+            if (dist > LbufferEnd and dist < RbufferStart):
+                nds_avg_all.append(nds)
+
+        # mean NDS should be around 3.0 (+-0.05) in between buffer regions
+        mean_nds = mean(nds_avg_all)
+        if (abs(mean_nds - 3.0) > 0.05):
+            utils.log('NDS is WRONG!')
+            return False
+        else:
+            return True
+
+    @deferrable
+    def assert_NDS(self):
+        '''Asert that the calculated energy at timestep 100 is with the margin of error'''
+        regex = r'^\s+[.0-9]+\s+[.0-9]+\s+[.0-9]+\s+[.0-9]+$'
+        values = sn.extractall(regex, 'nden_profile.out')
+        return self.compute_ndenprof(values, 30, 10, 100)
+
 
 @rfm.simple_test
 class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
@@ -271,38 +303,6 @@ class EESSI_LAMMPS_ALL_OBMD_simmulation_staggered_global(EESSI_LAMMPS_base, EESS
     executable = 'lmp -in in.simulation.staggered.global'
     readonly_files = ['in.simulation.staggered.global']
 
-    # Function to check NDS
-    def compute_ndenprof(self, values, bins, start, stop):
-        """Checking the values in nden_profile.out"""
-        # check nden_profile.out
-        LbufferEnd = 5.039193729003359
-        RbufferStart = 28.555431131019034
-
-        nds_all, dist_all, nds_avg_all = [], [], []
-        for value in values:
-            value = value.split()
-            dist = float(value[1])
-            nds = float(value[3])
-            dist_all.append(dist)
-            nds_all.append(nds)
-            if (dist > LbufferEnd and dist < RbufferStart):
-                nds_avg_all.append(nds)
-
-        # mean NDS should be around 3.0 (+-0.05) in between buffer regions
-        mean_nds = mean(nds_avg_all)
-        if (abs(mean_nds - 3.0) > 0.05):
-            utils.log('NDS is WRONG!')
-            return False
-        else:
-            return True
-
-    @deferrable
-    def assert_NDS(self):
-        '''Asert that the calculated energy at timestep 100 is with the margin of error'''
-        regex = r'^\s+[.0-9]+\s+[.0-9]+\s+[.0-9]+\s+[.0-9]+$'
-        values = sn.extractall(regex, 'nden_profile.out')
-        return self.compute_ndenprof(values, 30, 10, 100)
-
     @performance_function('timesteps/s')
     def perf(self):
         regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
@@ -326,6 +326,62 @@ class EESSI_LAMMPS_ALL_OBMD_simmulation_staggered_global(EESSI_LAMMPS_base, EESS
         # See https://github.com/multixscale/dev.eessi.io-lammps-plugin-obmd/pull/7
         if 'ALL' in self.module_name and 'OBMD' in self.module_name:
             # print(self)
+            return
+        else:
+            self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
+                          "test will definitely fail, therefore skipping this test.")
+
+    @run_after('setup')
+    def set_executable_opts(self):
+        """Set executable opts based on device_type parameter"""
+        # should also check if the lammps is installed with kokkos.
+        # Because this executable opt is only for that case.
+        if self.device_type == DEVICE_TYPES.GPU:
+            if 'kokkos' in self.module_name:
+                self.executable_opts += [
+                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
+                    '-suffix kk',
+                    '-package kokkos newton on neigh half',
+                ]
+                utils.log(f'executable_opts set to {self.executable_opts}')
+            else:
+                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
+                utils.log(f'executable_opts set to {self.executable_opts}')
+
+
+@rfm.simple_test
+class EESSI_LAMMPS_OBMD_simmulation(EESSI_LAMMPS_base, EESSI_Mixin):
+    tags = {TAGS.CI}
+
+    sourcesdir = 'src/OBMD'
+    readonly_files = ['input.py', 'dpd_8map_obmd.data']
+
+    prerun_cmds= ['python input.py']
+    
+    executable = 'lmp -in in.simulation'
+
+    @performance_function('timesteps/s')
+    def perf(self):
+        regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
+        return sn.extractsingle(regex, self.stdout, 'perf', float)
+
+    @sanity_function
+    def assert_sanity(self):
+        '''Check all sanity criteria'''
+        return sn.all([
+            self.assert_lammps_openmp_treads(),
+            self.assert_lammps_processor_grid(),
+            self.assert_run_steps(),
+            self.assert_NDS(),
+        ])
+
+    @run_after('init')
+    def check_if_OBMD_included(self):
+        """Only run this test when LAMMPS has the ALL package."""
+        # Can determine if this is included based on the versionsuffix.
+        # At this moment the package is not upstream available and has the versionsuffix ALL.
+        # See https://github.com/multixscale/dev.eessi.io-lammps-plugin-obmd/pull/7
+        if 'OBMD' in self.module_name:
             return
         else:
             self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
