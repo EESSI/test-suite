@@ -350,7 +350,7 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
 
 
 @rfm.simple_test
-class EESSI_LAMMPS_OBMD_simmulation(EESSI_LAMMPS_base, EESSI_Mixin):
+class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
     tags = {TAGS.CI}
 
     sourcesdir = 'src/OBMD'
