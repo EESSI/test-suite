@@ -89,3 +89,13 @@ class EESSI_LPC3D(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         and parallel sections of the code.
         """
         return sn.extractsingle(r'^The execution time is (?P<perf>\S+) seconds', self.stdout, 'perf', float)
+
+    @run_after('setup')
+    def set_numba_num_threads(self):
+        """
+        On some systems, the NUMBA_DEFAULT_NUM_THREADS does not match the actual job allocation, but defaults
+        to 1 instead. This is problematic since if Numba's set_num_threads is called with a value that is
+        higher than NUMBA_NUM_THREADS (which initializes to NUMBA_DEFAULT_NUM_THREADS), you get a hard error.
+        To avoid relying on correct detection of NUMBA_DEFAULT_NUM_THREADS, we set NUMBA_NUM_THREADS explicitely
+        """
+        self.env_vars['NUMBA_NUM_THREADS'] = self.num_cpus_per_task
