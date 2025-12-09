@@ -296,7 +296,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
 
 
 @rfm.simple_test
-class EESSI_LAMMPS_ALL_OBMD_simmulation_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
+class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
     tags = {TAGS.CI}
 
     sourcesdir = 'src/ALL+OBMD'
