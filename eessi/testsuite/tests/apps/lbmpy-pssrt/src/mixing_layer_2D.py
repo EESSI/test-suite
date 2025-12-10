@@ -28,12 +28,13 @@ from lbmpy import LBStencil, LBMOptimisation, create_lb_update_rule
 from lbmpy.equilibrium import DiscreteHydrodynamicMaxwellian
 from lbmpy.macroscopic_value_kernels import macroscopic_values_setter
 
-import numpy, sympy
+import numpy
 import pystencils as ps
 
 from statistics import median
 
-import argparse, warnings, time
+import argparse
+import time
 
 
 def run_benchmark(N: int, runtime: float, use_omp: bool):
@@ -102,7 +103,7 @@ def run_benchmark(N: int, runtime: float, use_omp: bool):
 
     ker_init = ps.create_kernel(ac_init, config=kernel_config).compile()
 
-    ## Initial state
+    # Initial state
     # \begin{align}
     #     \rho &= 1 \\
     #     u_x
@@ -131,7 +132,7 @@ def run_benchmark(N: int, runtime: float, use_omp: bool):
     _y = numpy.linspace(0, 1, Ny)
 
     for y in range(Ny):
-        dh.cpu_arrays[u.name][ngl : -1 * ngl, ngl + y, 1] = delta * numpy.sin(
+        dh.cpu_arrays[u.name][ngl: -1 * ngl, ngl + y, 1] = delta * numpy.sin(
             2 * numpy.pi * (_x + 0.25)
         )
 
@@ -140,7 +141,7 @@ def run_benchmark(N: int, runtime: float, use_omp: bool):
     tmp[Ny // 2 :] = numpy.tanh(kappa * (0.75 - _y[Ny // 2 :]))
 
     for x in range(Nx):
-        dh.cpu_arrays[u.name][ngl + x, ngl : -1 * ngl, 0] = tmp
+        dh.cpu_arrays[u.name][ngl + x, ngl: -1 * ngl, 0] = tmp
 
     dh.cpu_arrays[u.name] *= u0
 
@@ -199,7 +200,7 @@ def run_benchmark(N: int, runtime: float, use_omp: bool):
     loop(t0)
     print("done")
     print(
-        f"""
+        """
         Computing normalized averaged kinetic energy ...""",
         end=" ",
     )
@@ -286,7 +287,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    execution_mode = f"OMP parallel" if args.openmp else "serial"
+    execution_mode = "OMP parallel" if args.openmp else "serial"
     case_description = "\n".join(__doc__.splitlines()[:3])
 
     print(
