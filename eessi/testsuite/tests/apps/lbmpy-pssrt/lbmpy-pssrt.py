@@ -1,0 +1,106 @@
+"""
+This module tests mpi4py's MPI_Reduce call
+"""
+
+import reframe as rfm
+import reframe.utility.sanity as sn
+
+# added only to make the linter happy
+from reframe.core.builtins import parameter, performance_function, sanity_function, deferrable, run_after
+
+# Import the EESSI_Mixin class so that we can inherit from it
+from eessi.testsuite.eessi_mixin import EESSI_Mixin
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
+from eessi.testsuite.utils import find_modules
+
+
+def filter_singlenode_scales():
+    """
+    Filtering function that returns only single node scales.
+    """
+    return [k for (k, v) in SCALES.items() if v['num_nodes'] == 1]
+
+
+@rfm.simple_test
+class EESSI_lbmpy_pssrt(rfm.RunOnlyRegressionTest, EESSI_Mixin):
+    """
+TODO: update description
+    """
+
+    # LPC3D is only parallelized with OpenMP, so no multi-node tests should be ran
+    scale = parameter(filter_singlenode_scales())
+
+    device_type = DEVICE_TYPES.CPU
+
+    # LPC3D is only OpenMP parallel, so launch only one task on a node
+    compute_unit = COMPUTE_UNITS.NODE
+
+    launcher = 'local'  # no MPI module is loaded in this test
+
+    # ReFrame will generate a test for each module that matches the regex `mpi4py`
+    # This means we implicitly assume that any module matching this name provides the required functionality
+    # to run this test
+    module_name = parameter(find_modules('lbmpy-pssrt'))
+
+    readonly_files = ['mixing_layer_2D.py']
+
+    executable = 'python'
+    executable_opts = ['mixing_layer_2D.py']
+    time_limit = '10m00s'
+
+    is_ci_test = True
+
+    measure_memory = True
+
+    perf_regex = r'^\s+Median±max-min)\s+=\s+(?P<perf>\S+)(?P<perf_range>\S+)MLUP'
+
+    def required_mem_per_node(self):
+        """
+        Defines the required memory per node to run this test
+        """
+        return self.num_cpus_per_task * 1 + 800
+
+    @deferrable
+    def assert_normalized_average_kinetic_energy(self):
+        """
+        Assert that the normalized average kinetic energy matches the reference (exactly).
+        Note that the reference needs to be adjusted if a different --grid-size or --run-time is used.
+        It should, however, be robust against changes in the number of threads.
+        """
+        regex = r"Normalized Average Kinetic Energy\s+=\s+(?P<energy>\S+)"
+        energy = sn.extractsingle(regex, self.stdout, 'energy', float)
+        ref_energy = 0.9379
+        return sn.assert_eq(energy, ref_energy)
+
+    @sanity_function
+    def validate(self):
+        """
+        This is the sanity function for this test. Currently, it only checks that
+        assert_normalized_average_kinetic_energy is true, but this may be expanded with additional sanity checking
+        if needed.
+        """
+        return sn.assert_true(self.assert_normalized_average_kinetic_energy())
+
+    @performance_function('MLU/s')
+    def lattice_updates(self):
+        """
+        This test case reports number of Mega lattice updates per second (and a range) over 5 iterations.
+        """
+        return sn.extractsingle(self.perf_regex, self.stdout, 'perf', float)
+
+    @performance_function('MLU/s')
+    def lattice_updates_range(self):
+        """
+        This test case reports range (max-min) of number of Mega lattice updates per second, over 5 iterations.
+        In other words, it takes the difference in Mega lattice updates per seconds between the slowest and the
+        fastest iteration
+        """
+        return sn.extractsingle(self.perf_regex, self.stdout, 'perf_range', float)
+
+    @run_after('setup')
+    def set_openmp_argument(self):
+        """
+        If the number of cpus_per_task is larger than 1, enable OpenMP by setting the --openmp argument
+        """
+        if self.num_cpus_per_task > 1:
+            self.executable_opts += ['--openmp']
