@@ -138,7 +138,7 @@ def run_benchmark(N: int, runtime: float, use_omp: bool):
 
     tmp = numpy.zeros_like(_y)
     tmp[: Ny // 2] = numpy.tanh(kappa * (_y[: Ny // 2] - 0.25))
-    tmp[Ny // 2 :] = numpy.tanh(kappa * (0.75 - _y[Ny // 2 :]))
+    tmp[Ny // 2:] = numpy.tanh(kappa * (0.75 - _y[Ny // 2:]))
 
     for x in range(Nx):
         dh.cpu_arrays[u.name][ngl + x, ngl: -1 * ngl, 0] = tmp
