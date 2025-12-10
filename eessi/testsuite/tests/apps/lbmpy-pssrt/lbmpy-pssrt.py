@@ -45,12 +45,13 @@ TODO: update description
     readonly_files = ['mixing_layer_2D.py']
 
     executable = 'python'
-    executable_opts = ['mixing_layer_2D.py']
+    # grid-size of 512 seems to scale reasonable to 128 cores, and completes in reasonable time on one core (< 2 mins)
+    executable_opts = ['mixing_layer_2D.py', '--grid-size 512']  # 512 seems to scale _reasonable_ to 128 cores
     time_limit = '10m00s'
 
     is_ci_test = True
 
-    measure_memory = True
+    measure_memory_usage = True
 
     perf_regex = r'^\s+Median±\(max-min\)\s+=\s+(?P<perf>\S+)±(?P<perf_range>\S+)\s+MLUPS'
 
@@ -58,6 +59,7 @@ TODO: update description
         """
         Defines the required memory per node to run this test
         """
+        # TODO: update to the right memory consumption
         return self.num_cpus_per_task * 1 + 800
 
     @deferrable
@@ -69,7 +71,7 @@ TODO: update description
         """
         regex = r"Normalized Average Kinetic Energy\s+=\s+(?P<energy>\S+)"
         energy = sn.extractsingle(regex, self.stdout, 'energy', float)
-        ref_energy = 0.9379
+        ref_energy = 0.9381
         return sn.assert_eq(energy, ref_energy)
 
     @sanity_function
