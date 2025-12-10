@@ -42,6 +42,8 @@ class EESSI_LPC3D(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     # LPC3D is only OpenMP parallel, so launch only one task on a node
     compute_unit = COMPUTE_UNITS.NODE
 
+    launcher = 'local'  # no MPI module is loaded in this test
+
     # ReFrame will generate a test for each module that matches the regex `mpi4py`
     # This means we implicitly assume that any module matching this name provides the required functionality
     # to run this test
