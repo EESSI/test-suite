@@ -52,7 +52,7 @@ TODO: update description
 
     measure_memory = True
 
-    perf_regex = r'^\s+Median±max-min)\s+=\s+(?P<perf>\S+)(?P<perf_range>\S+)MLUP'
+    perf_regex = r'^\s+Median±\(max-min\)\s+=\s+(?P<perf>\S+)±(?P<perf_range>\S+)\s+MLUPS'
 
     def required_mem_per_node(self):
         """
