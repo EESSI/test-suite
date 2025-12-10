@@ -6,7 +6,7 @@ import reframe as rfm
 import reframe.utility.sanity as sn
 
 # added only to make the linter happy
-from reframe.core.builtins import parameter, performance_function, sanity_function, deferrable
+from reframe.core.builtins import parameter, performance_function, sanity_function, deferrable, run_after
 
 # Import the EESSI_Mixin class so that we can inherit from it
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
