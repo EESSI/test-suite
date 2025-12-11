@@ -51,16 +51,13 @@ TODO: update description
 
     is_ci_test = True
 
-    measure_memory_usage = True
-
     perf_regex = r'^\s+Median±\(max-min\)\s+=\s+(?P<perf>\S+)±(?P<perf_range>\S+)\s+MLUPS'
 
     def required_mem_per_node(self):
         """
         Defines the required memory per node to run this test
         """
-        # TODO: update to the right memory consumption
-        return self.num_cpus_per_task * 1 + 800
+        return self.num_cpus_per_task * 5 + 250
 
     @deferrable
     def assert_normalized_average_kinetic_energy(self):
