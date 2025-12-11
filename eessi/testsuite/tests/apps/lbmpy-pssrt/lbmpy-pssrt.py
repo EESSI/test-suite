@@ -24,7 +24,16 @@ def filter_singlenode_scales():
 @rfm.simple_test
 class EESSI_lbmpy_pssrt(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     """
-TODO: update description
+    This test case simulates the Kelvin-Helmholtz instabilty where an initial hyperbolic tangent velocity profile
+    imposed in a fully periodic 2D square box is slightly perturbed to initiate rolling of the shear layers.
+
+    This use case tests a modified version of lbmpy, with additional functionality. This test cases uses lbmpy with
+    OpenMP parallelization. As such, this test will only be instantiated on scales up to 1 full node.
+    The runtime is in the order of seconds to minutes.
+
+    The test script takes three (optional) arguments: --grid-size, --run-time, --openmp.
+    If grid-size or run-time are modified, the reference value in the assert_normalized_average_kinetic_energy sanity
+    check needs to be updated. The reference does _not_ change with the number of threads.
     """
 
     # LPC3D is only parallelized with OpenMP, so no multi-node tests should be ran
