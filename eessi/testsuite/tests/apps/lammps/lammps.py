@@ -226,10 +226,10 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
 class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
     tags = {TAGS.CI}
 
-    sourcesdir = 'src/ALL'
+    sourcesdir = 'src/ALL+OBMD'
+    readonly_files = ['input.py', 'dpd_8map_obmd.data', 'in.balance.staggered.global', '__init__.py', 'in.simulation.staggered.global']
     executable = 'lmp -in in.balance.staggered.global'
-    readonly_files = ['in.balance.staggered.global']
-
+  
     @deferrable
     def check_number_neighbors(self):
         '''Assert that the test calulated the right number of neighbours'''
@@ -301,7 +301,7 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
 
     sourcesdir = 'src/ALL+OBMD'
     executable = 'lmp -in in.simulation.staggered.global'
-    readonly_files = ['in.simulation.staggered.global']
+    readonly_files = ['input.py', 'dpd_8map_obmd.data', 'in.balance.staggered.global', '__init__.py', 'in.simulation.staggered.global']
 
     @performance_function('timesteps/s')
     def perf(self):
@@ -353,8 +353,8 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
 class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
     tags = {TAGS.CI}
 
-    sourcesdir = 'src/OBMD'
-    readonly_files = ['input.py', 'dpd_8map_obmd.data']
+    sourcesdir = 'src/ALL+OBMD'
+    readonly_files = ['input.py', 'dpd_8map_obmd.data', 'in.balance.staggered.global', '__init__.py', 'in.simulation.staggered.global']
 
     prerun_cmds = ['python input.py']
 
