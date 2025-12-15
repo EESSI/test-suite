@@ -40,15 +40,16 @@ from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules
 
 
-def filter_scales_1M():
+def filter_scales():
     """
-    Filtering function for filtering scales for the waLBerla test
-    returns all scales with at least half a node.
+    Filtering function for filtering scales for the waLBerla test returns all scales from 8 cores to 2 nodes. This is
+    because this case is testing strong scaling and the number of cells per MPI process become too less typically once
+    it crosses 2 nodes. Further filtering is done within the test based on MPI tasks. The code is capable of running on
+    1 to 4 cores as well but it will take about 1 hour to run on a single core.
     """
     return [
         k for (k, v) in SCALES.items()
-        if ((v['num_nodes'] <= 2) and (v.get('node_part', 0) != 0)) or (v.get('num_cpus_per_node', 0)
-                                                                        * v.get('num_nodes', 0) > 1)
+        if ((v['num_nodes'] <= 2) and (v.get('node_part', 0) != 0)) or (v.get('num_cpus_per_node', 0) > 4)
     ]
 
 
@@ -58,20 +59,21 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
     This is the main walberla class for the backward facing step test. The test consists of steps that modify the input
     file from the precompiled walberla tutorials binary. These are run as pre-run commands and the main test with the
     executable `05_BackwardFacingStep` is measured for performance.
+    The code will run on one core but will take about an hour to run.
     """
-#    ldc_64M = fixture(EESSI_OPENFOAM_base, scope='partition')
     executable = '05_BackwardFacingStep'
     executable_opts = ['05_BackwardFacingStep.prm']
-    time_limit = '120m'
+    time_limit = '30m'
     readonly_files = ['']
     device_type = parameter([DEVICE_TYPES.CPU])
     module_name = parameter(find_modules('waLBerla'))
     valid_systems = ['*']
-    scale = parameter(filter_scales_1M())
+    scale = parameter(filter_scales())
 
     @run_after('init')
     def set_compute_unit(self):
         """
+        This test is a CPU only test.
         Set the compute unit to which tasks will be assigned:
         one task per CPU core for CPU runs.
         """
@@ -83,21 +85,6 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
 
     def required_mem_per_node(self):
         return self.num_tasks_per_node * 1700
-
-    @run_after('setup')
-    def check_launcher_options(self):
-        # We had to get the launcher command and prepend this to the prerun steps (func prepare_environment) because:
-        # 1. A typical OpenFOAM job would contain multiple mpirun steps working on the same stage directory.
-        # 2. We had trouble using ReFrame fixtures to separate these over multiple jobs, because we couldn't get it to
-        #    work together with the mixin class.
-        if (self.job.launcher.command(self.job)[0] == 'mpirun'):
-            self.launcher_command = self.job.launcher.command(self.job)
-            self.launcher_command[-1] = str(self.num_tasks_per_node * self.num_nodes)
-        elif (self.job.launcher.command(self.job)[0] == 'srun'):
-            self.launcher_command = self.job.launcher.command(self.job)
-        else:
-            self.skip(msg="The chosen launcher for this test is different from mpirun or srun which means that the"
-                      "test will definitely fail, therefore skipping this test.")
 
     @run_after('setup')
     def check_core_count(self):
@@ -112,7 +99,18 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
 
     @run_before('run')
     def prepare_environment(self):
-        # fullpath = os.path.join(self.ldc_64M.stagedir, 'fixedTol')
+        # The sed commands below are just editing the input file 05_BackwardFacingStep.prm and only the first parameter
+        # within blocks and cells per block. The whole idea is to keep the number of cells around the value of 6000 in
+        # the x direction. Since this is a cartesian system, the default is assigned is one process per block. This is
+        # as per walberla source code and the runs would crash if there is a mismatch between total number of blocks and
+        # number of MPI ranks.
+        # Note: It is also possible to edit the y component or the second parameter of the blocks and cellsPerBlock BUT
+        # this would vary the viscosity of the of the fluid with the number of MPI processes because this is hardcoded
+        # within the compiled tutorial source code to use this length to calculate the Reynolds number within the
+        # channel. For this the source code needs to be modified to include the number of MPI processes so that the
+        # problem at hand does not change which would in turn need recompilation, therefore only x parameter is varied.
+        # The last sed command limits the timesteps to 300000 instead of 10000000 because the quasi steady state is
+        # already reached.
         self.prerun_cmds = [
             'cp -r ${EBROOTWALBERLA}/build/apps/tutorials/lbm .',
             'chmod -R u+w lbm',
