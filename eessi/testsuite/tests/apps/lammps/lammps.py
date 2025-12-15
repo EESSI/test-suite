@@ -235,7 +235,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
         'in.simulation.staggered.global',
     ]
     executable = 'lmp -in in.balance.staggered.global'
-  
+
     @deferrable
     def check_number_neighbors(self):
         '''Assert that the test calulated the right number of neighbours'''
@@ -367,10 +367,10 @@ class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
 
     sourcesdir = 'src/ALL+OBMD'
     readonly_files = [
-        'input.py', 
-        'dpd_8map_obmd.data', 
-        'in.balance.staggered.global', 
-        '__init__.py', 
+        'input.py',
+        'dpd_8map_obmd.data',
+        'in.balance.staggered.global',
+        '__init__.py',
         'in.simulation.staggered.global',
     ]
 
