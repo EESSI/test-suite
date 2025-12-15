@@ -40,28 +40,6 @@ from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules
 
 
-# def filter_scales_64M():
-#     """
-#     Filtering function for filtering scales for the OpenFOAM 64M mesh test
-#     returns all scales with at least half a node.
-#     """
-#     return [
-#         k for (k, v) in SCALES.items()
-#         if (v['num_nodes'] >= 4) and (0 < v.get('node_part', 0) <= 2)
-#     ]
-# 
-# 
-# def filter_scales_8M():
-#     """
-#     Filtering function for filtering scales for the OpenFOAM 8M mesh test
-#     returns all scales with at least half a node.
-#     """
-#     return [
-#         k for (k, v) in SCALES.items()
-#         if (v['num_nodes'] >= 1) and (0 < v.get('node_part', 0) <= 2)
-#     ]
-
-
 def filter_scales_1M():
     """
     Filtering function for filtering scales for the waLBerla test
@@ -140,9 +118,10 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
             'cp -r ${EBROOTWALBERLA}/build/apps/tutorials/lbm .',
             'chmod -R u+w lbm',
             'cd lbm',
-            f"sed -i -r 's/(blocks\\s*)<\\s*1,\\s*1,\\s*1\\s*>/\\1< {self.num_tasks_per_node * self.num_nodes} , 1, 1 >/g'"
+            f"sed -i -r 's/(blocks\\s*)<\\s*1,\\s*1,\\s*1\\s*>/\\1< {self.num_tasks} , 1, 1 >/g'"
             " 05_BackwardFacingStep.prm",
-            f"sed -i -r 's/(cellsPerBlock\\s*)<\\s*6000,\\s*100,\\s*1\\s*>/\\1< {int(6000 / self.num_tasks_per_node / self.num_nodes) + 1} , 100, 1 >/g' 05_BackwardFacingStep.prm",
+            f"sed -i -r 's/(cellsPerBlock\\s*)<\\s*6000,\\s*100,\\s*1\\s*>/\\1< {int(6000 / self.num_tasks) + 1} "
+            ", 100, 1 >/g' 05_BackwardFacingStep.prm",
             "sed -i -r 's/(timesteps\\s*)10000000/\\1300000/g' 05_BackwardFacingStep.prm "]
 
     @deferrable
@@ -154,7 +133,8 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
     @deferrable
     def assert_completion(self):
         n_time_steps = sn.count(sn.extractall(
-            'DataSet timestep="(?P<timestep>[0-9]+)"', "./lbm/vtk_05_BackwardFacingStep/fluid_field.pvd", tag='timestep'))
+            'DataSet timestep="(?P<timestep>[0-9]+)"', "./lbm/vtk_05_BackwardFacingStep/fluid_field.pvd",
+            tag='timestep'))
         return (sn.assert_found("END LOGGING -", self.stdout,
                                 msg="The run did not finish, the logger did not indicate completion. Check for errors.")
                 and sn.assert_eq(n_time_steps, 15))
