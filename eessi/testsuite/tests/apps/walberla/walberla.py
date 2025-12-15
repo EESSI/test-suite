@@ -110,7 +110,6 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
             self.skip(msg="The minimum number of MPI tasks required for this test is 8 to run within reasonable time."
                       "Launch of scale with larger core count")
 
-
     @run_before('run')
     def prepare_environment(self):
         # fullpath = os.path.join(self.ldc_64M.stagedir, 'fixedTol')
@@ -141,9 +140,9 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
 
     @performance_function('s/timestep')
     def perf(self):
-        perftimes = sn.extractall(r'[INFO\s*].*\((?P<perf>\S+)\s+sec\)\[(?P<numsteps>.*)\]',self.stdout,
-                                  tag=['perf','numsteps'], conv=float)
-        seconds_per_timestep = perftimes[-1][0]/perftimes[-1][1]
+        perftimes = sn.extractall(r'[INFO\s*].*\((?P<perf>\S+)\s+sec\)\[(?P<numsteps>.*)\]', self.stdout,
+                                  tag=['perf', 'numsteps'], conv=float)
+        seconds_per_timestep = perftimes[-1][0] / perftimes[-1][1]
         return seconds_per_timestep
 
     @sanity_function
