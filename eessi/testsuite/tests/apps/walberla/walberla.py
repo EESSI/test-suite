@@ -59,7 +59,8 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
     This is the main walberla class for the backward facing step test. The test consists of steps that modify the input
     file from the precompiled walberla tutorials binary. These are run as pre-run commands and the main test with the
     executable `05_BackwardFacingStep` is measured for performance.
-    The code will run on one core but will take about an hour to run.
+    The code will run on one core but will take about an hour to run therefore this test is implemented to execute on
+    at least 8 cores and at most 384 cores.
     """
     executable = '05_BackwardFacingStep'
     executable_opts = ['05_BackwardFacingStep.prm']
@@ -84,7 +85,7 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
             raise NotImplementedError(msg)
 
     def required_mem_per_node(self):
-        return self.num_tasks_per_node * 1700
+        return (400 + self.num_tasks_per_node * 300)
 
     @run_after('setup')
     def check_core_count(self):
