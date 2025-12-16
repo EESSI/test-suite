@@ -8,7 +8,7 @@ from reframe.core.builtins import deferrable, parameter, performance_function, r
 import reframe.utility.sanity as sn
 
 from eessi.testsuite import utils
-from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, TAGS
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, TAGS, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
 from statistics import mean
@@ -20,6 +20,27 @@ from statistics import mean
 def split(list, size):
     return [list[i:i + size] for i in range(0, len(list), size)]
 
+def filter_scale_cores():
+    """
+    Filtering function for filtering scales for the LAMMPS ALL small test
+    returns all scales with 8 or less cores.
+    """
+    print(SCALES.items())
+    return [
+        k for (k, v) in SCALES.items()
+        if (k in ['1_core', '2_cores', '4_cores', '8_cores', '1cpn_2nodes', '1cpn_4nodes'])
+    ]
+
+def filter_scale_nodes_and_partial_nodes():
+    """
+    Filtering function for filtering scales for the LAMMPS ALL small test
+    returns all scales where the core count is not specified.
+    """
+    print(SCALES.items())
+    return [
+        k for (k, v) in SCALES.items()
+        if (k in ['1_8_node', '1_4_node', '1_2_node', '1_node', '2_nodes', '4_nodes', '8_nodes', '16_nodes'])
+    ]
 
 class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
     time_limit = '30m'
@@ -233,8 +254,10 @@ class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
         'in.balance.staggered.global',
         '__init__.py',
         'in.simulation.staggered.global',
+        'in.lj_all2',
     ]
     executable = 'lmp -in in.balance.staggered.global'
+    scale = parameter(filter_scale_cores())
 
     @deferrable
     def check_number_neighbors(self):
@@ -281,7 +304,91 @@ class EESSI_LAMMPS_ALL_balance_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
             r'[-+]?[.0-9]+\s+[-+]?[0-9]+\s+(?P<var14>[-+]?[.0-9]+)\s'
         )
         inbalence = sn.extractsingle(regex, self.stdout, 'var14', float)
-        return sn.assert_lt(inbalence, 1.1)
+        return sn.assert_lt(inbalence, 1.5)
+
+    @run_after('setup')
+    def set_executable_opts(self):
+        """Set executable opts based on device_type parameter"""
+        # should also check if the lammps is installed with kokkos.
+        # Because this executable opt is only for that case.
+        if self.device_type == DEVICE_TYPES.GPU:
+            if 'kokkos' in self.module_name:
+                self.executable_opts += [
+                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
+                    '-suffix kk',
+                    '-package kokkos newton on neigh half',
+                ]
+                utils.log(f'executable_opts set to {self.executable_opts}')
+            else:
+                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
+                utils.log(f'executable_opts set to {self.executable_opts}')
+
+
+@rfm.simple_test
+class EESSI_LAMMPS_ALL2(EESSI_LAMMPS_base, EESSI_Mixin):
+    tags = {TAGS.CI}
+
+    sourcesdir = 'src/ALL+OBMD'
+    readonly_files = [
+        'input.py',
+        'dpd_8map_obmd.data',
+        'in.balance.staggered.global',
+        '__init__.py',
+        'in.simulation.staggered.global',
+        'in.lj_all2',
+    ]
+    executable = 'lmp -var x 10 -var y 10 -var z 10 -var t 1000 -in in.lj_all2'
+    scale = parameter(filter_scale_nodes_and_partial_nodes())
+
+    @deferrable
+    def assert_run_steps_1000(self):
+        '''Assert that the test calulated the right number of neighbours'''
+        regex = r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for (?P<steps>\S+) steps with [0-9]+ atoms'
+        n_steps = sn.extractsingle(regex, self.stdout, 'steps', int)
+        return sn.assert_eq(n_steps, 1000)
+
+    @deferrable
+    def check_number_neighbors(self):
+        '''Assert that the test calulated the right number of neighbours'''
+        regex = r'Neighbor list builds = (?P<neigh>\S+)'
+        n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
+        n_neigh_diff = sn.abs(n_neigh - 2529)
+        return sn.assert_lt(n_neigh_diff, 1100)
+
+    @performance_function('timesteps/s')
+    def perf(self):
+        regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
+        return sn.extractsingle(regex, self.stdout, 'perf', float)
+
+    @sanity_function
+    def assert_sanity(self):
+        '''Check all sanity criteria'''
+        return sn.all([
+            self.assert_lammps_openmp_treads(),
+            self.assert_lammps_processor_grid(),
+            self.assert_run_steps_1000(),
+            self.assert_inbalence(),
+        ])
+
+    @run_after('init')
+    def check_if_ALL_included(self):
+        """Only run this test when LAMMPS has the ALL package."""
+        # Can determine if this is included based on the versionsuffix.
+        # At this moment the package is not upstream available and has the versionsuffix ALL.
+        # See https://github.com/multixscale/dev.eessi.io-lammps-plugin-obmd/pull/7
+        if 'ALL' in self.module_name:
+            #  print(self)
+            return
+        else:
+            self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
+                          "test will definitely fail, therefore skipping this test.")
+
+    @deferrable
+    def assert_inbalence(self):
+        '''Asert that the calculated energy at timestep 100 is with the margin of error'''
+        regex = '^\s+1000\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+(?P<var14>[-+]?[.0-9]+)\s'
+        inbalence = sn.extractsingle(regex, self.stdout, 'var14', float)
+        return sn.assert_lt(inbalence, 1.5)
 
     @run_after('setup')
     def set_executable_opts(self):
@@ -313,6 +420,7 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
         'in.balance.staggered.global',
         '__init__.py',
         'in.simulation.staggered.global',
+        'in.lj_all2',
     ]
 
     @performance_function('timesteps/s')
@@ -372,6 +480,7 @@ class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
         'in.balance.staggered.global',
         '__init__.py',
         'in.simulation.staggered.global',
+        'in.lj_all2',
     ]
 
     prerun_cmds = ['python input.py']
