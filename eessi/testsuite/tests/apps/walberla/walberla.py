@@ -6,29 +6,6 @@ https://github.com/lssfau/walberla/tree/master/apps/tutorials/lbm
 License information can be found here:
 https://github.com/lssfau/walberla/blob/master/COPYING.txt
 
-ReFrame terminology:
-
-"pipeline stages":
-https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#pipeline-hooks
-
-"test parameter": a list of values, which will generate different test variants.
-https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.builtins.parameter
-
-"test variant": a version of a test with a specific value for each test parameter
-https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#test-variants
-
-"concrete test cases": all test combinations that will actually run:
-- test variants
-- valid system:partition+programming environment combinations
-https://reframe-hpc.readthedocs.io/en/stable/tutorial_deps.html#listing-dependencies
-
-Tests can be filtered by name, tag, programming environment, system, partition, or maintainer,
-see https://reframe-hpc.readthedocs.io/en/stable/manpage.html#test-filtering
-
-Hooks acting on all possible test combinations (before filtering) are called after the 'init' stage.
-Hooks acting on concrete test cases (after filtering) are called after the 'setup' stage.
-
-See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 """
 
 import reframe as rfm
