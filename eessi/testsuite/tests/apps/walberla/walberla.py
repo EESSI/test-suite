@@ -100,6 +100,13 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
 
     @run_before('run')
     def prepare_environment(self):
+        """
+        Function:
+        1. Copying the built binary from the tutorial section of the relevant waLBerla module.
+        2. Modifying the input prm file to adjust for number of MPI tasks (blocks) and cells per block keeping the
+        domain size same.
+        3. Adjusting timesteps since the run need not be that long as in the original input prm file.
+        """
         # The sed commands below are just editing the input file 05_BackwardFacingStep.prm and only the first parameter
         # within blocks and cells per block. The whole idea is to keep the number of cells around the value of 6000 in
         # the x direction. Since this is a cartesian system, the default is assigned is one process per block. This is
@@ -130,6 +137,7 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
 
     @deferrable
     def assert_completion(self):
+        ''' Checking for completion string within stdout and number of output timesteps within vtk. '''
         n_time_steps = sn.count(sn.extractall(
             'DataSet timestep="(?P<timestep>[0-9]+)"', "./lbm/vtk_05_BackwardFacingStep/fluid_field.pvd",
             tag='timestep'))
@@ -139,6 +147,7 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
 
     @performance_function('s/timestep')
     def perf(self):
+        ''' Collecting performance timings within the log and computing average performance time per step. '''
         perftimes = sn.extractall(r'[INFO\s*].*\((?P<perf>\S+)\s+sec\)\[(?P<numsteps>.*)\]', self.stdout,
                                   tag=['perf', 'numsteps'], conv=float)
         seconds_per_timestep = perftimes[-1][0] / perftimes[-1][1]
@@ -146,7 +155,7 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
 
     @sanity_function
     def assert_sanity(self):
-        '''Check all sanity criteria'''
+        ''' Check all sanity criteria. '''
         return sn.all([
             self.check_files(),
             self.assert_completion(),
