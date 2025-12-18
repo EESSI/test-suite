@@ -1,5 +1,6 @@
 """
-This module tests mpi4py's MPI_Reduce call
+This module tests an lbmpy fork twith additional functionality added within the MultiXscale project.
+Long term, the goal is that this will be upstreamed in lbmpy.
 """
 
 import reframe as rfm
@@ -12,6 +13,7 @@ from reframe.core.builtins import parameter, performance_function, sanity_functi
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.utils import find_modules
+from eessi.testsuite.hooks import set_compact_thread_binding
 
 
 def filter_singlenode_scales():
@@ -36,19 +38,16 @@ class EESSI_lbmpy_pssrt(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     check needs to be updated. The reference does _not_ change with the number of threads.
     """
 
-    # LPC3D is only parallelized with OpenMP, so no multi-node tests should be ran
+    # lbmpy-pssrt is only parallelized with OpenMP, so no multi-node tests should be ran
     scale = parameter(filter_singlenode_scales())
 
     device_type = DEVICE_TYPES.CPU
 
-    # LPC3D is only OpenMP parallel, so launch only one task on a node
+    # lbmpy-pssrt is only OpenMP parallel, so launch only one task on a node
     compute_unit = COMPUTE_UNITS.NODE
 
     launcher = 'local'  # no MPI module is loaded in this test
 
-    # ReFrame will generate a test for each module that matches the regex `mpi4py`
-    # This means we implicitly assume that any module matching this name provides the required functionality
-    # to run this test
     module_name = parameter(find_modules('lbmpy-pssrt'))
 
     readonly_files = ['mixing_layer_2D.py']
@@ -108,7 +107,9 @@ class EESSI_lbmpy_pssrt(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     @run_after('setup')
     def set_openmp_argument(self):
         """
-        If the number of cpus_per_task is larger than 1, enable OpenMP by setting the --openmp argument
+        If the number of cpus_per_task is larger than 1, enable OpenMP by setting the --openmp argument.
+        Also, set compact thread binding in this case
         """
         if self.num_cpus_per_task > 1:
             self.executable_opts += ['--openmp']
+            set_compact_thread_binding(self)
