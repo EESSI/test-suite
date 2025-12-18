@@ -266,7 +266,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_base, EESSI_M
 
     # This requires a LAMMPS with ALL functionality, i.e. only select modules with -ALL versionsuffix
     # We _could_ remove the '-' and '$' to also match e.g. ALL_OBMD
-    module_name = parameter(utils.find_modules('LAMMPS\/.*-ALL$', name_only=False))
+    module_name = parameter(utils.find_modules(r'LAMMPS\/.*-ALL$', name_only=False))
 
     @deferrable
     def check_number_neighbors(self):
@@ -309,12 +309,14 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_base, EESSI_M
         # Extract the number in the 14th column (which is the imbalance) from the row that has with '50'
         # in the first column (i.e. step 50)
         imb_step_50_regex = (
-            r'^\s+50\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<var14>[-+]?[.0-9]+)\s'
+            r'^\s+50\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+'
+            r'\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<var14>[-+]?[.0-9]+)\s'
         )
         # Extract the number in the 14th column (which is the imbalance) from the row that has with '10000'
         # in the first column (i.e. step 10000)
         imb_step_10000_regex = (
-            r'^\s+10000\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<var14>[-+]?[.0-9]+)\s'
+            r'^\s+10000\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+'
+            r'\S+\s+\S+\s+\S+\s+\S+\s+(?P<var14>[-+]?[.0-9]+)\s'
         )
 
         # If var14 is 1, that indicates perfect balance. So the imbalance is essentially var14-1.
@@ -377,7 +379,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_base, EESSI_M
 
     # This requires a LAMMPS with ALL functionality, i.e. only select modules with -ALL versionsuffix
     # We _could_ remove the '-' and '$' to also match e.g. ALL_OBMD
-    module_name = parameter(utils.find_modules('LAMMPS\/.*-.*ALL', name_only=False))
+    module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*ALL', name_only=False))
 
     def assert_run_steps_1000(self):
         '''Assert that the test calulated the right number of neighbours'''
@@ -492,7 +494,7 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
     ]
 
     # This requires a LAMMPS with ALL+OMBD functionality, i.e. only select modules with -ALL_OBMD versionsuffix
-    module_name = parameter(utils.find_modules('LAMMPS\/.*-.*ALL.*OBMD', name_only=False))
+    module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*ALL.*OBMD', name_only=False))
 
     @performance_function('timesteps/s')
     def perf(self):
@@ -559,13 +561,13 @@ class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
 
     # This requires a LAMMPS with OBMD functionality, i.e. only select modules with -OBMD versionsuffix
     # We _could_ remove the '-' and '$' to also match e.g. ALL_OBMD
-    module_name = parameter(utils.find_modules('LAMMPS\/.*-.*OBMD', name_only=False))
+    module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*OBMD', name_only=False))
 
     @performance_function('timesteps/s')
     def perf(self):
         regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
         performance = sn.extractsingle(regex, self.stdout, 'perf', float)
-        if type(performance) != 'float':
+        if not isinstance(performance, float):
             regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Katom-step/s'
             performance = sn.extractsingle(regex, self.stdout, 'perf', float)
         return performance
