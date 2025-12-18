@@ -13,7 +13,6 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     descr = 'Benchmark that runs a selected torchvision model on synthetic data'
 
     nn_model = parameter(['vgg16', 'resnet50', 'resnet152', 'densenet121', 'mobilenet_v3_large'])
-    bench_name_ci = 'resnet50'
     parallel_strategy = parameter([None, 'ddp'])
     # Both torchvision and PyTorch-bundle modules have everything needed to run this test
     module_name = parameter(chain(find_modules('torchvision'), find_modules('PyTorch-bundle')))
@@ -33,6 +32,11 @@ class EESSI_PyTorch_torchvision(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         # If not a GPU run, disable CUDA
         if self.device_type != DEVICE_TYPES.GPU:
             self.executable_opts += ['--no-cuda']
+
+    @run_after('init')
+    def set_ci_tag(self):
+        if self.bench_name == 'resnet50':
+            self.is_ci_test = True
 
     @run_after('setup')
     def set_ddp_options(self):
