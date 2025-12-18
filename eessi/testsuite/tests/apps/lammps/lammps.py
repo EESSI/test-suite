@@ -20,6 +20,7 @@ from statistics import mean
 def split(list, size):
     return [list[i:i + size] for i in range(0, len(list), size)]
 
+
 def filter_scale_up_to_8_cores():
     """
     Returns all scales with (guaranteed) 8 cores or less. E.g. 1_core, 2_core, ..., 1cpn_2nodes, ...
@@ -30,6 +31,7 @@ def filter_scale_up_to_8_cores():
         if ('num_cpus_per_node' in v.keys() and v.keys() and v['num_cpus_per_node'] * v['num_nodes'] <= 8)
     ]
 
+
 def filter_scale_partial_and_full_nodes():
     """
     Returns all scales that do have a (guaranteed) core count, e.g. 1_8_node, 1_4_node, ..., 2_nodes, ..., 16_nodes.
@@ -37,8 +39,9 @@ def filter_scale_partial_and_full_nodes():
     """
     return [
         k for (k, v) in SCALES.items()
-        if not 'num_cpus_per_node' in v.keys()
+        if 'num_cpus_per_node' not in v.keys()
     ]
+
 
 class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
     """
@@ -295,7 +298,6 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_base, EESSI_M
         # At this moment the package is not upstream available and has the versionsuffix ALL.
         # See https://github.com/multixscale/dev.eessi.io-lammps-plugin-obmd/pull/7
         if 'ALL' in self.module_name:
-            #  print(self)
             return
         else:
             self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
@@ -413,7 +415,6 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_base, EESSI_M
         # At this moment the package is not upstream available and has the versionsuffix ALL.
         # See https://github.com/multixscale/dev.eessi.io-lammps-plugin-obmd/pull/7
         if 'ALL' in self.module_name:
-            #  print(self)
             return
         else:
             self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
@@ -515,7 +516,6 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
         # At this moment the package is not upstream available and has the versionsuffix ALL.
         # See https://github.com/multixscale/dev.eessi.io-lammps-plugin-obmd/pull/7
         if 'ALL' in self.module_name and 'OBMD' in self.module_name:
-            # print(self)
             return
         else:
             self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
@@ -564,7 +564,11 @@ class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
     @performance_function('timesteps/s')
     def perf(self):
         regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
-        return sn.extractsingle(regex, self.stdout, 'perf', float)
+        performance = sn.extractsingle(regex, self.stdout, 'perf', float)
+        if type(performance) != 'float':
+            regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Katom-step/s'
+            performance = sn.extractsingle(regex, self.stdout, 'perf', float)
+        return performance
 
     @sanity_function
     def assert_sanity(self):
