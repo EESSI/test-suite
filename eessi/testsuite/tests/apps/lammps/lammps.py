@@ -375,7 +375,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_base, EESSI_M
 
     # This requires a LAMMPS with ALL functionality, i.e. only select modules with -ALL versionsuffix
     # We _could_ remove the '-' and '$' to also match e.g. ALL_OBMD
-    module_name = parameter(utils.find_modules('LAMMPS\/.*-ALL$', name_only=False))
+    module_name = parameter(utils.find_modules('LAMMPS\/.*-.*ALL', name_only=False))
 
     def assert_run_steps_1000(self):
         '''Assert that the test calulated the right number of neighbours'''
@@ -491,7 +491,7 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
     ]
 
     # This requires a LAMMPS with ALL+OMBD functionality, i.e. only select modules with -ALL_OBMD versionsuffix
-    module_name = parameter(utils.find_modules('LAMMPS\/.*-ALL_OBMD$', name_only=False))
+    module_name = parameter(utils.find_modules('LAMMPS\/.*-.*ALL.*OBMD', name_only=False))
 
     @performance_function('timesteps/s')
     def perf(self):
@@ -559,7 +559,7 @@ class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
 
     # This requires a LAMMPS with OBMD functionality, i.e. only select modules with -OBMD versionsuffix
     # We _could_ remove the '-' and '$' to also match e.g. ALL_OBMD
-    module_name = parameter(utils.find_modules('LAMMPS\/.*-OBMD$', name_only=False))
+    module_name = parameter(utils.find_modules('LAMMPS\/.*-.*OBMD', name_only=False))
 
     @performance_function('timesteps/s')
     def perf(self):
