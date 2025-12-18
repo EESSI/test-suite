@@ -41,6 +41,10 @@ def filter_scale_partial_and_full_nodes():
     ]
 
 class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
+    """
+    Base class for the LAMMPS based tests. This sets time limit, device type, module name, the compute unit and
+    a number of sanity functions that may be shared amongst concrete implementations of this base class.
+    """
     time_limit = '30m'
     device_type = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])
 
@@ -281,7 +285,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_base, EESSI_M
             self.assert_lammps_openmp_treads(),
             self.assert_lammps_processor_grid(),
             self.assert_run_steps(),
-            self.assert_inbalence(),
+            self.assert_imbalence(),
         ])
 
     @run_after('init')
@@ -298,21 +302,17 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_base, EESSI_M
                           "test will definitely fail, therefore skipping this test.")
 
     @deferrable
-    def assert_inbalence(self):
+    def assert_imbalence(self):
         '''Assert that the imbalance has gone down by at least 50%, OR that it was already very low (<1.1)'''
         # Extract the number in the 14th column (which is the imbalance) from the row that has with '50'
         # in the first column (i.e. step 50)
         imb_step_50_regex = (
-            r'^\s+50\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+'
-            r'[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+'
-            r'[-+]?[.0-9]+\s+[-+]?[0-9]+\s+(?P<var14>[-+]?[.0-9]+)\s'
+            r'^\s+50\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<var14>[-+]?[.0-9]+)\s'
         )
         # Extract the number in the 14th column (which is the imbalance) from the row that has with '10000'
         # in the first column (i.e. step 10000)
         imb_step_10000_regex = (
-            r'^\s+10000\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+'
-            r'[-+]?[.0-9]+\s+0\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+'
-            r'[-+]?[.0-9]+\s+[-+]?[0-9]+\s+(?P<var14>[-+]?[.0-9]+)\s'
+            r'^\s+10000\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<var14>[-+]?[.0-9]+)\s'
         )
 
         # If var14 is 1, that indicates perfect balance. So the imbalance is essentially var14-1.
@@ -403,7 +403,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_base, EESSI_M
             self.assert_lammps_openmp_treads(),
             self.assert_lammps_processor_grid(),
             self.assert_run_steps_1000(),
-            self.assert_inbalence(),
+            self.assert_imbalence(),
         ])
 
     @run_after('init')
@@ -420,20 +420,16 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_base, EESSI_M
                           "test will definitely fail, therefore skipping this test.")
 
     @deferrable
-    def assert_inbalence(self):
-        '''Asert that the calculated energy at timestep 100 is with the margin of error'''
-        # Extract the number in the 14th column (which is the imbalance) from the row that has with '50'
+    def assert_imbalence(self):
+        '''Assert that the imbalance has gone down by at least 50%, OR that it was already very low (<1.1)'''
+        # Extract the number in the 6th column (which is the imbalance) from the row that has with '50'
         # in the first column (i.e. step 50)
         imb_step_50_regex = (
-#            r'^\s+50\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+'
-#            r'(?P<var6>[-+]?[.0-9]+)\s+0\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+'
             r'^\s+50\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<var6>[-+]?[.0-9]+)\s+\S+\s+\S+\s+\S+\s+\S+\s*$'
         )
-        # Extract the number in the 14th column (which is the imbalance) from the row that has with '1000'
+        # Extract the number in the 6th column (which is the imbalance) from the row that has with '1000'
         # in the first column (i.e. step 1000)
         imb_step_1000_regex = (
-#             r'^\s+1000\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+'
-#             r'(?P<var6>[-+]?[.0-9]+)\s+0\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+'
             r'^\s+1000\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<var6>[-+]?[.0-9]+)\s+\S+\s+\S+\s+\S+\s+\S+\s*$'
         )
 
