@@ -22,11 +22,9 @@
 # ```
 import os
 
-from eessi.testsuite.common_config import (common_eessi_init,
-                                           common_general_config,
-                                           common_logging_config,
-                                           get_sbatch_account)
-from eessi.testsuite.constants import *  # noqa: F403
+from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
+                                           get_sbatch_account, update_common_slurm_partition_config)
+from eessi.testsuite.constants import EXTRAS, DEVICE_TYPES, FEATURES, GPU_VENDORS, SCALES
 
 hortense_access = ['--export=NONE', '--get-user-env=60L']
 
@@ -84,12 +82,6 @@ site_configuration = {
                     'max_jobs': 20,
                     'launcher': launcher,
                     'modules': [mpi_module.format('cpu_rome')],
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'features': [
                         FEATURES.CPU,
                     ] + list(SCALES.keys()),
@@ -117,12 +109,6 @@ site_configuration = {
                     'max_jobs': 20,
                     'launcher': launcher,
                     'modules': [mpi_module.format('cpu_rome_512')],
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'features': [
                         FEATURES.CPU,
                     ] + list(SCALES.keys()),
@@ -150,12 +136,6 @@ site_configuration = {
                     'max_jobs': 20,
                     'launcher': launcher,
                     'modules': [mpi_module.format('cpu_milan_rhel9')],
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'features': [
                         FEATURES.CPU,
                     ] + list(SCALES.keys()),
@@ -183,12 +163,6 @@ site_configuration = {
                     'max_jobs': 20,
                     'launcher': launcher,
                     'modules': [mpi_module.format('cpu_milan_rhel9')],
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'features': [
                         FEATURES.CPU,
                     ] + list(SCALES.keys()),
@@ -225,16 +199,6 @@ site_configuration = {
                         # per node
                         EXTRAS.MEM_PER_NODE: 243840,  # in MiB
                     },
-                    'resources': [
-                        {
-                            'name': '_rfm_gpu',
-                            'options': ['--gpus-per-node={num_gpus_per_node}'],
-                        },
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'devices': [
                         {
                             'type': DEVICE_TYPES.GPU,
@@ -270,16 +234,6 @@ site_configuration = {
                         # per node
                         EXTRAS.MEM_PER_NODE: 499680,  # in MiB
                     },
-                    'resources': [
-                        {
-                            'name': '_rfm_gpu',
-                            'options': ['--gpus-per-node={num_gpus_per_node}'],
-                        },
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'devices': [
                         {
                             'type': DEVICE_TYPES.GPU,
@@ -298,26 +252,6 @@ site_configuration = {
             'cxx': 'g++',
             'ftn': 'gfortran',
         },
-        {
-            'name': 'foss-2021a',
-            'cc': 'mpicc',
-            'cxx': 'mpicxx',
-            'ftn': 'mpif90',
-            'modules': ['foss/2021a']
-        },
-        {
-            'name': 'intel-2021a',
-            'modules': ['intel'],
-            'cc': 'mpiicc',
-            'cxx': 'mpiicpc',
-            'ftn': 'mpiifort',
-        },
-        {
-            'name': 'CUDA',
-            'modules': ['CUDA'],
-            'cc': 'nvcc',
-            'cxx': 'nvcc',
-        },
     ],
     'general': [
         {
@@ -329,3 +263,6 @@ site_configuration = {
     ],
     'logging': common_logging_config(),
 }
+
+# Set common Slurm config options
+update_common_slurm_partition_config(site_configuration)

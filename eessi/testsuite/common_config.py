@@ -2,6 +2,8 @@ import os
 
 import reframe.core.logging as rflog
 
+from eessi.testsuite.constants import FEATURES
+
 perflog_format = '|'.join([
     '%(check_job_completion_time)s',
     '%(osuser)s',
@@ -30,6 +32,31 @@ format_perfvars = '|'.join([
     '%(check_perf_unit)s',
     ''  # final delimiter required
 ])
+
+
+def update_common_slurm_partition_config(site_configuration, set_memory=True):
+    """
+    Update ReFrame configuration file: set common config options for partitions using Slurm.
+    This function must be called at the end of the site configuration file (after defining site_configuration)
+    :param site_configuration: site configuration dictionary
+    :param set_memory: set memory resources
+    """
+    for system in site_configuration['systems']:
+        for partition in system['partitions']:
+            if partition['scheduler'] in ['slurm', 'squeue']:
+                # use --nodes option to ensure the exact number of nodes is requested
+                partition['sched_options'] = {'use_nodes_option': True}
+                partition['resources'] = partition.get('resources', [])
+                if set_memory:
+                    partition['resources'] += [{
+                        'name': 'memory',
+                        'options': ['--mem={size}'],
+                    }]
+                if FEATURES.GPU in partition['features']:
+                    partition['resources'] += [{
+                        'name': '_rfm_gpu',
+                        'options': ['--gpus-per-node={num_gpus_per_node}'],
+                    }]
 
 
 def common_logging_config(prefix=None):
@@ -74,7 +101,7 @@ def common_logging_config(prefix=None):
 
 def common_general_config(prefix=None):
     """
-    return common configuration for the 'general' section of the ReFrame configuration file
+    Return common configuration for the 'general' section of the ReFrame configuration file
     :param prefix: prefix for the report_file
     """
     prefix = os.getenv('RFM_PREFIX', prefix if prefix else '.')

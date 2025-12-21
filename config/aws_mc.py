@@ -12,7 +12,8 @@
 
 import os
 
-from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
+from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
+                                           update_common_slurm_partition_config)
 from eessi.testsuite.constants import EXTRAS, FEATURES, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
@@ -105,12 +106,6 @@ partition_defaults = {
         # steps inherit environment. It doesn't hurt to define this even if srun is not used
         'export SLURM_EXPORT_ENV=ALL'
     ],
-    'resources': [
-        {
-            'name': 'memory',
-            'options': ['--mem={size}'],
-        }
-    ],
     'extras': {
         # Node types have somewhat varying amounts of memory, but we'll make it easy on ourselves
         # All should _at least_ have this amount (30GB * 1E9 / (1024*1024) = 28610 MiB)
@@ -121,3 +116,6 @@ partition_defaults = {
 for system in site_configuration['systems']:
     for partition in system['partitions']:
         partition.update(partition_defaults)
+
+# Set common Slurm config options
+update_common_slurm_partition_config(site_configuration)

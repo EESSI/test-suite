@@ -12,8 +12,9 @@
 
 import os
 
-from eessi.testsuite.common_config import common_logging_config, common_eessi_init
+from eessi.testsuite.common_config import common_eessi_init, common_logging_config, update_common_slurm_partition_config
 from eessi.testsuite.constants import FEATURES
+
 
 # This config will write all staging, output and logging to subdirs under this prefix
 # Override with RFM_PREFIX environment variable
@@ -33,166 +34,76 @@ site_configuration = {
                     'name': 'x86_64-haswell-8c-15gb',
                     'access': ['--constraint=shape=c4.2xlarge', '--export=NONE'],
                     'descr': 'Haswell, 8 cores, 15 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'x86_64-haswell-16c-30gb',
                     'access': ['--constraint=shape=c4.4xlarge', '--export=NONE'],
                     'descr': 'Haswell, 16 cores, 30 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'x86_64-zen2-8c-16gb',
                     'access': ['--constraint=shape=c5a.2xlarge', '--export=NONE'],
                     'descr': 'Zen2, 8 cores, 16 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'x86_64-zen2-16c-32gb',
                     'access': ['--constraint=shape=c5a.4xlarge', '--export=NONE'],
                     'descr': 'Zen2, 16 cores, 32 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'x86_64-zen3-8c-16gb',
                     'access': ['--constraint=shape=c6a.2xlarge', '--export=NONE'],
                     'descr': 'Zen3, 8 cores, 16 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'X86_64-zen3-16c-32gb',
                     'access': ['--constraint=shape=c6a.4xlarge', '--export=NONE'],
                     'descr': 'Zen3, 16 cores, 32 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'x86_64-skylake-cascadelake-8c-16gb',
                     'access': ['--constraint=shape=c5.2xlarge', '--export=NONE'],
                     'descr': 'Skylake/Cascade lake, 8 cores, 16 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'x86_64-skylake-cascadelake-16c-32gb',
                     'access': ['--constraint=shape=c5.4xlarge', '--export=NONE'],
                     'descr': 'Skylake/Cascade lake, 16 cores, 32 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'x86_64-skylake-cascadelake-8c-16gb-nvme',
                     'access': ['--constraint=shape=c5d.2xlarge', '--export=NONE'],
                     'descr': 'Skylake/Cascade lake, 8 cores, 16 GiB, 200GB NVMe',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'x86_64-icelake-8c-16gb',
                     'access': ['--constraint=shape=c6i.2xlarge', '--export=NONE'],
                     'descr': 'Icelake, 8 cores, 16 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'aarch64-graviton2-8c-16gb',
                     'access': ['--constraint=shape=c6g.2xlarge', '--export=NONE'],
                     'descr': 'Graviton2, 8 cores, 16 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'aarch64-graviton2-16c-32gb',
                     'access': ['--constraint=shape=c6g.4xlarge', '--export=NONE'],
                     'descr': 'Graviton2, 16 cores, 32 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'aarch64-graviton2-32c-64gb',
                     'access': ['--constraint=shape=c6g.8xlarge', '--export=NONE'],
                     'descr': 'Graviton2, 32 cores, 64 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'aarch64-graviton3-8c-16gb',
                     'access': ['--constraint=shape=c7g.2xlarge', '--export=NONE'],
                     'descr': 'Graviton3, 8 cores, 16 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
                 {
                     'name': 'aarch64-graviton3-16c-32gb',
                     'access': ['--constraint=shape=c7g.4xlarge', '--export=NONE'],
                     'descr': 'Graviton3, 16 cores, 32 GiB',
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                 },
             ]
         },
@@ -233,3 +144,6 @@ partition_defaults = {
 for system in site_configuration['systems']:
     for partition in system['partitions']:
         partition.update(partition_defaults)
+
+# Set common Slurm config options
+update_common_slurm_partition_config(site_configuration)

@@ -1,10 +1,8 @@
 import os
 
-from eessi.testsuite.common_config import (common_logging_config,
-                                           common_general_config,
-                                           common_eessi_init,
-                                           get_sbatch_account)
-from eessi.testsuite.constants import *
+from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
+                                           get_sbatch_account, update_common_slurm_partition_config)
+from eessi.testsuite.constants import DEVICE_TYPES, EXTRAS, FEATURES, GPU_VENDORS, SCALES
 
 # Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
 # From ReFrame 4.8.1 we can no longer rely on SBATCH_ACCOUNT completely
@@ -43,10 +41,6 @@ site_configuration = {
                     ],
                     'environs': ['default'],
                     'max_jobs': 4,
-                    'resources': [
-                        # memory cannot be set on MareNostrum
-                        # The test-suite will give warning which can be ignored
-                    ],
                     # list(SCALES.keys()) adds all the scales from eessi.testsuite.constants as valid for thi partition
                     # Can be modified if not all scales can run on this partition, see e.g. the surf_snellius.py config
                     'features': [
@@ -78,14 +72,6 @@ site_configuration = {
                     ],
                     'environs': ['default'],
                     'max_jobs': 4,
-                    'resources': [
-                        {
-                            'name': '_rfm_gpu',
-                            'options': ['--gpus-per-node={num_gpus_per_node}'],
-                        },
-                        # memory cannot be set on MareNostrum
-                        # The test-suite will give warning which can be ignored
-                    ],
                     'devices': [
                         {
                             'type': DEVICE_TYPES.GPU,
@@ -124,3 +110,8 @@ site_configuration = {
         }
     ],
 }
+
+# Set common Slurm config options
+# memory cannot be set on MareNostrum
+# The test-suite will give warning which can be ignored
+update_common_slurm_partition_config(site_configuration, set_memory=False)

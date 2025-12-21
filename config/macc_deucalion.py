@@ -1,7 +1,8 @@
 import os
 
-from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
-from eessi.testsuite.constants import *  # noqa: F403
+from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
+                                           update_common_slurm_partition_config)
+from eessi.testsuite.constants import EXTRAS, FEATURES, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
 # Override with RFM_PREFIX environment variable
@@ -34,12 +35,6 @@ site_configuration = {
                     'access': ['-p normal-arm', '--export=None'],
                     'environs': ['default'],
                     'max_jobs': 120,
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'features': [
                         FEATURES.CPU,
                     ] + list(SCALES.keys()),
@@ -73,3 +68,6 @@ site_configuration = {
         }
     ],
 }
+
+# Set common Slurm config options
+update_common_slurm_partition_config(site_configuration)

@@ -15,11 +15,9 @@
 
 import os
 
-from eessi.testsuite.common_config import (common_eessi_init,
-                                           common_general_config,
-                                           common_logging_config,
-                                           get_sbatch_account)
-from eessi.testsuite.constants import *  # noqa: F403
+from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
+                                           get_sbatch_account, update_common_slurm_partition_config)
+from eessi.testsuite.constants import EXTRAS, FEATURES, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
 # Override with RFM_PREFIX environment variable
@@ -68,12 +66,6 @@ site_configuration = {
                     'features': [
                         FEATURES.CPU,
                     ] + list(SCALES.keys()),
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
@@ -107,12 +99,6 @@ site_configuration = {
                 #             'num_devices': 8,
                 #         }
                 #     ],
-                #     'resources': [
-                #         {
-                #             'name': '_rfm_gpu',
-                #             'options': ['--gpus-per-node={num_gpus_per_node}'],
-                #         }
-                #     ],
                 #     'features': [
                 #         FEATURES.GPU,
                 #     ] + list(SCALES.keys()),
@@ -139,3 +125,6 @@ site_configuration = {
         }
     ],
 }
+
+# Set common Slurm config options
+update_common_slurm_partition_config(site_configuration)
