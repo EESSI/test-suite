@@ -46,7 +46,7 @@ def update_common_slurm_partition_config(site_configuration, set_memory=True):
             if partition['scheduler'] in ['slurm', 'squeue']:
                 # use --nodes option to ensure the exact number of nodes is requested
                 partition['sched_options'] = {'use_nodes_option': True}
-                partition['resources'] = partition.get('resources', [])
+                partition['resources'] = []
                 if set_memory:
                     partition['resources'] += [{
                         'name': 'memory',
