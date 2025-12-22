@@ -184,11 +184,6 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
         energy_diff = sn.abs(energy - (-4.6223613))
         return sn.assert_lt(energy_diff, 1e-4)
 
-#     @performance_function('timesteps/s')
-#     def perf(self):
-#         regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s'
-#         return sn.extractsingle(regex, self.stdout, 'perf', float)
-
     @sanity_function
     def assert_sanity(self):
         '''Check all sanity criteria'''
@@ -199,23 +194,6 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
             self.check_number_neighbors(),
             self.assert_energy(),
         ])
-
-    @run_after('setup')
-    def set_executable_opts(self):
-        """Set executable opts based on device_type parameter"""
-        # should also check if LAMMPS is installed with kokkos.
-        # Because this executable opt is only for that case.
-        if self.device_type == DEVICE_TYPES.GPU:
-            if 'kokkos' in self.module_name:
-                self.executable_opts += [
-                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
-                    '-suffix kk',
-                    '-package kokkos newton on neigh half',
-                ]
-                utils.log(f'executable_opts set to {self.executable_opts}')
-            else:
-                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
-                utils.log(f'executable_opts set to {self.executable_opts}')
 
 
 @rfm.simple_test
@@ -239,11 +217,6 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
         energy_diff = sn.abs(energy - (-25290.7300))
         return sn.assert_lt(energy_diff, 1e-1)
 
-#     @performance_function('timesteps/s')
-#     def perf(self):
-#         regex = r'^Performance: [.0-9]+ ns/day, [.0-9]+ hours/ns, (?P<perf>[.0-9]+) timesteps/s'
-#         return sn.extractsingle(regex, self.stdout, 'perf', float)
-
     @sanity_function
     def assert_sanity(self):
         '''Check all sanity criteria'''
@@ -254,23 +227,6 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
             self.check_number_neighbors(),
             self.assert_energy(),
         ])
-
-    @run_after('setup')
-    def set_executable_opts(self):
-        """Set executable opts based on device_type parameter"""
-        # should also check if the lammps is installed with kokkos.
-        # Because this executable opt is only for that case.
-        if self.device_type == DEVICE_TYPES.GPU:
-            if 'kokkos' in self.module_name:
-                self.executable_opts += [
-                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
-                    '-suffix kk',
-                    '-package kokkos newton on neigh half',
-                ]
-                utils.log(f'executable_opts set to {self.executable_opts}')
-            else:
-                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
-                utils.log(f'executable_opts set to {self.executable_opts}')
 
 
 class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
@@ -311,22 +267,6 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
         else:
             self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
                           "test will definitely fail, therefore skipping this test.")
-    @run_after('setup')
-    def set_executable_opts(self):
-        """Set executable opts based on device_type parameter"""
-        # should also check if the lammps is installed with kokkos.
-        # Because this executable opt is only for that case.
-        if self.device_type == DEVICE_TYPES.GPU:
-            if 'kokkos' in self.module_name:
-                self.executable_opts += [
-                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
-                    '-suffix kk',
-                    '-package kokkos newton on neigh half',
-                ]
-                utils.log(f'executable_opts set to {self.executable_opts}')
-            else:
-                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
-                utils.log(f'executable_opts set to {self.executable_opts}')
 
 
 @rfm.simple_test
@@ -448,11 +388,6 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
     # This requires a LAMMPS with ALL+OMBD functionality, i.e. only select modules with -ALL_OBMD versionsuffix
     module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*ALL.*OBMD', name_only=False))
 
-#     @performance_function('timesteps/s')
-#     def perf(self):
-#         regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
-#         return sn.extractsingle(regex, self.stdout, 'perf', float)
-
     @sanity_function
     def assert_sanity(self):
         '''Check all sanity criteria'''
@@ -475,23 +410,6 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
             self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
                           "test will definitely fail, therefore skipping this test.")
 
-    @run_after('setup')
-    def set_executable_opts(self):
-        """Set executable opts based on device_type parameter"""
-        # should also check if the lammps is installed with kokkos.
-        # Because this executable opt is only for that case.
-        if self.device_type == DEVICE_TYPES.GPU:
-            if 'kokkos' in self.module_name:
-                self.executable_opts += [
-                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
-                    '-suffix kk',
-                    '-package kokkos newton on neigh half',
-                ]
-                utils.log(f'executable_opts set to {self.executable_opts}')
-            else:
-                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
-                utils.log(f'executable_opts set to {self.executable_opts}')
-
 
 @rfm.simple_test
 class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
@@ -507,15 +425,6 @@ class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
     # This requires a LAMMPS with OBMD functionality, i.e. only select modules with -OBMD versionsuffix
     # We _could_ remove the '-' and '$' to also match e.g. ALL_OBMD
     module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*OBMD', name_only=False))
-
-#     @performance_function('timesteps/s')
-#     def perf(self):
-#         regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
-#         performance = sn.extractsingle(regex, self.stdout, 'perf', float)
-#         if not isinstance(performance, float):
-#             regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Katom-step/s'
-#             performance = sn.extractsingle(regex, self.stdout, 'perf', float)
-#         return performance
 
     @sanity_function
     def assert_sanity(self):
@@ -539,19 +448,3 @@ class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
             self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
                           "test will definitely fail, therefore skipping this test.")
 
-    @run_after('setup')
-    def set_executable_opts(self):
-        """Set executable opts based on device_type parameter"""
-        # should also check if the lammps is installed with kokkos.
-        # Because this executable opt is only for that case.
-        if self.device_type == DEVICE_TYPES.GPU:
-            if 'kokkos' in self.module_name:
-                self.executable_opts += [
-                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
-                    '-suffix kk',
-                    '-package kokkos newton on neigh half',
-                ]
-                utils.log(f'executable_opts set to {self.executable_opts}')
-            else:
-                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
-                utils.log(f'executable_opts set to {self.executable_opts}')
