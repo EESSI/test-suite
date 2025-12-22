@@ -3,6 +3,8 @@ This module tests the binary 'lmp' in available modules containing substring 'LA
 The tests come from the lammps github repository (https://github.com/lammps/lammps/)
 """
 
+import os
+
 import reframe as rfm
 from reframe.core.builtins import deferrable, parameter, performance_function, run_after, sanity_function
 import reframe.utility.sanity as sn
@@ -253,14 +255,8 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_base, EESSI_M
     tags = {TAGS.CI}
 
     sourcesdir = 'src/ALL+OBMD'
-    readonly_files = [
-        'input.py',
-        'dpd_8map_obmd.data',
-        'in.balance.staggered.global',
-        '__init__.py',
-        'in.simulation.staggered.global',
-        'in.lj_all2',
-    ]
+    all_readonly_files = True
+
     executable = 'lmp -in in.balance.staggered.global'
     scale = parameter(filter_scale_up_to_8_cores())
 
@@ -366,14 +362,8 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_base, EESSI_M
     tags = {TAGS.CI}
 
     sourcesdir = 'src/ALL+OBMD'
-    readonly_files = [
-        'input.py',
-        'dpd_8map_obmd.data',
-        'in.balance.staggered.global',
-        '__init__.py',
-        'in.simulation.staggered.global',
-        'in.lj_all2',
-    ]
+    all_readonly_files = True
+
     executable = 'lmp -var x 10 -var y 10 -var z 10 -var t 1000 -in in.lj_all2'
     scale = parameter(filter_scale_partial_and_full_nodes())
 
@@ -409,6 +399,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_base, EESSI_M
             self.assert_run_steps_1000(),
             self.assert_imbalence(),
         ])
+
 
     @run_after('init')
     def check_if_ALL_included(self):
@@ -483,15 +474,9 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
     tags = {TAGS.CI}
 
     sourcesdir = 'src/ALL+OBMD'
+    all_readonly_files = True
+
     executable = 'lmp -in in.simulation.staggered.global'
-    readonly_files = [
-        'input.py',
-        'dpd_8map_obmd.data',
-        'in.balance.staggered.global',
-        '__init__.py',
-        'in.simulation.staggered.global',
-        'in.lj_all2',
-    ]
 
     # This requires a LAMMPS with ALL+OMBD functionality, i.e. only select modules with -ALL_OBMD versionsuffix
     module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*ALL.*OBMD', name_only=False))
@@ -546,14 +531,7 @@ class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
     tags = {TAGS.CI}
 
     sourcesdir = 'src/ALL+OBMD'
-    readonly_files = [
-        'input.py',
-        'dpd_8map_obmd.data',
-        'in.balance.staggered.global',
-        '__init__.py',
-        'in.simulation.staggered.global',
-        'in.lj_all2',
-    ]
+    all_readonly_files = True
 
     prerun_cmds = ['python input.py']
 
