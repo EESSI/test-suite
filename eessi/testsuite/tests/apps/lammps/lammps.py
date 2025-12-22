@@ -89,7 +89,7 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
 
     @deferrable
     def assert_run_steps(self):
-        '''Assert that the test calulated the right number of neighbours'''
+        '''Assert that the test calulated the right number of steps'''
         regex = r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for (?P<steps>\S+) steps with [0-9]+ atoms'
         n_steps = sn.extractsingle(regex, self.stdout, 'steps', int)
         return sn.assert_eq(n_steps, 10000)
@@ -104,6 +104,23 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
         else:
             msg = f"No mapping of device type {self.device_type} to a COMPUTE_UNITS was specified in this test"
             raise NotImplementedError(msg)
+
+    @run_after('setup')
+    def set_executable_opts(self):
+        """Set executable opts based on device_type parameter"""
+        # should also check if the lammps is installed with kokkos.
+        # Because this executable opt is only for that case.
+        if self.device_type == DEVICE_TYPES.GPU:
+            if 'kokkos' in self.module_name:
+                self.executable_opts += [
+                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
+                    '-suffix kk',
+                    '-package kokkos newton on neigh half',
+                ]
+                utils.log(f'executable_opts set to {self.executable_opts}')
+            else:
+                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
+                utils.log(f'executable_opts set to {self.executable_opts}')
 
     # Function to check NDS
     def compute_ndenprof(self, values, bins, start, stop):
@@ -132,10 +149,16 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
 
     @deferrable
     def assert_NDS(self):
-        '''Asert that the calculated energy at timestep 100 is with the margin of error'''
+        '''Assert that the calculated energy at timestep 100 is with the margin of error'''
         regex = r'^\s+[.0-9]+\s+[.0-9]+\s+[.0-9]+\s+[.0-9]+$'
         values = sn.extractall(regex, 'nden_profile.out')
         return self.compute_ndenprof(values, 30, 10, 100)
+
+    @performance_function('timesteps/s')
+    def perf(self):
+        # Note: final number may have different units, e.g. katom-step or Matom-step. This matches all.
+        regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ [a-zA-Z]*atom-step/s'
+        return sn.extractsingle(regex, self.stdout, 'perf', float)
 
 
 @rfm.simple_test
@@ -161,10 +184,10 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
         energy_diff = sn.abs(energy - (-4.6223613))
         return sn.assert_lt(energy_diff, 1e-4)
 
-    @performance_function('timesteps/s')
-    def perf(self):
-        regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s'
-        return sn.extractsingle(regex, self.stdout, 'perf', float)
+#     @performance_function('timesteps/s')
+#     def perf(self):
+#         regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s'
+#         return sn.extractsingle(regex, self.stdout, 'perf', float)
 
     @sanity_function
     def assert_sanity(self):
@@ -216,10 +239,10 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
         energy_diff = sn.abs(energy - (-25290.7300))
         return sn.assert_lt(energy_diff, 1e-1)
 
-    @performance_function('timesteps/s')
-    def perf(self):
-        regex = r'^Performance: [.0-9]+ ns/day, [.0-9]+ hours/ns, (?P<perf>[.0-9]+) timesteps/s'
-        return sn.extractsingle(regex, self.stdout, 'perf', float)
+#     @performance_function('timesteps/s')
+#     def perf(self):
+#         regex = r'^Performance: [.0-9]+ ns/day, [.0-9]+ hours/ns, (?P<perf>[.0-9]+) timesteps/s'
+#         return sn.extractsingle(regex, self.stdout, 'perf', float)
 
     @sanity_function
     def assert_sanity(self):
@@ -250,19 +273,14 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
                 utils.log(f'executable_opts set to {self.executable_opts}')
 
 
-@rfm.simple_test
-class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_base, EESSI_Mixin):
+class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
     tags = {TAGS.CI}
 
     sourcesdir = 'src/ALL+OBMD'
     all_readonly_files = True
 
-    executable = 'lmp -in in.balance.staggered.global'
-    scale = parameter(filter_scale_up_to_8_cores())
-
-    # This requires a LAMMPS with ALL functionality, i.e. only select modules with -ALL versionsuffix
-    # We _could_ remove the '-' and '$' to also match e.g. ALL_OBMD
-    module_name = parameter(utils.find_modules(r'LAMMPS\/.*-ALL$', name_only=False))
+    # This requires a LAMMPS with ALL functionality, i.e. only select modules with ALL in the versionsuffix
+    module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*ALL', name_only=False))
 
     @deferrable
     def check_number_neighbors(self):
@@ -271,11 +289,6 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_base, EESSI_M
         n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
         n_neigh_diff = sn.abs(n_neigh - 2529)
         return sn.assert_lt(n_neigh_diff, 1100)
-
-    @performance_function('timesteps/s')
-    def perf(self):
-        regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
-        return sn.extractsingle(regex, self.stdout, 'perf', float)
 
     @sanity_function
     def assert_sanity(self):
@@ -298,6 +311,28 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_base, EESSI_M
         else:
             self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
                           "test will definitely fail, therefore skipping this test.")
+    @run_after('setup')
+    def set_executable_opts(self):
+        """Set executable opts based on device_type parameter"""
+        # should also check if the lammps is installed with kokkos.
+        # Because this executable opt is only for that case.
+        if self.device_type == DEVICE_TYPES.GPU:
+            if 'kokkos' in self.module_name:
+                self.executable_opts += [
+                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
+                    '-suffix kk',
+                    '-package kokkos newton on neigh half',
+                ]
+                utils.log(f'executable_opts set to {self.executable_opts}')
+            else:
+                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
+                utils.log(f'executable_opts set to {self.executable_opts}')
+
+
+@rfm.simple_test
+class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_ALL_balance_staggered_global_base, EESSI_Mixin):
+    executable = 'lmp -in in.balance.staggered.global'
+    scale = parameter(filter_scale_up_to_8_cores())
 
     @deferrable
     def assert_imbalence(self):
@@ -339,56 +374,17 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_base, EESSI_M
             print(f"Improvement: {improvement}")
             return sn.assert_gt(initial_imbalance / final_imbalance, 1.5)
 
-    @run_after('setup')
-    def set_executable_opts(self):
-        """Set executable opts based on device_type parameter"""
-        # should also check if the lammps is installed with kokkos.
-        # Because this executable opt is only for that case.
-        if self.device_type == DEVICE_TYPES.GPU:
-            if 'kokkos' in self.module_name:
-                self.executable_opts += [
-                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
-                    '-suffix kk',
-                    '-package kokkos newton on neigh half',
-                ]
-                utils.log(f'executable_opts set to {self.executable_opts}')
-            else:
-                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
-                utils.log(f'executable_opts set to {self.executable_opts}')
-
 
 @rfm.simple_test
-class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_base, EESSI_Mixin):
-    tags = {TAGS.CI}
-
-    sourcesdir = 'src/ALL+OBMD'
-    all_readonly_files = True
-
+class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_ALL_balance_staggered_global_base, EESSI_Mixin):
     executable = 'lmp -var x 10 -var y 10 -var z 10 -var t 1000 -in in.lj_all2'
     scale = parameter(filter_scale_partial_and_full_nodes())
-
-    # This requires a LAMMPS with ALL functionality, i.e. only select modules with -ALL versionsuffix
-    # We _could_ remove the '-' and '$' to also match e.g. ALL_OBMD
-    module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*ALL', name_only=False))
 
     def assert_run_steps_1000(self):
         '''Assert that the test calulated the right number of neighbours'''
         regex = r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for (?P<steps>\S+) steps with [0-9]+ atoms'
         n_steps = sn.extractsingle(regex, self.stdout, 'steps', int)
         return sn.assert_eq(n_steps, 1000)
-
-    @deferrable
-    def check_number_neighbors(self):
-        '''Assert that the test calulated the right number of neighbours'''
-        regex = r'Neighbor list builds = (?P<neigh>\S+)'
-        n_neigh = sn.extractsingle(regex, self.stdout, 'neigh', int)
-        n_neigh_diff = sn.abs(n_neigh - 2529)
-        return sn.assert_lt(n_neigh_diff, 1100)
-
-    @performance_function('timesteps/s')
-    def perf(self):
-        regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
-        return sn.extractsingle(regex, self.stdout, 'perf', float)
 
     @sanity_function
     def assert_sanity(self):
@@ -400,18 +396,6 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_base, EESSI_M
             self.assert_imbalence(),
         ])
 
-
-    @run_after('init')
-    def check_if_ALL_included(self):
-        """Only run this test when LAMMPS has the ALL package."""
-        # Can determine if this is included based on the versionsuffix.
-        # At this moment the package is not upstream available and has the versionsuffix ALL.
-        # See https://github.com/multixscale/dev.eessi.io-lammps-plugin-obmd/pull/7
-        if 'ALL' in self.module_name:
-            return
-        else:
-            self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
-                          "test will definitely fail, therefore skipping this test.")
 
     @deferrable
     def assert_imbalence(self):
@@ -451,23 +435,6 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_base, EESSI_M
             print(f"Improvement {improvement}")
             return sn.assert_gt(initial_imbalance / final_imbalance, 1.5)
 
-    @run_after('setup')
-    def set_executable_opts(self):
-        """Set executable opts based on device_type parameter"""
-        # should also check if the lammps is installed with kokkos.
-        # Because this executable opt is only for that case.
-        if self.device_type == DEVICE_TYPES.GPU:
-            if 'kokkos' in self.module_name:
-                self.executable_opts += [
-                    f'-kokkos on t {self.num_cpus_per_task} g {self.num_gpus_per_node}',
-                    '-suffix kk',
-                    '-package kokkos newton on neigh half',
-                ]
-                utils.log(f'executable_opts set to {self.executable_opts}')
-            else:
-                self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
-                utils.log(f'executable_opts set to {self.executable_opts}')
-
 
 @rfm.simple_test
 class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
@@ -481,10 +448,10 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
     # This requires a LAMMPS with ALL+OMBD functionality, i.e. only select modules with -ALL_OBMD versionsuffix
     module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*ALL.*OBMD', name_only=False))
 
-    @performance_function('timesteps/s')
-    def perf(self):
-        regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
-        return sn.extractsingle(regex, self.stdout, 'perf', float)
+#     @performance_function('timesteps/s')
+#     def perf(self):
+#         regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
+#         return sn.extractsingle(regex, self.stdout, 'perf', float)
 
     @sanity_function
     def assert_sanity(self):
@@ -541,14 +508,14 @@ class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
     # We _could_ remove the '-' and '$' to also match e.g. ALL_OBMD
     module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*OBMD', name_only=False))
 
-    @performance_function('timesteps/s')
-    def perf(self):
-        regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
-        performance = sn.extractsingle(regex, self.stdout, 'perf', float)
-        if not isinstance(performance, float):
-            regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Katom-step/s'
-            performance = sn.extractsingle(regex, self.stdout, 'perf', float)
-        return performance
+#     @performance_function('timesteps/s')
+#     def perf(self):
+#         regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Matom-step/s'
+#         performance = sn.extractsingle(regex, self.stdout, 'perf', float)
+#         if not isinstance(performance, float):
+#             regex = r'^Performance: [.0-9]+ tau/day, (?P<perf>[.0-9]+) timesteps/s, [.0-9]+ Katom-step/s'
+#             performance = sn.extractsingle(regex, self.stdout, 'perf', float)
+#         return performance
 
     @sanity_function
     def assert_sanity(self):
