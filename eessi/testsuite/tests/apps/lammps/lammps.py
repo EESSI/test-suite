@@ -288,7 +288,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
         elif final_imbalance == 0:
             # Protect from division by zero. A final imbalance of 0 is an 'infinite' improvement
             # and should thus make this sanity check pass
-            utils.log(f"Final imbalance was 0. Sanity check will pass..")
+            utils.log("Final imbalance was 0. Sanity check will pass.")
             return sn.assert_eq(final_imbalance, 0)
         else:
             # Compute improvement in imbalance, and check that imbalance improved by at least 50%
