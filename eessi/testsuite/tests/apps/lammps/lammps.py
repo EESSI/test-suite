@@ -228,6 +228,11 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
             self.assert_energy(),
         ])
 
+    @performance_function('timesteps/s')
+    def perf(self):
+        regex = r'^Performance: [.0-9]+ ns/day, [.0-9]+ hours/ns, (?P<perf>[.0-9]+) timesteps/s'
+        return sn.extractsingle(regex, self.stdout, 'perf', float)
+
 
 class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
     tags = {TAGS.CI}
