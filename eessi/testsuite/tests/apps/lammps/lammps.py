@@ -8,7 +8,7 @@ from reframe.core.builtins import deferrable, parameter, performance_function, r
 import reframe.utility.sanity as sn
 
 from eessi.testsuite import utils
-from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, TAGS, SCALES
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
 from statistics import mean
@@ -267,6 +267,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
         else:
             self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
                           "test will definitely fail, therefore skipping this test.")
+
     @deferrable
     def assert_imbalence(self):
         '''Assert that the imbalance has gone down by at least 50%, OR that it was already very low (<1.1)'''
@@ -404,4 +405,3 @@ class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
         else:
             self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
                           "test will definitely fail, therefore skipping this test.")
-
