@@ -56,6 +56,9 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
     # Parameterize over all modules that start with LAMMPS
     module_name = parameter(utils.find_modules('LAMMPS'))
 
+    all_readonly_files = True
+    is_ci_test = True
+
     def required_mem_per_node(self):
         mem = {'slope': 0.07, 'intercept': 0.5}
         return (self.num_tasks_per_node * mem['slope'] + mem['intercept']) * 1024
@@ -88,11 +91,11 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
         return sn.assert_eq(n_atoms, 32000)
 
     @deferrable
-    def assert_run_steps(self):
+    def assert_run_steps(self, ref_nsteps=10000):
         '''Assert that the test calulated the right number of steps'''
         regex = r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for (?P<steps>\S+) steps with [0-9]+ atoms'
         n_steps = sn.extractsingle(regex, self.stdout, 'steps', int)
-        return sn.assert_eq(n_steps, 10000)
+        return sn.assert_eq(n_steps, ref_nsteps)
 
     @run_after('init')
     def set_compute_unit(self):
@@ -163,10 +166,7 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
 
 @rfm.simple_test
 class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
-    tags = {TAGS.CI}
-
     sourcesdir = 'src/lj'
-    readonly_files = ['in.lj']
     executable = 'lmp -in in.lj'
 
     @deferrable
@@ -178,7 +178,7 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
 
     @deferrable
     def assert_energy(self):
-        '''Asert that the calculated energy at timestep 100 is with the margin of error'''
+        '''Assert that the calculated energy at timestep 100 is with the margin of error'''
         regex = r'^\s+100\s+[-+]?[.0-9]+\s+[-+]?[.0-9]+\s+0\s+(?P<energy>[-+]?[.0-9]+)'
         energy = sn.extractsingle(regex, self.stdout, 'energy', float)
         energy_diff = sn.abs(energy - (-4.6223613))
@@ -200,7 +200,7 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
 class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
     sourcesdir = 'src/rhodo'
     executable = 'lmp -in in.rhodo'
-    readonly_files = ['data.rhodo', 'in.rhodo']
+    is_ci_test = False
 
     @deferrable
     def check_number_neighbors(self):
@@ -211,7 +211,7 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
 
     @deferrable
     def assert_energy(self):
-        '''Asert that the calculated energy at timestep 100 is with the margin of error'''
+        '''Assert that the calculated energy at timestep 100 is with the margin of error'''
         regex = r'^-+\s+Step\s+100\s+-+\s+CPU\s=\s+[.0-9]+\s+\(sec\)\s+-+\nTotEng\s+=\s+(?P<energy>[-+]?[.0-9]+)'
         energy = sn.extractsingle(regex, self.stdout, 'energy', float)
         energy_diff = sn.abs(energy - (-25290.7300))
@@ -235,10 +235,7 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
 
 
 class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
-    tags = {TAGS.CI}
-
     sourcesdir = 'src/ALL+OBMD'
-    all_readonly_files = True
 
     # This requires a LAMMPS with ALL functionality, i.e. only select modules with ALL in the versionsuffix
     module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*ALL', name_only=False))
@@ -272,32 +269,12 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
         else:
             self.skip(msg="This test is not going to pass since this LAMMPS package does not include ALL."
                           "test will definitely fail, therefore skipping this test.")
-
-
-@rfm.simple_test
-class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_ALL_balance_staggered_global_base, EESSI_Mixin):
-    executable = 'lmp -in in.balance.staggered.global'
-    scale = parameter(filter_scale_up_to_8_cores())
-
     @deferrable
     def assert_imbalence(self):
         '''Assert that the imbalance has gone down by at least 50%, OR that it was already very low (<1.1)'''
-        # Extract the number in the 14th column (which is the imbalance) from the row that has with '50'
-        # in the first column (i.e. step 50)
-        imb_step_50_regex = (
-            r'^\s+50\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+'
-            r'\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<var14>[-+]?[.0-9]+)\s'
-        )
-        # Extract the number in the 14th column (which is the imbalance) from the row that has with '10000'
-        # in the first column (i.e. step 10000)
-        imb_step_10000_regex = (
-            r'^\s+10000\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+'
-            r'\S+\s+\S+\s+\S+\s+\S+\s+(?P<var14>[-+]?[.0-9]+)\s'
-        )
-
-        # If var14 is 1, that indicates perfect balance. So the imbalance is essentially var14-1.
-        initial_imbalance = sn.extractsingle(imb_step_50_regex, self.stdout, 'var14', float) - 1
-        final_imbalance = sn.extractsingle(imb_step_10000_regex, self.stdout, 'var14', float) - 1
+        # If imb is 1, that indicates perfect balance. So the imbalance is essentially imb-1.
+        initial_imbalance = sn.extractsingle(self.init_imb_regex, self.stdout, 'imb', float) - 1
+        final_imbalance = sn.extractsingle(self.final_imb_regex, self.stdout, 'imb', float) - 1
 
         # Check if imbalance was small both at the start and end
         no_imbalance = sn.all(
@@ -309,7 +286,6 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_ALL_balance_s
             # If there was no imbalance at start or end, just assert that this was the case
             return sn.assert_true(no_imbalance)
         elif final_imbalance == 0:
-            print("Divide by zero")
             # Protect from division by zero. A final imbalance of 0 is an 'infinite' improvement
             # and should thus make this sanity check pass
             return sn.assert_eq(final_imbalance, 0)
@@ -321,15 +297,38 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_ALL_balance_s
 
 
 @rfm.simple_test
+class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_ALL_balance_staggered_global_base, EESSI_Mixin):
+    executable = 'lmp -in in.balance.staggered.global'
+    scale = parameter(filter_scale_up_to_8_cores())
+
+    # Extract the number in the 14th column (which is the imbalance) from the row that has with '50'
+    # in the first column (i.e. step 50)
+    init_imb_regex = (
+        r'^\s+50\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<imb>[-+]?[.0-9]+)\s'
+    )
+
+    # Extract the number in the 14th column (which is the imbalance) from the row that has with '10000'
+    # in the first column (i.e. step 10000)
+    final_imb_regex = (
+        r'^\s+10000\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<imb>[-+]?[.0-9]+)\s'
+    )
+
+
+@rfm.simple_test
 class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_ALL_balance_staggered_global_base, EESSI_Mixin):
     executable = 'lmp -var x 10 -var y 10 -var z 10 -var t 1000 -in in.lj_all2'
     scale = parameter(filter_scale_partial_and_full_nodes())
 
-    def assert_run_steps_1000(self):
-        '''Assert that the test calulated the right number of neighbours'''
-        regex = r'^Loop time of (?P<perf>[.0-9]+) on [0-9]+ procs for (?P<steps>\S+) steps with [0-9]+ atoms'
-        n_steps = sn.extractsingle(regex, self.stdout, 'steps', int)
-        return sn.assert_eq(n_steps, 1000)
+    # Extract the number in the 6th column (which is the imbalance) from the row that has with '50'
+    # in the first column (i.e. step 50)
+    init_imb_regex = (
+        r'^\s+50\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<imb>[-+]?[.0-9]+)\s+\S+\s+\S+\s+\S+\s+\S+\s*$'
+    )
+    # Extract the number in the 6th column (which is the imbalance) from the row that has with '1000'
+    # in the first column (i.e. step 1000)
+    final_imb_regex = (
+        r'^\s+1000\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<imb>[-+]?[.0-9]+)\s+\S+\s+\S+\s+\S+\s+\S+\s*$'
+    )
 
     @sanity_function
     def assert_sanity(self):
@@ -337,56 +336,14 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_ALL_balance_s
         return sn.all([
             self.assert_lammps_openmp_treads(),
             self.assert_lammps_processor_grid(),
-            self.assert_run_steps_1000(),
+            self.assert_run_steps(ref_nsteps=1000),
             self.assert_imbalence(),
         ])
 
 
-    @deferrable
-    def assert_imbalence(self):
-        '''Assert that the imbalance has gone down by at least 50%, OR that it was already very low (<1.1)'''
-        # Extract the number in the 6th column (which is the imbalance) from the row that has with '50'
-        # in the first column (i.e. step 50)
-        imb_step_50_regex = (
-            r'^\s+50\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<var6>[-+]?[.0-9]+)\s+\S+\s+\S+\s+\S+\s+\S+\s*$'
-        )
-        # Extract the number in the 6th column (which is the imbalance) from the row that has with '1000'
-        # in the first column (i.e. step 1000)
-        imb_step_1000_regex = (
-            r'^\s+1000\s+\S+\s+\S+\s+\S+\s+\S+\s+(?P<var6>[-+]?[.0-9]+)\s+\S+\s+\S+\s+\S+\s+\S+\s*$'
-        )
-
-        # If var6 is 1, that indicates perfect balance. So the imbalance is essentially var6-1.
-        initial_imbalance = sn.extractsingle(imb_step_50_regex, self.stdout, 'var6', float) - 1
-        final_imbalance = sn.extractsingle(imb_step_1000_regex, self.stdout, 'var6', float) - 1
-
-        # Check if imbalance was small both at the start and end
-        no_imbalance = sn.all(
-            [initial_imbalance < 0.1, final_imbalance < 0.1]
-        )
-
-        if no_imbalance:
-            print("No imbalance")
-            # If there was no imbalance at start or end, just assert that this was the case
-            return sn.assert_true(no_imbalance)
-        elif final_imbalance == 0:
-            print("Divide by zero")
-            # Protect from division by zero. A final imbalance of 0 is an 'infinite' improvement
-            # and should thus make this sanity check pass
-            return sn.assert_eq(final_imbalance, 0)
-        else:
-            # Compute improvement in imbalance, and check that imbalance improved by at least 50%
-            improvement = initial_imbalance / final_imbalance
-            print(f"Improvement {improvement}")
-            return sn.assert_gt(initial_imbalance / final_imbalance, 1.5)
-
-
 @rfm.simple_test
 class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
-    tags = {TAGS.CI}
-
     sourcesdir = 'src/ALL+OBMD'
-    all_readonly_files = True
 
     executable = 'lmp -in in.simulation.staggered.global'
 
@@ -418,10 +375,7 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
 
 @rfm.simple_test
 class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
-    tags = {TAGS.CI}
-
     sourcesdir = 'src/ALL+OBMD'
-    all_readonly_files = True
 
     prerun_cmds = ['python input.py']
 
