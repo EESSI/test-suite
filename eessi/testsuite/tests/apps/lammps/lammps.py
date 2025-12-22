@@ -274,6 +274,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
         # If imb is 1, that indicates perfect balance. So the imbalance is essentially imb-1.
         initial_imbalance = sn.extractsingle(self.init_imb_regex, self.stdout, 'imb', float) - 1
         final_imbalance = sn.extractsingle(self.final_imb_regex, self.stdout, 'imb', float) - 1
+        utils.log(f"Improved load balancing from {initial_imbalance} to {final_imbalance} (0 = perfect balance).")
 
         # Check if imbalance was small both at the start and end
         no_imbalance = sn.all(
@@ -281,15 +282,18 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
         )
 
         if no_imbalance:
+            utils.log("No imbalance at either start or end of the simulation. Sanity check will pass.")
             # If there was no imbalance at start or end, just assert that this was the case
             return sn.assert_true(no_imbalance)
         elif final_imbalance == 0:
             # Protect from division by zero. A final imbalance of 0 is an 'infinite' improvement
             # and should thus make this sanity check pass
+            utils.log(f"Final imbalance was 0. Sanity check will pass..")
             return sn.assert_eq(final_imbalance, 0)
         else:
             # Compute improvement in imbalance, and check that imbalance improved by at least 50%
             improvement = initial_imbalance / final_imbalance
+            utils.log(f"Improved load balancing by a factor of: {improvement}.")
             return sn.assert_gt(initial_imbalance / final_imbalance, 1.5)
 
 
