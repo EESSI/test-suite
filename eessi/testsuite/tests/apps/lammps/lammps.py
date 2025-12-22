@@ -3,8 +3,6 @@ This module tests the binary 'lmp' in available modules containing substring 'LA
 The tests come from the lammps github repository (https://github.com/lammps/lammps/)
 """
 
-import os
-
 import reframe as rfm
 from reframe.core.builtins import deferrable, parameter, performance_function, run_after, sanity_function
 import reframe.utility.sanity as sn
