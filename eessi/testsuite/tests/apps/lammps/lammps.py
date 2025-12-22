@@ -281,7 +281,6 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
         )
 
         if no_imbalance:
-            print("No imbalance")
             # If there was no imbalance at start or end, just assert that this was the case
             return sn.assert_true(no_imbalance)
         elif final_imbalance == 0:
@@ -291,7 +290,6 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
         else:
             # Compute improvement in imbalance, and check that imbalance improved by at least 50%
             improvement = initial_imbalance / final_imbalance
-            print(f"Improvement: {improvement}")
             return sn.assert_gt(initial_imbalance / final_imbalance, 1.5)
 
 
