@@ -297,7 +297,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
 
 @rfm.simple_test
 class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_ALL_balance_staggered_global_base, EESSI_Mixin):
-    executable = 'lmp -in in.balance.staggered.global'
+    executable = 'lmp -in in.balance.staggered.global.small'
     scale = parameter(filter_scale_up_to_8_cores())
 
     # Extract the number in the 14th column (which is the imbalance) from the row that has with '50'
@@ -315,7 +315,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_ALL_balance_s
 
 @rfm.simple_test
 class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_ALL_balance_staggered_global_base, EESSI_Mixin):
-    executable = 'lmp -var x 10 -var y 10 -var z 10 -var t 1000 -in in.lj_all2'
+    executable = 'lmp -var x 10 -var y 10 -var z 10 -var t 1000 -in in.balance.staggered.global.large'
     scale = parameter(filter_scale_partial_and_full_nodes())
 
     # Extract the number in the 6th column (which is the imbalance) from the row that has with '50'
@@ -376,7 +376,7 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
 class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
     sourcesdir = 'src/ALL+OBMD'
 
-    prerun_cmds = ['python input.py']
+    prerun_cmds = ['python generate_obmd_input.py']
 
     executable = 'lmp -in in.simulation'
 
