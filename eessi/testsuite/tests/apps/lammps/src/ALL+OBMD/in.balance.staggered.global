@@ -51,6 +51,6 @@ variable        pz atom mass*vz
 compute         mom_2 all reduce sum v_px v_py v_pz
 
 thermo_style    custom step time c_mom_1[*] c_mom_2[*] temp epair ke press f_5[*]
-thermo          100
+thermo          50
 
 run             10000

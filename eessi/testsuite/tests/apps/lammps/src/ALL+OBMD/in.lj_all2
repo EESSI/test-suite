@@ -33,5 +33,5 @@ fix             5 all balance/all every 50 grid staggered global 0.9 0.003 #true
 #
 #log             balance_all.log
 thermo_style    custom step temp epair press f_5[*]
-thermo          100
+thermo          50
 run             $t
