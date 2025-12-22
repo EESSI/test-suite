@@ -16,7 +16,7 @@
 import os
 
 from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
-                                           update_common_slurm_partition_config)
+                                           set_common_required_config)
 from eessi.testsuite.constants import EXTRAS, DEVICE_TYPES, FEATURES, GPU_VENDORS, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
@@ -49,7 +49,6 @@ site_configuration = {
                     'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
                     'access': ['-p cpu', '--export=None'],
-                    'environs': ['default'],
                     'max_jobs': 120,
                     'features': [
                         FEATURES.CPU,
@@ -79,7 +78,6 @@ site_configuration = {
                     'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
                     'access': ['-p gpu', '--export=None'],
-                    'environs': ['default'],
                     'max_jobs': 60,
                     'devices': [
                         {
@@ -101,14 +99,6 @@ site_configuration = {
             ]
         },
     ],
-    'environments': [
-        {
-            'name': 'default',
-            'cc': 'cc',
-            'cxx': '',
-            'ftn': '',
-        },
-    ],
     'logging': common_logging_config(reframe_prefix),
     'general': [
         {
@@ -121,4 +111,4 @@ site_configuration = {
 }
 
 # Set common Slurm config options
-update_common_slurm_partition_config(site_configuration)
+set_common_required_config(site_configuration)

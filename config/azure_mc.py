@@ -13,7 +13,7 @@
 import os
 
 from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
-                                           update_common_slurm_partition_config)
+                                           set_common_required_config)
 from eessi.testsuite.constants import EXTRAS, FEATURES, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
@@ -74,14 +74,6 @@ site_configuration = {
             ]
         },
     ],
-    'environments': [
-        {
-            'name': 'default',
-            'cc': 'cc',
-            'cxx': '',
-            'ftn': '',
-        },
-    ],
     'logging': common_logging_config(reframe_prefix),
     'general': [
         {
@@ -97,7 +89,6 @@ site_configuration = {
 partition_defaults = {
     'scheduler': 'slurm',
     'launcher': 'mpirun',
-    'environs': ['default'],
     'features': [
         FEATURES.CPU
     ] + list(SCALES.keys()),
@@ -108,4 +99,4 @@ for system in site_configuration['systems']:
         partition.update(partition_defaults)
 
 # Set common Slurm config options
-update_common_slurm_partition_config(site_configuration)
+set_common_required_config(site_configuration)

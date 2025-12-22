@@ -34,15 +34,18 @@ format_perfvars = '|'.join([
 ])
 
 
-def update_common_slurm_partition_config(site_configuration, set_memory=True):
+def set_common_required_config(site_configuration, set_memory=True):
     """
-    Update ReFrame configuration file: set common config options for partitions using Slurm.
+    Update ReFrame configuration file: set common required config options
     This function must be called at the end of the site configuration file (after defining site_configuration)
     :param site_configuration: site configuration dictionary
     :param set_memory: set memory resources
     """
+    site_configuration.update({'environments': [{'name': 'default'}]})
+
     for system in site_configuration['systems']:
         for partition in system['partitions']:
+            partition.update({'environs': ['default']})
             if partition['scheduler'] in ['slurm', 'squeue']:
                 # use --nodes option to ensure the exact number of nodes is requested
                 partition['sched_options'] = {'use_nodes_option': True}

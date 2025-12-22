@@ -1,7 +1,7 @@
 import os
 
 from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
-                                           get_sbatch_account, update_common_slurm_partition_config)
+                                           get_sbatch_account, set_common_required_config)
 from eessi.testsuite.constants import DEVICE_TYPES, EXTRAS, FEATURES, GPU_VENDORS, SCALES
 
 # Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
@@ -39,7 +39,6 @@ site_configuration = {
                         'export OMPI_MCA_mtl="^ofi"',
                         'export OMPI_MCA_btl="^ofi"',
                     ],
-                    'environs': ['default'],
                     'max_jobs': 4,
                     # list(SCALES.keys()) adds all the scales from eessi.testsuite.constants as valid for thi partition
                     # Can be modified if not all scales can run on this partition, see e.g. the surf_snellius.py config
@@ -70,7 +69,6 @@ site_configuration = {
                         'export OMPI_MCA_mtl="^ofi"',
                         'export OMPI_MCA_btl="^ofi"',
                     ],
-                    'environs': ['default'],
                     'max_jobs': 4,
                     'devices': [
                         {
@@ -92,14 +90,6 @@ site_configuration = {
             ]
         },
     ],
-    'environments': [
-        {
-            'name': 'default',
-            'cc': 'cc',
-            'cxx': '',
-            'ftn': '',
-        },
-    ],
     'logging': common_logging_config(),
     'general': [
         {
@@ -114,4 +104,4 @@ site_configuration = {
 # Set common Slurm config options
 # memory cannot be set on MareNostrum
 # The test-suite will give warning which can be ignored
-update_common_slurm_partition_config(site_configuration, set_memory=False)
+set_common_required_config(site_configuration, set_memory=False)

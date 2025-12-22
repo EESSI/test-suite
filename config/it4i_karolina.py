@@ -16,7 +16,7 @@
 import os
 
 from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
-                                           get_sbatch_account, update_common_slurm_partition_config)
+                                           get_sbatch_account, set_common_required_config)
 from eessi.testsuite.constants import EXTRAS, FEATURES, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
@@ -61,7 +61,6 @@ site_configuration = {
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
                     # Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
                     'access': [f'-A {sbatch_account}', '-p qcpu', '--export=None'],
-                    'environs': ['default'],
                     'max_jobs': 120,
                     'features': [
                         FEATURES.CPU,
@@ -91,7 +90,6 @@ site_configuration = {
                 #     # Use --export=None to avoid that login environment is passed down to submitted jobs
                 #     # Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
                 #     'access':  ['-p gpu', '--export=None'],
-                #     'environs': ['default'],
                 #     'max_jobs': 60,
                 #     'devices': [
                 #         {
@@ -107,14 +105,6 @@ site_configuration = {
             ]
         },
     ],
-    'environments': [
-        {
-            'name': 'default',
-            'cc': 'cc',
-            'cxx': '',
-            'ftn': '',
-        },
-    ],
     'logging': common_logging_config(reframe_prefix),
     'general': [
         {
@@ -127,4 +117,4 @@ site_configuration = {
 }
 
 # Set common Slurm config options
-update_common_slurm_partition_config(site_configuration)
+set_common_required_config(site_configuration)

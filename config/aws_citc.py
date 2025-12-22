@@ -12,7 +12,7 @@
 
 import os
 
-from eessi.testsuite.common_config import common_eessi_init, common_logging_config, update_common_slurm_partition_config
+from eessi.testsuite.common_config import common_eessi_init, common_logging_config, set_common_required_config
 from eessi.testsuite.constants import FEATURES
 
 
@@ -108,14 +108,6 @@ site_configuration = {
             ]
         },
     ],
-    'environments': [
-        {
-            'name': 'default',
-            'cc': 'cc',
-            'cxx': '',
-            'ftn': '',
-        },
-    ],
     'logging': common_logging_config(reframe_prefix),
     'general': [
         {
@@ -130,7 +122,6 @@ site_configuration = {
 partition_defaults = {
     'scheduler': 'squeue',
     'launcher': 'mpirun',
-    'environs': ['default'],
     'features': [
         FEATURES.CPU
     ],
@@ -146,4 +137,4 @@ for system in site_configuration['systems']:
         partition.update(partition_defaults)
 
 # Set common Slurm config options
-update_common_slurm_partition_config(site_configuration)
+set_common_required_config(site_configuration)

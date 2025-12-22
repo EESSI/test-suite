@@ -23,7 +23,7 @@
 import os
 
 from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
-                                           get_sbatch_account, update_common_slurm_partition_config)
+                                           get_sbatch_account, set_common_required_config)
 from eessi.testsuite.constants import EXTRAS, DEVICE_TYPES, FEATURES, GPU_VENDORS, SCALES
 
 hortense_access = ['--export=NONE', '--get-user-env=60L']
@@ -77,7 +77,6 @@ site_configuration = {
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
-                    'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
@@ -104,7 +103,6 @@ site_configuration = {
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
-                    'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
@@ -131,7 +129,6 @@ site_configuration = {
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
-                    'environs': ['default'],
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
@@ -158,7 +155,6 @@ site_configuration = {
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
-                    'environs': ['default'],
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
@@ -185,7 +181,6 @@ site_configuration = {
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
-                    'environs': ['default'],
                     'descr': 'GPU nodes (A100 40GB)',
                     'max_jobs': 20,
                     'launcher': launcher,
@@ -220,7 +215,6 @@ site_configuration = {
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
-                    'environs': ['default'],
                     'descr': 'GPU nodes (A100 80GB)',
                     'max_jobs': 20,
                     'launcher': launcher,
@@ -245,14 +239,6 @@ site_configuration = {
             ]
         },
     ],
-    'environments': [
-        {
-            'name': 'default',
-            'cc': 'gcc',
-            'cxx': 'g++',
-            'ftn': 'gfortran',
-        },
-    ],
     'general': [
         {
             'remote_detect': True,
@@ -265,4 +251,4 @@ site_configuration = {
 }
 
 # Set common Slurm config options
-update_common_slurm_partition_config(site_configuration)
+set_common_required_config(site_configuration)
