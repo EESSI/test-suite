@@ -357,7 +357,7 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
     populations and strongly non-uniform spatial workloads due to particle insertion, removal, and fluxes across
     open boundaries. In this context, efficient load balancing is particularly critical to sustain scalability and
     numerical efficiency, as imbalances can rapidly arise during the simulation.
-    
+
     The test simulates liquid water under equilibrium conditions, which is described using the mesoscopic DPD
     water model. The density of DPD water in the region of interest is checked as part of the sanity check.
     If the density equals the desired value (within predetermined error), the test is successful."""
