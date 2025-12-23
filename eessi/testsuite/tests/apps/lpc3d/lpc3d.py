@@ -1,5 +1,5 @@
 """
-This module tests mpi4py's MPI_Reduce call
+This module tests the LPC3D software developed in the MultiXscale project (https://github.com/multixscale/LPC3D).
 """
 
 import reframe as rfm
@@ -44,9 +44,6 @@ class EESSI_LPC3D(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     launcher = 'local'  # no MPI module is loaded in this test
 
-    # ReFrame will generate a test for each module that matches the regex `mpi4py`
-    # This means we implicitly assume that any module matching this name provides the required functionality
-    # to run this test
     module_name = parameter(find_modules('LPC3D'))
 
     readonly_files = ['lattice_gas.inpt', 'pore_dens_freq_2neg.txt', 'psd.txt']
