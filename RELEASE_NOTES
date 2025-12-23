@@ -7,13 +7,13 @@ This is a minor release of the EESSI test-suite
 
 New tests:
 * OpenFoam: added a large test case, that can run on larger scales (#281)
-* ESPResSo: added a lattice-Boltzman (LB) test case, updated P3M and LJ test cases for ESPResSo 5.0 release.
+* ESPResSo: added a lattice-Boltzman (LB) test case, updated P3M and LJ test cases for ESPResSo 5.0 release (#300).
 New test cases also test waLBerla integration in ESPResSo.
 * LPC3D: test case simulates NMR spectra and diffusion of a liquid within a disorder porous carbon, based on a
-mesoscopic model.
-* lmbpy-pssrt: test case for a fork of lbmpy that adds population-based methods.
+mesoscopic model (#306).
+* lmbpy-pssrt: test case for a fork of lbmpy that adds population-based methods (#308).
 * waLBerla: test case for a stand-alone waLBerla installation. Runs a slightly modified version of one of
-waLBerla's lbm tutorials.
+waLBerla's lbm tutorials (#309).
 
 v0.8.1 (6 November 2025)
 ---------------------
