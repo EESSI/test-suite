@@ -18,6 +18,7 @@ from statistics import mean
 
 
 def split(list, size):
+    """Split a sequence into equally‑sized chunks of length 'size'."""
     return [list[i:i + size] for i in range(0, len(list), size)]
 
 
@@ -233,6 +234,9 @@ class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
 
 
 class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
+    """Base class for test cases that test ALL (A Load Balancing Library) integration with LAMMPS.
+    The key feature of this class is a sanity check that determines if either load balancing has improved
+    over the course of the run, or if load balancing was already good from the start."""
     sourcesdir = 'src/ALL+OBMD'
 
     # This requires a LAMMPS with ALL functionality, i.e. only select modules with ALL in the versionsuffix
@@ -299,6 +303,8 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
 
 @rfm.simple_test
 class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_ALL_balance_staggered_global_base, EESSI_Mixin):
+    """Implementation of a small-scale test case (running up to 8 cores) that tests load balancing
+    in LAMMPS through the ALL library."""
     executable = 'lmp -in in.balance.staggered.global.small'
     scale = parameter(filter_scale_up_to_8_cores())
 
@@ -317,6 +323,8 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_small(EESSI_LAMMPS_ALL_balance_s
 
 @rfm.simple_test
 class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_ALL_balance_staggered_global_base, EESSI_Mixin):
+    """Implementation of a large-scale test case (running up to 1/8th of a node and larger) that tests load
+        balancing in LAMMPS through the ALL library."""
     executable = 'lmp -var x 10 -var y 10 -var z 10 -var t 1000 -in in.balance.staggered.global.large'
     scale = parameter(filter_scale_partial_and_full_nodes())
 
@@ -363,7 +371,7 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
 
     @run_after('init')
     def check_if_ALL_OBMD_included(self):
-        """Only run this test when LAMMPS has the ALL package."""
+        """Only run this test when LAMMPS has the OBMD package."""
         # Can determine if this is included based on the versionsuffix.
         # At this moment the package is not upstream available and has the versionsuffix ALL.
         # See https://github.com/multixscale/dev.eessi.io-lammps-plugin-obmd/pull/7
@@ -376,6 +384,10 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
 
 @rfm.simple_test
 class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
+    """Test case testing Open-Boundary Molecular Dynamics (OBMD) functionality in LAMMPS. The test
+    simulates liquid water under equilibrium conditions, which is described using the mesoscopic DPD
+    water model. The density of DPD water in the region of interest is checked as part of the sanity check.
+    If the density equals the desired value (within predetermined error), the test is successful."""
     sourcesdir = 'src/ALL+OBMD'
 
     prerun_cmds = ['python generate_obmd_input.py']
