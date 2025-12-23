@@ -14,6 +14,8 @@ mesoscopic model (#306).
 * lmbpy-pssrt: test case for a fork of lbmpy that adds population-based methods (#308).
 * waLBerla: test case for a stand-alone waLBerla installation. Runs a slightly modified version of one of
 waLBerla's lbm tutorials (#309).
+* LAMMPS: added tests to test integrated LAMMPS + OBMD (open-boundary molecular dynamics) and 
+LAMMPS + ALL (A Load balancing Library), and LAMMPS + ALL + OBMD functionality (#303).
 
 v0.8.1 (6 November 2025)
 ---------------------
