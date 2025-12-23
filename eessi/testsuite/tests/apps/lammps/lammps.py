@@ -352,6 +352,15 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_large(EESSI_LAMMPS_ALL_balance_s
 
 @rfm.simple_test
 class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI_Mixin):
+    """Test case testing a combination of Open-Boundary Molecular Dynamics (OBMD) and A Load balancing
+    Library (ALL) functionality in LAMMPS. OBMD simulations are characterized by dynamically changing particle
+    populations and strongly non-uniform spatial workloads due to particle insertion, removal, and fluxes across
+    open boundaries. In this context, efficient load balancing is particularly critical to sustain scalability and
+    numerical efficiency, as imbalances can rapidly arise during the simulation.
+    
+    The test simulates liquid water under equilibrium conditions, which is described using the mesoscopic DPD
+    water model. The density of DPD water in the region of interest is checked as part of the sanity check.
+    If the density equals the desired value (within predetermined error), the test is successful."""
     sourcesdir = 'src/ALL+OBMD'
 
     executable = 'lmp -in in.simulation.staggered.global'
