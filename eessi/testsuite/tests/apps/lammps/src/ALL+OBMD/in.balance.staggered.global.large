@@ -1,0 +1,37 @@
+# 3d Lennard-Jones melt
+variable        t index 1000
+variable        x index 1
+variable        y index 1
+variable        z index 1
+variable        xx equal 20*$x
+variable        yy equal 20*$y
+variable        zz equal 20*$z
+variable        xd equal 10*$x
+variable        yd equal 10*$y
+variable        zd equal 10*$z
+variable    d  equal (3.0/8.0*${xx}*${yy}*${zz})^(1.0/3.0) #5*($x+$y+$z)/3 
+units           lj
+atom_style      atomic
+lattice         fcc 0.8442
+region          box block 0 ${xx} 0 ${yy} 0 ${zz}
+create_box      1 box
+create_atoms    1 box
+mass            1 10.0
+velocity        all create 1.44 87287 loop geom
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
+neighbor        0.3 bin
+neigh_modify    delay 0 every 20 check no
+region sph sphere ${xd} ${yd} ${zd} $d side in
+delete_atoms region sph compress yes
+fix             1 all nve
+comm_style      staggered zyx # zyx is hard coded for historic reasons (a variable order of cuts has been discussed but not yet implemented in ALL)
+fix             5 all balance/all every 50 grid staggered global 0.9 0.003 #true
+#compute         1 all property/atom proc
+#variable        p atom c_1%10
+#dump            2 all custom 50 /tmp/tmp.dump id v_p x y z
+#
+#log             balance_all.log
+thermo_style    custom step temp epair press f_5[*]
+thermo          50
+run             $t

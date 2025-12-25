@@ -17,18 +17,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import argparse
+import os
 import time
-import espressomd
+import argparse
 import numpy as np
-
-required_features = ["LENNARD_JONES"]
-espressomd.assert_features(required_features)
+import espressomd
+import espressomd.version
 
 parser = argparse.ArgumentParser(description="Benchmark LJ simulations.")
 parser.add_argument("--particles-per-core", metavar="N", action="store",
                     type=int, default=2000, required=False,
-                    help="Number of particles in the simulation box")
+                    help="Number of particles per MPI rank")
 parser.add_argument("--sample-size", metavar="S", action="store",
                     type=int, default=30, required=False,
                     help="Sample size")
@@ -37,6 +36,10 @@ parser.add_argument("--volume-fraction", metavar="FRAC", action="store",
                     help="Fraction of the simulation box volume occupied by "
                     "particles (range: [0.01-0.74], default: 0.50)")
 args = parser.parse_args()
+
+required_features = ["LENNARD_JONES"]
+espressomd.assert_features(required_features)
+espresso_version = (espressomd.version.major(), espressomd.version.minor())
 
 # process and check arguments
 measurement_steps = 100
@@ -83,9 +86,13 @@ lj_eps = 1.0  # LJ epsilon
 lj_sig = 1.0  # particle diameter
 lj_cut = lj_sig * 2**(1. / 6.)  # cutoff distance
 
-n_proc = system.cell_system.get_state()["n_nodes"]
-n_part = n_proc * args.particles_per_core
 node_grid = np.array(system.cell_system.node_grid)
+n_mpi_ranks = int(np.prod(node_grid))
+n_omp_threads = int(os.environ.get("OMP_NUM_THREADS", 1))
+if espresso_version == (4, 2):
+    assert n_omp_threads == 1, "ESPResSo 4.2 doesn't support OpenMP"
+
+n_part = n_mpi_ranks * args.particles_per_core
 # volume of N spheres with radius r: N * (4/3*pi*r^3)
 box_v = args.particles_per_core * 4. / 3. * \
     np.pi * (lj_sig / 2.)**3 / args.volume_fraction
@@ -126,7 +133,7 @@ print("Tune skin: {:.3f}".format(system.cell_system.tune_skin(
 print("Equilibration")
 system.integrator.run(min(10 * measurement_steps, 60000))
 
-print("Sampling runtime...")
+print("Benchmark")
 timings = []
 energies = []
 pressures = []
@@ -144,7 +151,7 @@ sim_energy = np.mean(energies)
 sim_pressure = np.mean(pressures)
 ref_energy, ref_pressure = get_reference_values_per_atom(args.volume_fraction)
 
-print("Algorithm executed. \n")
+print("Algorithm executed.")
 np.testing.assert_allclose(sim_energy, ref_energy, atol=0., rtol=0.1)
 np.testing.assert_allclose(sim_pressure, ref_pressure, atol=0., rtol=0.1)
 
@@ -152,10 +159,11 @@ print("Final convergence met with relative tolerances: \n\
             sim_energy: ", 0.1, "\n\
             sim_pressure: ", 0.1, "\n")
 
-header = '"mode","cores","mpi.x","mpi.y","mpi.z","particles","volume_fraction","mean","std"'
-report = f'''"weak scaling",{n_proc},{node_grid[0]},{node_grid[1]},\
-{node_grid[2]},{len(system.part)},{args.volume_fraction:.4f},\
+header = '"mode","cores","mpi.x","mpi.y","mpi.z","omp.threads","particles","volume_fraction","mean","std"'
+report = f'''"weak scaling",{n_mpi_ranks * n_omp_threads},{node_grid[0]},{node_grid[1]},\
+{node_grid[2]},{n_omp_threads},{len(system.part)},{args.volume_fraction:.4f},\
 {np.mean(timings):.3e},{np.std(timings,ddof=1):.3e}'''
 print(header)
 print(report)
-print(f"Performance: {np.mean(timings):.3e}")
+
+print(f"Performance: {np.mean(timings):.3e} s/step")
