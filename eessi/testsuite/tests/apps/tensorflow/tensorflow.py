@@ -30,7 +30,7 @@ class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     time_limit = '30m'
 
     # This test should be run as part of EESSI CI
-    bench_name = bench_name_ci = 'bench_ci'
+    is_ci_test = True
 
     readonly_files = ['mnist_setup.py', 'tf_test.py']
 

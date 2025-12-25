@@ -26,9 +26,9 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     # One task is launched per compute unit. In this case, one task per (physical) CPU core
     compute_unit = COMPUTE_UNITS.CPU
 
-    # ReFrame will generate a test for each module that matches the regex `mpi4py`
+    # ReFrame will generate a test for each module that matches the regex `mpi4py`.
     # This means we implicitly assume that any module matching this name provides the required functionality
-    # to run this test
+    # to run this test.
     module_name = parameter(find_modules('mpi4py'))
 
     # Our script has two arguments, --n_iter and --n_warmup. By defining these as ReFrame variables, we can
@@ -54,13 +54,11 @@ class EESSI_MPI4PY(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     # https://reframe-hpc.readthedocs.io/en/stable/regression_test_api.html#reframe.core.pipeline.RegressionTest.time_limit
     time_limit = '5m00s'
 
-    # Define the benchmarks that are available in the test.
-    # In this test (`EESSI_MPI4PY`) there is only one benchmark. If there are more than one,
-    # define them using the `parameter()` function.
-    bench_name = 'mpi4pi'
+    # Optionally define the test variants that are available in the test with the `parameter()` function
+    # In this test (`EESSI_MPI4PY`) there is only one variant, so we don't have to define anything.
 
-    # Specify the benchmark to be tested in CI (will be marked with a `CI` tag).
-    bench_name_ci = 'mpi4pi'
+    # Indicate that the test should run in CI (will be marked with a `CI` tag).
+    is_ci_test = True
 
     # Define the files and/or dirs inside sourcesdir (default=src) that should be symlinked into the stage dir
     readonly_files = ['mpi4py_reduce.py']

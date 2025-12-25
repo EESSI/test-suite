@@ -50,7 +50,6 @@ class EESSI_GROMACS(EESSI_GROMACS_base, EESSI_Mixin):
     scale = parameter(SCALES.keys())
     time_limit = '30m'
     module_name = parameter(find_modules('GROMACS'))
-    bench_name_ci = 'HECBioSim/Crambin'
     # input files are downloaded
     readonly_files = ['']
     # executable_opts in addition to those set by the hpctestlib
@@ -63,6 +62,11 @@ class EESSI_GROMACS(EESSI_GROMACS_base, EESSI_Mixin):
     def __init__(self):
         # self.device_type must be set before the @run_after('init') hooks of the EESSI_Mixin class
         self.device_type = self.nb_impl
+
+    @run_after('init')
+    def set_ci_tag(self):
+        if self.bench_name == 'HECBioSim/Crambin':
+            self.is_ci_test = True
 
     @run_after('init')
     def set_compute_unit(self):

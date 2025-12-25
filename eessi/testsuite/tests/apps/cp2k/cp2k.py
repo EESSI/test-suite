@@ -24,7 +24,6 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     time_limit = '2h'
     device_type = DEVICE_TYPES.CPU
     compute_unit = COMPUTE_UNITS.CPU
-    bench_name_ci = 'QS/H2O-32'  # set CI on smallest benchmark
     readonly_files = ['QS']
 
     def required_mem_per_node(self):
@@ -40,6 +39,11 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     def set_bench_name(self):
         self.bench_name, self.energy_ref, self.energy_tol = self.benchmark_info
         self.descr = f'EESSI_CP2K {self.bench_name} benchmark'
+
+    @run_after('init')
+    def set_ci_tag(self):
+        if self.bench_name == 'QS/H2O-32':
+            self.is_ci_test = True
 
     @run_after('setup')
     def prepare_test(self):
