@@ -27,4 +27,4 @@ include = ["eessi*"]
 version_scheme = "guess-next-dev"
 local_scheme = "node-and-date"
 write_to = "eessi/testsuite/_version.py"
-fallback_version = "0.8.1"
+fallback_version = "0.9.0"
