@@ -22,11 +22,9 @@
 # ```
 import os
 
-from eessi.testsuite.common_config import (common_eessi_init,
-                                           common_general_config,
-                                           common_logging_config,
-                                           get_sbatch_account)
-from eessi.testsuite.constants import *  # noqa: F403
+from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
+                                           get_sbatch_account, set_common_required_config)
+from eessi.testsuite.constants import EXTRAS, DEVICE_TYPES, FEATURES, GPU_VENDORS, SCALES
 
 hortense_access = ['--export=NONE', '--get-user-env=60L']
 
@@ -79,17 +77,10 @@ site_configuration = {
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
-                    'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
                     'modules': [mpi_module.format('cpu_rome')],
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'features': [
                         FEATURES.CPU,
                     ] + list(SCALES.keys()),
@@ -112,17 +103,10 @@ site_configuration = {
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
-                    'environs': ['default'],
                     'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
                     'modules': [mpi_module.format('cpu_rome_512')],
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'features': [
                         FEATURES.CPU,
                     ] + list(SCALES.keys()),
@@ -145,17 +129,10 @@ site_configuration = {
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
-                    'environs': ['default'],
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
                     'modules': [mpi_module.format('cpu_milan_rhel9')],
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'features': [
                         FEATURES.CPU,
                     ] + list(SCALES.keys()),
@@ -178,17 +155,10 @@ site_configuration = {
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
-                    'environs': ['default'],
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
                     'modules': [mpi_module.format('cpu_milan_rhel9')],
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'features': [
                         FEATURES.CPU,
                     ] + list(SCALES.keys()),
@@ -211,7 +181,6 @@ site_configuration = {
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
-                    'environs': ['default'],
                     'descr': 'GPU nodes (A100 40GB)',
                     'max_jobs': 20,
                     'launcher': launcher,
@@ -225,16 +194,6 @@ site_configuration = {
                         # per node
                         EXTRAS.MEM_PER_NODE: 243840,  # in MiB
                     },
-                    'resources': [
-                        {
-                            'name': '_rfm_gpu',
-                            'options': ['--gpus-per-node={num_gpus_per_node}'],
-                        },
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'devices': [
                         {
                             'type': DEVICE_TYPES.GPU,
@@ -256,7 +215,6 @@ site_configuration = {
                     'sched_options': {
                         'sched_access_in_submit': True,
                     },
-                    'environs': ['default'],
                     'descr': 'GPU nodes (A100 80GB)',
                     'max_jobs': 20,
                     'launcher': launcher,
@@ -270,16 +228,6 @@ site_configuration = {
                         # per node
                         EXTRAS.MEM_PER_NODE: 499680,  # in MiB
                     },
-                    'resources': [
-                        {
-                            'name': '_rfm_gpu',
-                            'options': ['--gpus-per-node={num_gpus_per_node}'],
-                        },
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'devices': [
                         {
                             'type': DEVICE_TYPES.GPU,
@@ -289,34 +237,6 @@ site_configuration = {
 
                 },
             ]
-        },
-    ],
-    'environments': [
-        {
-            'name': 'default',
-            'cc': 'gcc',
-            'cxx': 'g++',
-            'ftn': 'gfortran',
-        },
-        {
-            'name': 'foss-2021a',
-            'cc': 'mpicc',
-            'cxx': 'mpicxx',
-            'ftn': 'mpif90',
-            'modules': ['foss/2021a']
-        },
-        {
-            'name': 'intel-2021a',
-            'modules': ['intel'],
-            'cc': 'mpiicc',
-            'cxx': 'mpiicpc',
-            'ftn': 'mpiifort',
-        },
-        {
-            'name': 'CUDA',
-            'modules': ['CUDA'],
-            'cc': 'nvcc',
-            'cxx': 'nvcc',
         },
     ],
     'general': [
@@ -329,3 +249,6 @@ site_configuration = {
     ],
     'logging': common_logging_config(),
 }
+
+# Set common Slurm config options
+set_common_required_config(site_configuration)
