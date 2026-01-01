@@ -683,9 +683,11 @@ def set_compact_process_binding(test: rfm.RegressionTest):
         env_vars = {
             'I_MPI_PIN_CELL': 'core',  # Don't bind to hyperthreads, only to physcial cores
             'I_MPI_PIN_DOMAIN': f'{physical_cpus_per_task}:compact',
-            'OMPI_MCA_rmaps_base_mapping_policy': f'slot:PE={physical_cpus_per_task}',
-            'PRTE_MCA_rmaps_base_mapping_policy': f'slot:PE={physical_cpus_per_task}',
+            'I_MPI_DEBUG': '4',
+            'OMPI_MCA_hwloc_base_report_bindings': '1',
         }
+        test.job.launcher.options.append(f'--map-by slot:PE={physical_cpus_per_task}')
+        log(f'Set launcher command to {test.job.launcher.run_command(test.job)}')
     elif test.current_partition.launcher_type().registered_name == 'srun':
         # Set compact binding for SLURM. Only effective if the task/affinity plugin is enabled
         # and when number of tasks times cpus per task equals either socket, core or thread count
