@@ -8,7 +8,7 @@ from reframe.core.pipeline import RegressionMixin
 from reframe.utility.sanity import make_performance_function
 import reframe.utility.sanity as sn
 
-from eessi.testsuite import hooks
+from eessi.testsuite import check_process_binding, hooks
 from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNITS, TAGS
 from eessi.testsuite.utils import log
 from eessi.testsuite import __version__ as testsuite_version
@@ -70,6 +70,9 @@ class EESSI_Mixin(RegressionMixin):
 
     # Make sure the version of the EESSI test suite gets logged in the ReFrame report
     eessi_testsuite_version = variable(str, value=testsuite_version)
+
+    # Check process binding in a prerun cmd
+    check_process_binding = variable(bool, value=True)
 
     # Note that the error for an empty parameter is a bit unclear for ReFrame 4.6.2, but that will hopefully improve
     # see https://github.com/reframe-hpc/reframe/issues/3254
@@ -257,6 +260,25 @@ class EESSI_Mixin(RegressionMixin):
             log(f'Overwriting executable_opts {self.executable_opts} by executable_opts '
                 'specified on cmd line {[self.user_executable_opts]}')
             self.executable_opts = [self.user_executable_opts]
+
+    @run_before('run', always_last=True)
+    def EESSI_check_proc_binding(self):
+        """Check process binding in a pre-run cmd. Result is written into job error file."""
+        if not self.check_process_binding:
+            return
+        # job resources are updated during the run step, but this hook runs before the run step
+        # update the job resources here to get the correct launcher run_command
+        self.job.num_tasks = self.num_tasks
+        self.job.num_tasks_per_node = self.num_tasks_per_node
+        self.job.num_tasks_per_core = self.num_tasks_per_core
+        self.job.num_tasks_per_socket = self.num_tasks_per_socket
+        self.job.num_cpus_per_task = self.num_cpus_per_task
+        self.job.use_smt = self.use_multithreading
+        check_binding_script = check_process_binding.__file__
+        get_binding = 'hwloc-calc -p -H package.numanode.core.pu $(hwloc-bind --get)'
+        check_binding = f'{check_binding_script} --cpus-per-proc {self.num_cpus_per_task} --procs {self.num_tasks}'
+        self.prerun_cmds.append(
+            f"{self.job.launcher.run_command(self.job)} bash -c '{get_binding}' | tee /dev/stderr | {check_binding}")
 
     @run_after('run')
     def EESSI_mixin_extract_runtime_info_from_log(self):
