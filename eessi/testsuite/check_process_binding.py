@@ -22,15 +22,16 @@ def main():
     procs = sys.stdin.read().splitlines()
     num_procs = len(procs)
     if num_procs != args.procs:
-        print(f"ERROR: wrong number of processes: expected {args.procs}, found {num_procs}", file=sys.stderr)
+        print(f"PROCESS BINDING ERROR: wrong number of processes: expected {args.procs}, found {num_procs}",
+              file=sys.stderr)
 
     cpus_per_task = [x.split() for x in procs]
 
     for cpus in cpus_per_task:
         num_cpus = len(cpus)
         if num_cpus != args.cpus_per_proc:
-            print(f"ERROR: wrong number of cpus per process: expected {args.cpus_per_proc}, found {num_cpus}",
-                  file=sys.stderr)
+            print(f"PROCESS BINDING ERROR: wrong number of cpus per process: expected {args.cpus_per_proc},"
+                  f" found {num_cpus}", file=sys.stderr)
 
         packages = set()
         numanodes = set()
@@ -43,15 +44,15 @@ def main():
             cores_occupation[(cpu_parts['Package'], cpu_parts['Core'])] += 1
 
         if len(packages) > 1:
-            print(f"WARNING: process spanning multiple packages: {packages}", file=sys.stderr)
+            print(f"PROCESS BINDING WARNING: process spanning multiple packages: {packages}", file=sys.stderr)
 
         if len(numanodes) > 1:
-            print(f"WARNING: process spanning multiple numanodes: {numanodes}", file=sys.stderr)
+            print(f"PROCESS BINDING WARNING: process spanning multiple numanodes: {numanodes}", file=sys.stderr)
 
         for key, value in cores_occupation.items():
             if value > 1:
-                print(f"WARNING: package-core {key} is shared by {value} processing units, indicating hyperthreading",
-                      file=sys.stderr)
+                print(f"PROCESS BINDING WARNING: package-core {key} is shared by {value} processing units,"
+                      " indicating hyperthreading", file=sys.stderr)
 
 
 if __name__ == "__main__":

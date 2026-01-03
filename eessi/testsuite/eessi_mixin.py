@@ -301,3 +301,15 @@ class EESSI_Mixin(RegressionMixin):
                                     'modpath', str)
         if module_path:
             self.full_modulepath = f'{module_path}'
+
+    @run_after('run')
+    def EESSI_mixin_extract_errors_warnings(self):
+        """Extract the printed errors and warnings from the job error file and log them"""
+        if self.is_dry_run() or self.check_process_binding is False:
+            return
+
+        messages = sn.extractall(r'PROCESS BINDING ERROR: .*', f'{self.stagedir}/{self.stderr}')
+        messages += sn.extractall(r'PROCESS BINDING WARNING: .*', f'{self.stagedir}/{self.stderr}')
+        if messages:
+            for msg in messages:
+                getlogger().warning(msg)
