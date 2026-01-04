@@ -17,6 +17,19 @@ from eessi.testsuite.utils import (check_extras_key_defined, check_proc_attribut
 _buildenv_modules = []
 
 
+def _set_job_resources(test: rfm.RegressionTest):
+    "Set job resources"
+    # This is needed to get the correct launcher run_command with `self.job.launcher.run_command(self.job)`.
+    # ReFrame already sets job resources during the run step,
+    # but some hooks use the launcher run_command before the run step.
+    test.job.num_tasks = test.num_tasks
+    test.job.num_tasks_per_node = test.num_tasks_per_node
+    test.job.num_tasks_per_core = test.num_tasks_per_core
+    test.job.num_tasks_per_socket = test.num_tasks_per_socket
+    test.job.num_cpus_per_task = test.num_cpus_per_task
+    test.job.use_smt = test.use_multithreading
+
+
 def _assign_default_num_cpus_per_node(test: rfm.RegressionTest):
     """
     Check if the default number of cpus per node is already defined in the test
@@ -150,16 +163,7 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
         test.env_vars['SRUN_CPUS_PER_TASK'] = test.num_cpus_per_task
         log(f'Set environment variable SRUN_CPUS_PER_TASK to {test.env_vars["SRUN_CPUS_PER_TASK"]}')
 
-    # Set job resources
-    # This is needed to get the correct launcher run_command with `self.job.launcher.run_command(self.job)`.
-    # ReFrame already updates job resources during the run step,
-    # but some hooks use the launcher run_command before the run step.
-    test.job.num_tasks = test.num_tasks
-    test.job.num_tasks_per_node = test.num_tasks_per_node
-    test.job.num_tasks_per_core = test.num_tasks_per_core
-    test.job.num_tasks_per_socket = test.num_tasks_per_socket
-    test.job.num_cpus_per_task = test.num_cpus_per_task
-    test.job.use_smt = test.use_multithreading
+    _set_job_resources(test)
 
 
 def _assign_num_tasks_per_node(test: rfm.RegressionTest, num_per: int = 1):
