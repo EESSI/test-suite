@@ -9,7 +9,7 @@ Package:0.NUMANode:3.Core:49.PU:13 Package:0.NUMANode:3.Core:50.PU:14
 """
 
 import argparse
-from collections import defaultdict
+from collections import Counter, defaultdict
 import sys
 
 
@@ -27,11 +27,15 @@ def main():
 
     cpus_per_task = [x.split() for x in procs]
 
+    error_cpus = []
+    warning_packages = []
+    warning_numanodes = []
+    warning_ht = []
+
     for cpus in cpus_per_task:
         num_cpus = len(cpus)
         if num_cpus != args.cpus_per_proc:
-            print(f"PROCESS BINDING ERROR: wrong number of cpus per process: expected {args.cpus_per_proc},"
-                  f" found {num_cpus}", file=sys.stderr)
+            error_cpus.append(num_cpus)
 
         packages = set()
         numanodes = set()
@@ -43,16 +47,33 @@ def main():
             numanodes.add(cpu_parts['NUMANode'])
             cores_occupation[(cpu_parts['Package'], cpu_parts['Core'])] += 1
 
-        if len(packages) > 1:
-            print(f"PROCESS BINDING WARNING: process spanning multiple packages: {packages}", file=sys.stderr)
+        num_packages = len(packages)
+        if num_packages > 1:
+            warning_packages.append(num_packages)
 
-        if len(numanodes) > 1:
-            print(f"PROCESS BINDING WARNING: process spanning multiple numanodes: {numanodes}", file=sys.stderr)
+        num_numanodes = len(numanodes)
+        if num_numanodes > 1:
+            warning_numanodes.append(num_numanodes)
 
-        for key, value in cores_occupation.items():
-            if value > 1:
-                print(f"PROCESS BINDING WARNING: package-core {key} is shared by {value} processing units,"
-                      " indicating hyperthreading", file=sys.stderr)
+        for _, occupation in cores_occupation.items():
+            if occupation > 1:
+                warning_ht.append(occupation)
+
+    if error_cpus:
+        print(f"PROCESS BINDING ERROR: wrong number of cpus per process: expected {args.cpus_per_proc},"
+              f" found {Counter(error_cpus)}", file=sys.stderr)
+
+    if warning_packages:
+        print(f"PROCESS BINDING WARNING: processes spanning multiple packages: {Counter(warning_packages)}",
+              file=sys.stderr)
+
+    if warning_numanodes:
+        print(f"PROCESS BINDING WARNING: processes spanning multiple numanodes: {Counter(warning_numanodes)}",
+              file=sys.stderr)
+
+    if warning_ht:
+        print("PROCESS BINDING WARNING: processes with cores shared by processing units, indicating hyperthreading:"
+              f" {Counter(warning_ht)},", file=sys.stderr)
 
 
 if __name__ == "__main__":
