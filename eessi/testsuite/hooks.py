@@ -22,6 +22,7 @@ def _set_job_resources(test: rfm.RegressionTest):
     # This is needed to get the correct launcher run_command with `self.job.launcher.run_command(self.job)`.
     # ReFrame already sets job resources during the run step,
     # but some hooks use the launcher run_command before the run step.
+    # See the `run` method of the `RegressionTest` class in reframe/core/pipeline.py
     test.job.num_tasks = test.num_tasks
     test.job.num_tasks_per_node = test.num_tasks_per_node
     test.job.num_tasks_per_core = test.num_tasks_per_core
