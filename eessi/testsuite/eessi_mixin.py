@@ -266,14 +266,6 @@ class EESSI_Mixin(RegressionMixin):
         """Check process binding in a pre-run cmd. Result is written into job error file."""
         if not self.check_process_binding:
             return
-        # job resources are updated during the run step, but this hook runs before the run step
-        # update the job resources here to get the correct launcher run_command
-        self.job.num_tasks = self.num_tasks
-        self.job.num_tasks_per_node = self.num_tasks_per_node
-        self.job.num_tasks_per_core = self.num_tasks_per_core
-        self.job.num_tasks_per_socket = self.num_tasks_per_socket
-        self.job.num_cpus_per_task = self.num_cpus_per_task
-        self.job.use_smt = self.use_multithreading
         check_binding_script = check_process_binding.__file__
         get_binding = 'hwloc-calc -p -H package.numanode.core.pu $(hwloc-bind --get)'
         check_binding = f'{check_binding_script} --cpus-per-proc {self.num_cpus_per_task} --procs {self.num_tasks}'
