@@ -2,6 +2,7 @@
 Hooks for adding tags, filtering and setting job resources in ReFrame tests
 """
 import math
+import re
 
 import reframe as rfm
 import reframe.core.logging as rflog
@@ -684,10 +685,12 @@ def set_compact_process_binding(test: rfm.RegressionTest):
             'I_MPI_PIN_CELL': 'core',  # Don't bind to hyperthreads, only to physcial cores
             'I_MPI_PIN_DOMAIN': f'{physical_cpus_per_task}:compact',
             'I_MPI_DEBUG': '4',
-            'OMPI_MCA_hwloc_base_report_bindings': '1',
         }
-        test.job.launcher.options.append(f'--map-by slot:PE={physical_cpus_per_task}')
-        log(f'Set launcher command to {test.job.launcher.run_command(test.job)}')
+        ompi_patterns = [r'.+/.+-gompi-', r'^gompi/', r'.+/.+-foss-', r'^foss/', r'^OpenMPI/']
+        pattern = "|".join(ompi_patterns)
+        if any(re.search(pattern, x) for x in test.modules):
+            test.job.launcher.options.append(f'--map-by slot:PE={physical_cpus_per_task} --report-bindings')
+            log(f'Set launcher command to {test.job.launcher.run_command(test.job)}')
     elif test.current_partition.launcher_type().registered_name == 'srun':
         # Set compact binding for SLURM. Only effective if the task/affinity plugin is enabled
         # and when number of tasks times cpus per task equals either socket, core or thread count
