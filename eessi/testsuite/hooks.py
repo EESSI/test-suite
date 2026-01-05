@@ -686,7 +686,12 @@ def set_compact_process_binding(test: rfm.RegressionTest):
             'I_MPI_PIN_DOMAIN': f'{physical_cpus_per_task}:compact',
             'I_MPI_DEBUG': '4',
         }
-        ompi_patterns = [r'.+/.+-gompi-', r'^gompi/', r'.+/.+-foss-', r'^foss/', r'^OpenMPI/']
+        ompi_patterns = [
+            r'.+/.+-gompi-', r'^gompi/',
+            r'.+/.+-foss-', r'^foss/',
+            r'.+/.+-gomkl-', r'^gomkl/',
+            r'.+/.+-iomkl-', r'^iomkl/',
+            r'^OpenMPI/']
         pattern = "|".join(ompi_patterns)
         if any(re.search(pattern, x) for x in test.modules):
             test.job.launcher.options.append(f'--map-by slot:PE={physical_cpus_per_task} --report-bindings')
