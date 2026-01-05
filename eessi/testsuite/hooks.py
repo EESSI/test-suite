@@ -668,7 +668,7 @@ def set_compact_process_binding(test: rfm.RegressionTest):
 
     It is hard to do this in a portable way. Currently supported for process binding are:
     - Intel MPI (through I_MPI_PIN_DOMAIN)
-    - OpenMPI (through {OMPI,PRTE}_MCA_rmaps_base_mapping_policy)
+    - OpenMPI (through cmdline option --map-by slot:PE=x)
     - srun (LIMITED SUPPORT: through SLURM_CPU_BIND, but only effective if task/affinity plugin is enabled)
     """
 
