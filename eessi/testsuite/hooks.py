@@ -691,6 +691,8 @@ def set_compact_process_binding(test: rfm.RegressionTest):
             r'.+/.+-foss-', r'^foss/',
             r'.+/.+-gomkl-', r'^gomkl/',
             r'.+/.+-iomkl-', r'^iomkl/',
+            r'.+/.+-lompi-', r'^lompi/',
+            r'.+/.+-lfoss-', r'^lfoss/',
             r'^OpenMPI/']
         pattern = "|".join(ompi_patterns)
         if any(re.search(pattern, x) for x in test.modules):
