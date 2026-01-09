@@ -268,7 +268,12 @@ class EESSI_Mixin(RegressionMixin):
             return
         check_binding_script = check_process_binding.__file__
         get_binding = os.path.join(os.path.dirname(check_binding_script), 'get_process_binding.sh')
-        check_binding = f'{check_binding_script} --cpus-per-proc {self.num_cpus_per_task} --procs {self.num_tasks}'
+        check_binding = ' '.join([
+            f'{check_binding_script}',
+            f'--cpus-per-proc {self.num_cpus_per_task}',
+            f'--procs {self.num_tasks}',
+            f'--nodes {self.num_tasks // self.num_tasks_per_node}',
+        ])
         self.prerun_cmds.append(
             f"{self.job.launcher.run_command(self.job)} {get_binding} | tee /dev/stderr | {check_binding}")
 

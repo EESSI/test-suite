@@ -3,17 +3,16 @@
 Check process binding from standard input in format similar to the example below, which was obtained as follows:
 
 $ mpirun -np 3 --map-by slot:PE=2 bash -c '$(hwloc-calc -p --hierarchical package.numanode.core.pu $(hwloc-bind --get))'
-Package:0.NUMANode:3.Core:51.PU:15 Package:0.NUMANode:4.Core:8.PU:16
-Package:0.NUMANode:1.Core:17.PU:5 Package:0.NUMANode:3.Core:48.PU:12
-Package:0.NUMANode:3.Core:49.PU:13 Package:0.NUMANode:3.Core:50.PU:14
+host1 Package:0.NUMANode:3.Core:51.PU:15 Package:0.NUMANode:4.Core:8.PU:16
+host1 Package:0.NUMANode:1.Core:17.PU:5 Package:0.NUMANode:3.Core:48.PU:12
+host2 Package:0.NUMANode:3.Core:49.PU:13 Package:0.NUMANode:3.Core:50.PU:14
 
 Alternatively, if numanode is not supported:
 
 $ mpirun -np 3 --map-by slot:PE=2 bash -c '$(hwloc-calc -p --hierarchical package.core.pu $(hwloc-bind --get))'
-Package:0.Core:51.PU:15 Package:0.Core:8.PU:16
-Package:0.Core:17.PU:5 Package:0.Core:48.PU:12
-Package:0.Core:49.PU:13 Package:0.Core:50.PU:14
-
+host1 Package:0.Core:51.PU:15 Package:0.Core:8.PU:16
+host1 Package:0.Core:17.PU:5 Package:0.Core:48.PU:12
+host2 Package:0.Core:49.PU:13 Package:0.Core:50.PU:14
 """
 
 import argparse
@@ -23,17 +22,24 @@ import sys
 
 def main():
     parser = argparse.ArgumentParser(description="Check process binding.")
+    parser.add_argument("--nodes", type=int, required=True, help="Expected number of nodes")
     parser.add_argument("--procs", type=int, required=True, help="Expected number of processes")
     parser.add_argument("--cpus-per-proc", type=int, required=True, help="Expected number of CPUs per process")
     args = parser.parse_args()
 
-    procs = sys.stdin.read().splitlines()
+    procs = [p for p in (line.split() for line in sys.stdin) if p]
+    nodes = {x[0] for x in procs}
+    cpus_per_task = [x[1:] for x in procs]
+
     num_procs = len(procs)
     if num_procs != args.procs:
         print(f"PROCESS BINDING ERROR: wrong number of processes: expected {args.procs}, found {num_procs}",
               file=sys.stderr)
 
-    cpus_per_task = [x.split() for x in procs]
+    num_nodes = len(nodes)
+    if num_nodes != args.nodes:
+        print(f"PROCESS BINDING ERROR: wrong number of nodes: expected {args.nodes}, found {num_nodes}",
+              file=sys.stderr)
 
     error_cpus = []
     warning_packages = []
