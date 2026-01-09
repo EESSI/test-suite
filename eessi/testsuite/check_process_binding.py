@@ -6,6 +6,14 @@ $ mpirun -np 3 --map-by slot:PE=2 bash -c '$(hwloc-calc -p --hierarchical packag
 Package:0.NUMANode:3.Core:51.PU:15 Package:0.NUMANode:4.Core:8.PU:16
 Package:0.NUMANode:1.Core:17.PU:5 Package:0.NUMANode:3.Core:48.PU:12
 Package:0.NUMANode:3.Core:49.PU:13 Package:0.NUMANode:3.Core:50.PU:14
+
+Alternatively, if numanode is not supported:
+
+$ mpirun -np 3 --map-by slot:PE=2 bash -c '$(hwloc-calc -p --hierarchical package.core.pu $(hwloc-bind --get))'
+Package:0.Core:51.PU:15 Package:0.Core:8.PU:16
+Package:0.Core:17.PU:5 Package:0.Core:48.PU:12
+Package:0.Core:49.PU:13 Package:0.Core:50.PU:14
+
 """
 
 import argparse
@@ -44,7 +52,8 @@ def main():
         for cpu in cpus:
             cpu_parts = dict(item.split(':') for item in cpu.split('.'))
             packages.add(cpu_parts['Package'])
-            numanodes.add(cpu_parts['NUMANode'])
+            if cpu_parts.get('NUMANode'):
+                numanodes.add(cpu_parts['NUMANode'])
             cores_occupation[(cpu_parts['Package'], cpu_parts['Core'])] += 1
 
         num_packages = len(packages)

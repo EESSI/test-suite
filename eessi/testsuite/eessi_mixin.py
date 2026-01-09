@@ -267,10 +267,10 @@ class EESSI_Mixin(RegressionMixin):
         if not self.check_process_binding:
             return
         check_binding_script = check_process_binding.__file__
-        get_binding = 'hwloc-calc -p -H package.numanode.core.pu $(hwloc-bind --get)'
+        get_binding = os.path.join(os.path.dirname(check_binding_script), 'get_process_binding.sh')
         check_binding = f'{check_binding_script} --cpus-per-proc {self.num_cpus_per_task} --procs {self.num_tasks}'
         self.prerun_cmds.append(
-            f"{self.job.launcher.run_command(self.job)} bash -c '{get_binding}' | tee /dev/stderr | {check_binding}")
+            f"{self.job.launcher.run_command(self.job)} {get_binding} | tee /dev/stderr | {check_binding}")
 
     @run_after('run')
     def EESSI_mixin_extract_runtime_info_from_log(self):
