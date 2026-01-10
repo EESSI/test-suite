@@ -2,14 +2,16 @@
 """
 Check process binding from standard input in format similar to the example below, which was obtained as follows:
 
-$ mpirun -np 3 --map-by slot:PE=2 bash -c '$(hwloc-calc -p --hierarchical package.numanode.core.pu $(hwloc-bind --get))'
+$ mpirun -np 3 --map-by slot:PE=2 bash -c \
+    'echo "$HOSTNAME $(hwloc-calc -p --hierarchical package.numanode.core.pu $(hwloc-bind --get))"'
 host1 Package:0.NUMANode:3.Core:51.PU:15 Package:0.NUMANode:4.Core:8.PU:16
 host1 Package:0.NUMANode:1.Core:17.PU:5 Package:0.NUMANode:3.Core:48.PU:12
 host2 Package:0.NUMANode:3.Core:49.PU:13 Package:0.NUMANode:3.Core:50.PU:14
 
-Alternatively, if numanode is not supported:
+Alternatively, if numanode is not supported (hwloc < 2.9.0):
 
-$ mpirun -np 3 --map-by slot:PE=2 bash -c '$(hwloc-calc -p --hierarchical package.core.pu $(hwloc-bind --get))'
+$ mpirun -np 3 --map-by slot:PE=2 bash -c \
+    'echo "$HOSTNAME $(hwloc-calc -p --hierarchical package.core.pu $(hwloc-bind --get))"'
 host1 Package:0.Core:51.PU:15 Package:0.Core:8.PU:16
 host1 Package:0.Core:17.PU:5 Package:0.Core:48.PU:12
 host2 Package:0.Core:49.PU:13 Package:0.Core:50.PU:14
