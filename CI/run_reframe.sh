@@ -131,6 +131,14 @@ fi
 
 # EESSI_VERSION can consist of multiple, comma-separated entries. Loop over those:
 IFS=',' read -r -a eessi_version_array <<< "$EESSI_VERSION"
+
+# Don't loop over EESSI_VERSIONS if we a) don't use the EESSI software stack or b) don't load it from the module
+# In this case, simply only retain the first element of the eessi_version_array to avoid looping
+if (( ${#eessi_version_array[@]} > 1 )) && \
+   [[ $USE_EESSI_SOFTWARE_STACK == "True" && $USE_EESSI_MODULE != "True" ]]; then
+   eessi_version_array=("${eessi_version_array[0]}")
+fi
+
 for EESSI_VERSION in "${eessi_version_array[@]}"; do
     # Start the EESSI environment
     if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
