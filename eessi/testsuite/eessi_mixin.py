@@ -274,8 +274,13 @@ class EESSI_Mixin(RegressionMixin):
             f'--procs {self.num_tasks}',
             f'--nodes {self.num_tasks // self.num_tasks_per_node}',
         ])
-        self.prerun_cmds.append(
-            f"{self.job.launcher.run_command(self.job)} {get_binding} | tee /dev/stderr | {check_binding}")
+        self.prerun_cmds.extend([
+            "if command -v hwloc-calc >/dev/null; then",
+            f"{self.job.launcher.run_command(self.job)} {get_binding} | tee /dev/stderr | {check_binding}",
+            "else",
+            "echo 'PROCESS BINDING WARNING: hwloc not available, skipping process binding check' >/dev/stderr",
+            "fi",
+        ])
 
     @run_after('run')
     def EESSI_mixin_extract_runtime_info_from_log(self):
