@@ -107,21 +107,6 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_64M(rfm.RunOnlyRegressionTest, EESSI_Mixi
         return self.num_tasks_per_node * 1700
 
     @run_after('setup')
-    def check_launcher_options(self):
-        # We had to get the launcher command and prepend this to the prerun steps (func prepare_environment) because:
-        # 1. A typical OpenFOAM job would contain multiple mpirun steps working on the same stage directory.
-        # 2. We had trouble using ReFrame fixtures to separate these over multiple jobs, because we couldn't get it to
-        #    work together with the mixin class.
-        if (self.job.launcher.command(self.job)[0] == 'mpirun'):
-            self.launcher_command = self.job.launcher.command(self.job)
-            self.launcher_command[-1] = str(self.num_tasks_per_node * self.num_nodes)
-        elif (self.job.launcher.command(self.job)[0] == 'srun'):
-            self.launcher_command = self.job.launcher.command(self.job)
-        else:
-            self.skip(msg="The chosen launcher for this test is different from mpirun or srun which means that the"
-                      "test will definitely fail, therefore skipping this test.")
-
-    @run_after('setup')
     def check_minimum_cores(self):
         # The 64M test case requires minimally 512 cores to run within reasonable time.
         if self.num_tasks < 512:
@@ -130,6 +115,11 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_64M(rfm.RunOnlyRegressionTest, EESSI_Mixi
 
     @run_before('run')
     def prepare_environment(self):
+        # redistributePar and renumberMesh are added to the prerun cmds because:
+        # 1. A typical OpenFOAM job would run them as mpirun steps working on the same stage directory.
+        # 2. We had trouble using ReFrame fixtures to separate these over multiple jobs, because we couldn't get it to
+        #    work together with the mixin class.
+
         # fullpath = os.path.join(self.ldc_64M.stagedir, 'fixedTol')
         self.prerun_cmds = [
             'cd ./cavity3D/64M/fixedTol',
@@ -137,8 +127,8 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_64M(rfm.RunOnlyRegressionTest, EESSI_Mixi
             f"foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} "
             "system/decomposeParDict",
             'blockMesh 2>&1 | tee log.blockMesh',
-            f"{' '.join(self.launcher_command)} redistributePar -decompose -parallel 2>&1 | tee log.decompose",
-            f"{' '.join(self.launcher_command)} renumberMesh -parallel -overwrite 2>&1 | tee log.renumberMesh"]
+            f"{self.job.launcher.run_command(self.job)} redistributePar -decompose -parallel 2>&1 | tee log.decompose",
+            f"{self.job.launcher.run_command(self.job)} renumberMesh -parallel -overwrite 2>&1 | tee log.renumberMesh"]
 
     @deferrable
     def check_files(self):
