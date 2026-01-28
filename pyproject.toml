@@ -13,6 +13,9 @@ classifiers = [
 requires-python = ">=3.6"
 dynamic = ["version"]
 
+[project.optional-dependencies]
+compilation = ["easybuild"]
+
 [project.urls]
 "Homepage" = "https://eessi.io/docs/test-suite"
 "Bug Tracker" = "https://github.com/EESSI/test-suite/issues"
@@ -24,4 +27,4 @@ include = ["eessi*"]
 version_scheme = "guess-next-dev"
 local_scheme = "node-and-date"
 write_to = "eessi/testsuite/_version.py"
-fallback_version = "0.7.1"
+fallback_version = "0.9.0"

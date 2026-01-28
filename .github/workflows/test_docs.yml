@@ -1,0 +1,30 @@
+# documentation: https://help.github.com/en/articles/workflow-syntax-for-github-actions
+name: Tests for EESSI test suite API docs
+on: [push, pull_request, workflow_dispatch]
+permissions: read-all
+jobs:
+  test_API_docs_script:
+    runs-on: ubuntu-22.04
+    steps:
+        - name: Check out docs repository
+          uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+          with:
+            repository: EESSI/docs
+            ref: main
+            persist-credentials: false
+            fetch-depth: 0
+
+        - name: Check out test-suite repository
+          uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+          with:
+            persist-credentials: false
+            path: test-suite/test-suite
+
+        - name: install mkdocs + plugins
+          run: |
+            pip install -r requirements.txt
+            pip list | grep mkdocs
+            mkdocs --version
+
+        - name: build docs
+          run: make test
