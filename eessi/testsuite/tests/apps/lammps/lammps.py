@@ -7,7 +7,7 @@ import reframe as rfm
 from reframe.core.builtins import deferrable, parameter, performance_function, run_after, sanity_function
 import reframe.utility.sanity as sn
 
-from eessi.testsuite import utils
+from eessi.testsuite.utils import all_files, find_modules, log
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
@@ -53,9 +53,8 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
     device_type = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])
 
     # Parameterize over all modules that start with LAMMPS
-    module_name = parameter(utils.find_modules('LAMMPS'))
+    module_name = parameter(find_modules('LAMMPS'))
 
-    all_readonly_files = True
     is_ci_test = True
 
     def required_mem_per_node(self):
@@ -68,7 +67,7 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
         '''Assert that OpenMP thread(s) per MPI task is set'''
         n_threads = sn.extractsingle(
             r'^  using (?P<threads>[0-9]+) OpenMP thread\(s\) per MPI task', self.stdout, 'threads', int)
-        utils.log(f'OpenMP thread(s) is {n_threads}')
+        log(f'OpenMP thread(s) is {n_threads}')
 
         return sn.assert_eq(n_threads, self.num_cpus_per_task)
 
@@ -119,10 +118,10 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
                     '-suffix kk',
                     '-package kokkos newton on neigh half',
                 ]
-                utils.log(f'executable_opts set to {self.executable_opts}')
+                log(f'executable_opts set to {self.executable_opts}')
             else:
                 self.executable_opts += [f'-suffix gpu -package gpu {self.num_gpus_per_node}']
-                utils.log(f'executable_opts set to {self.executable_opts}')
+                log(f'executable_opts set to {self.executable_opts}')
 
     # Function to check NDS
     def compute_ndenprof(self, values, bins, start, stop):
@@ -144,7 +143,7 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
         # mean NDS should be around 3.0 (+-0.05) in between buffer regions
         mean_nds = mean(nds_avg_all)
         if (abs(mean_nds - 3.0) > 0.05):
-            utils.log('NDS is WRONG!')
+            log('NDS is WRONG!')
             return False
         else:
             return True
@@ -166,6 +165,7 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
 @rfm.simple_test
 class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
     sourcesdir = 'src/lj'
+    readonly_files = all_files(sourcesdir)
     executable = 'lmp -in in.lj'
 
     @deferrable
@@ -198,6 +198,7 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
 @rfm.simple_test
 class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
     sourcesdir = 'src/rhodo'
+    readonly_files = all_files(sourcesdir)
     executable = 'lmp -in in.rhodo'
     is_ci_test = False
 
@@ -238,9 +239,10 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
     The key feature of this class is a sanity check that determines if either load balancing has improved
     over the course of the run, or if load balancing was already good from the start."""
     sourcesdir = 'src/ALL+OBMD'
+    readonly_files = all_files(sourcesdir)
 
     # This requires a LAMMPS with ALL functionality, i.e. only select modules with ALL in the versionsuffix
-    module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*ALL', name_only=False))
+    module_name = parameter(find_modules(r'LAMMPS\/.*-.*ALL', name_only=False))
 
     @deferrable
     def check_number_neighbors(self):
@@ -278,7 +280,7 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
         # If imb is 1, that indicates perfect balance. So the imbalance is essentially imb-1.
         initial_imbalance = sn.extractsingle(self.init_imb_regex, self.stdout, 'imb', float) - 1
         final_imbalance = sn.extractsingle(self.final_imb_regex, self.stdout, 'imb', float) - 1
-        utils.log(f"Improved load balancing from {initial_imbalance} to {final_imbalance} (0 = perfect balance).")
+        log(f"Improved load balancing from {initial_imbalance} to {final_imbalance} (0 = perfect balance).")
 
         # Check if imbalance was small both at the start and end
         no_imbalance = sn.all(
@@ -286,18 +288,18 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
         )
 
         if no_imbalance:
-            utils.log("No imbalance at either start or end of the simulation. Sanity check will pass.")
+            log("No imbalance at either start or end of the simulation. Sanity check will pass.")
             # If there was no imbalance at start or end, just assert that this was the case
             return sn.assert_true(no_imbalance)
         elif final_imbalance == 0:
             # Protect from division by zero. A final imbalance of 0 is an 'infinite' improvement
             # and should thus make this sanity check pass
-            utils.log("Final imbalance was 0. Sanity check will pass.")
+            log("Final imbalance was 0. Sanity check will pass.")
             return sn.assert_eq(final_imbalance, 0)
         else:
             # Compute improvement in imbalance, and check that imbalance improved by at least 50%
             improvement = initial_imbalance / final_imbalance
-            utils.log(f"Improved load balancing by a factor of: {improvement}.")
+            log(f"Improved load balancing by a factor of: {improvement}.")
             return sn.assert_gt(initial_imbalance / final_imbalance, 1.5)
 
 
@@ -362,11 +364,12 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
     water model. The density of DPD water in the region of interest is checked as part of the sanity check.
     If the density equals the desired value (within predetermined error), the test is successful."""
     sourcesdir = 'src/ALL+OBMD'
+    readonly_files = all_files(sourcesdir)
 
     executable = 'lmp -in in.simulation.staggered.global'
 
     # This requires a LAMMPS with ALL+OMBD functionality, i.e. only select modules with -ALL_OBMD versionsuffix
-    module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*ALL.*OBMD', name_only=False))
+    module_name = parameter(find_modules(r'LAMMPS\/.*-.*ALL.*OBMD', name_only=False))
 
     @sanity_function
     def assert_sanity(self):
@@ -398,6 +401,7 @@ class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
     water model. The density of DPD water in the region of interest is checked as part of the sanity check.
     If the density equals the desired value (within predetermined error), the test is successful."""
     sourcesdir = 'src/ALL+OBMD'
+    readonly_files = all_files(sourcesdir)
 
     prerun_cmds = ['python generate_obmd_input.py']
 
@@ -405,7 +409,7 @@ class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
 
     # This requires a LAMMPS with OBMD functionality, i.e. only select modules with -OBMD versionsuffix
     # We _could_ remove the '-' and '$' to also match e.g. ALL_OBMD
-    module_name = parameter(utils.find_modules(r'LAMMPS\/.*-.*OBMD', name_only=False))
+    module_name = parameter(find_modules(r'LAMMPS\/.*-.*OBMD', name_only=False))
 
     @sanity_function
     def assert_sanity(self):

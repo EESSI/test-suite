@@ -341,3 +341,22 @@ def log_once(test: rfm.RegressionTest, msg: str, msg_id: str, level: str = 'info
     _unique_msg_ids.append(unique_id)
     loglevel = getattr(getlogger(), level)
     loglevel(msg)
+
+
+def all_files(dir):
+    """
+    Get all files and directories in a given directory
+
+    Arguments:
+    - dir: the directory: absolute path or path relative to the path of module of the calling function
+
+    Return:
+    - List of files and directories in the directory
+    """
+    if os.path.isabs(dir):
+        path = dir
+    else:
+        prefix = os.path.dirname(inspect.currentframe().f_back.f_code.co_filename)
+        path = os.path.join(prefix, dir)
+
+    return os.listdir(path)
