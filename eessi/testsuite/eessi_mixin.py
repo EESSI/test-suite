@@ -37,12 +37,12 @@ class EESSI_Mixin(RegressionTestPlugin):
     That definition needs to be done 'on time', i.e. early enough in the execution of the ReFrame pipeline.
     Here, we list which class attributes must be defined by the child class, and by (the end of) what phase:
 
-    - Init phase: device_type, scale, module_name, bench_name (if bench_name_ci is set)
+    - Init phase: device_type, scale, module_name, bench_name
     - Setup phase: compute_unit, required_mem_per_node
 
     The child class may also overwrite the following attributes:
 
-    - Init phase: time_limit, measure_memory_usage, bench_name_ci, all_readonly_files
+    - Init phase: time_limit, measure_memory_usage, all_readonly_files
     """
 
     # Defaults for ReFrame variables that can be overwritten on the cmd line
@@ -54,7 +54,6 @@ class EESSI_Mixin(RegressionTestPlugin):
     # Set defaults for these class variables, can be overwritten by child class if desired
     scale = parameter(SCALES.keys())
     bench_name = None
-    bench_name_ci = None
     is_ci_test = False
     num_tasks_per_compute_unit = 1
     always_request_gpus = None
@@ -175,20 +174,13 @@ class EESSI_Mixin(RegressionTestPlugin):
     @run_after('init', always_last=True)
     def EESSI_mixin_set_tag_ci(self):
         """
-        Set CI tag if is_ci_test is True or (bench_name_ci and bench_name are set and are equal)
+        Set CI tag if is_ci_test is True
         Also set tag on bench_name if set
         """
         tags_added = False
         if self.is_ci_test:
             self.tags.add(TAGS.CI)
             tags_added = True
-        elif self.bench_name_ci:
-            if not self.bench_name:
-                msg = "Attribute bench_name_ci is set, but bench_name is not set"
-                raise ReframeFatalError(msg)
-            if self.bench_name == self.bench_name_ci:
-                self.tags.add(TAGS.CI)
-                tags_added = True
         if self.bench_name:
             self.tags.add(self.bench_name)
             tags_added = True

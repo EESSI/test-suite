@@ -115,7 +115,7 @@ class EESSI_OSU_pt2pt_Base(EESSI_OSU_Base):
     def select_ci(self):
         " Select the CI variants "
         if (self.bench_name in ['mpi.pt2pt.osu_latency', 'mpi.pt2pt.osu_bw']):
-            self.bench_name_ci = self.bench_name
+            self.is_ci_test = True
 
     @run_after('init')
     def set_num_tasks_per_compute_unit(self):
@@ -178,7 +178,7 @@ class EESSI_OSU_coll(EESSI_OSU_Base, EESSI_Mixin):
     def select_ci(self):
         " Select the CI variants "
         if (self.bench_name in ['mpi.collective.osu_allreduce', 'mpi.collective.osu_alltoall']):
-            self.bench_name_ci = self.bench_name
+            self.is_ci_test = True
 
     @run_after('init')
     def set_compute_unit(self):
