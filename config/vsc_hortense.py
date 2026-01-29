@@ -40,7 +40,8 @@ hortense_access.append(f'-A {sbatch_account}')
 # These environment need to be set to avoid orte failures when launching application with `mpirun`
 common_env_vars = [
     ['OMPI_MCA_plm_base_verbose', '100'],
-    ['OMPI_MCA_orte_keep_fqdn_hostnames', '1']
+    ['OMPI_MCA_orte_keep_fqdn_hostnames', '1'],
+    ['PRTE_MCA_prte_keep_fqdn_hostnames', '1']
 ]
 # We need to pass `--export=NONE` so that we have a clean environment in the jobs
 # We need to unset SLURM_EXPORT_ENV in the job because otherwise this causes problems for `mpirun`
@@ -74,7 +75,7 @@ site_configuration = {
                         common_eessi_init(),
                         post_init,
                     ],
-                    'access': hortense_access + ['--partition=cpu_rome'],
+                    'access': hortense_access + ['--partition=cpu_rome_rhel9'],
                     'env_vars': common_env_vars,
                     'sched_options': {
                         'sched_access_in_submit': True,
@@ -83,7 +84,7 @@ site_configuration = {
                     'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module.format('cpu_rome')],
+                    'modules': [mpi_module.format('cpu_rome_rhel9')],
                     'resources': [
                         {
                             'name': 'memory',
@@ -107,7 +108,7 @@ site_configuration = {
                         common_eessi_init(),
                         post_init,
                     ],
-                    'access': hortense_access + ['--partition=cpu_rome_512'],
+                    'access': hortense_access + ['--partition=cpu_rome_512_rhel9'],
                     'env_vars': common_env_vars,
                     'sched_options': {
                         'sched_access_in_submit': True,
@@ -116,7 +117,7 @@ site_configuration = {
                     'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'modules': [mpi_module.format('cpu_rome_512')],
+                    'modules': [mpi_module.format('cpu_rome_512_rhel9')],
                     'resources': [
                         {
                             'name': 'memory',
@@ -130,39 +131,6 @@ site_configuration = {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
                         EXTRAS.MEM_PER_NODE: 499200,  # in MiB
-                    },
-                },
-                {
-                    'name': 'cpu_milan_rhel9',
-                    'scheduler': 'slurm',
-                    'prepare_cmds': [
-                        prepare_eessi_init,
-                        common_eessi_init(),
-                        post_init,
-                    ],
-                    'access': hortense_access + ['--partition=cpu_milan_rhel9'],
-                    'env_vars': common_env_vars,
-                    'sched_options': {
-                        'sched_access_in_submit': True,
-                    },
-                    'environs': ['default'],
-                    'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
-                    'max_jobs': 20,
-                    'launcher': launcher,
-                    'modules': [mpi_module.format('cpu_milan_rhel9')],
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
-                    'features': [
-                        FEATURES.CPU,
-                    ] + list(SCALES.keys()),
-                    'extras': {
-                        # Make sure to round down, otherwise a job might ask for more mem than is available
-                        # per node
-                        EXTRAS.MEM_PER_NODE: 243200,  # in MiB
                     },
                 },
                 {
