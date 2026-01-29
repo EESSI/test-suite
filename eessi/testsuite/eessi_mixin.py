@@ -4,7 +4,10 @@ from reframe.core.backends import getlauncher
 from reframe.core.builtins import parameter, run_after, run_before, variable
 from reframe.core.exceptions import ReframeFatalError
 from reframe.core.logging import getlogger
-from reframe.core.pipeline import RegressionMixin
+try:
+    from reframe.core.pipeline import RegressionTestPlugin
+except ImportError:
+    from reframe.core.pipeline import RegressionMixin as RegressionTestPlugin
 from reframe.utility.sanity import make_performance_function
 import reframe.utility.sanity as sn
 
@@ -27,7 +30,7 @@ from eessi.testsuite import __version__ as testsuite_version
 # Maybe we can move those to an __init__ step of the Mixin, even though that is not typically how ReFrame
 # does it anymore?
 # That way, the child class could define it as class variables, and the parent can use it in its __init__ method?
-class EESSI_Mixin(RegressionMixin):
+class EESSI_Mixin(RegressionTestPlugin):
     """
     All EESSI tests should derive from this mixin class unless they have a very good reason not to.
     To run correctly, tests inheriting from this class need to define variables and parameters that are used here.
