@@ -1,3 +1,5 @@
+import os
+
 from reframe.core.backends import getlauncher
 from reframe.core.builtins import parameter, run_after, run_before, variable
 from reframe.core.exceptions import ReframeFatalError
@@ -40,7 +42,7 @@ class EESSI_Mixin(RegressionTestPlugin):
 
     The child class may also overwrite the following attributes:
 
-    - Init phase: time_limit, measure_memory_usage
+    - Init phase: time_limit, measure_memory_usage, all_readonly_files
     """
 
     # Defaults for ReFrame variables that can be overwritten on the cmd line
@@ -58,6 +60,7 @@ class EESSI_Mixin(RegressionTestPlugin):
     require_buildenv_module = False
     require_internet = False
     launcher = None
+    all_readonly_files = False
 
     # Create ReFrame variables for logging runtime environment information
     cvmfs_repo_name = variable(str, value='None')
@@ -82,7 +85,7 @@ class EESSI_Mixin(RegressionTestPlugin):
         cls.valid_systems = ['*']
         if not cls.time_limit:
             cls.time_limit = '1h'
-        if not cls.readonly_files:
+        if not (cls.readonly_files or cls.all_readonly_files):
             msg = ' '.join([
                 "Built-in attribute `readonly_files` is empty. To avoid excessive copying, it's highly recommended",
                 "to add all files and/or dirs in `sourcesdir` that are needed but not modified during the test,",
@@ -107,6 +110,16 @@ class EESSI_Mixin(RegressionTestPlugin):
             else:
                 msg = f"The variable '{item}' has value {value}, but the only valid values are {valid_items}"
             raise ReframeFatalError(msg)
+
+    @run_after('init')
+    def mark_all_files_readonly(self):
+        """Mark all files in the sourcesdir as read-only"""
+        if self.all_readonly_files:
+            if os.path.isabs(self.sourcesdir):
+                path = self.sourcesdir
+            else:
+                path = os.path.join(self.prefix, self.sourcesdir)
+            self.readonly_files = os.listdir(path)
 
     @run_after('init')
     def EESSI_mixin_validate_init(self):

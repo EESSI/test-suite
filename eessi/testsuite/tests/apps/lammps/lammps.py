@@ -7,7 +7,7 @@ import reframe as rfm
 from reframe.core.builtins import deferrable, parameter, performance_function, run_after, sanity_function
 import reframe.utility.sanity as sn
 
-from eessi.testsuite.utils import all_files, find_modules, log
+from eessi.testsuite.utils import find_modules, log
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 
@@ -55,6 +55,7 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
     # Parameterize over all modules that start with LAMMPS
     module_name = parameter(find_modules('LAMMPS'))
 
+    all_readonly_files = True
     is_ci_test = True
 
     def required_mem_per_node(self):
@@ -165,7 +166,6 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
 @rfm.simple_test
 class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
     sourcesdir = 'src/lj'
-    readonly_files = all_files(sourcesdir)
     executable = 'lmp -in in.lj'
 
     @deferrable
@@ -198,7 +198,6 @@ class EESSI_LAMMPS_lj(EESSI_LAMMPS_base, EESSI_Mixin):
 @rfm.simple_test
 class EESSI_LAMMPS_rhodo(EESSI_LAMMPS_base, EESSI_Mixin):
     sourcesdir = 'src/rhodo'
-    readonly_files = all_files(sourcesdir)
     executable = 'lmp -in in.rhodo'
     is_ci_test = False
 
@@ -239,7 +238,6 @@ class EESSI_LAMMPS_ALL_balance_staggered_global_base(EESSI_LAMMPS_base):
     The key feature of this class is a sanity check that determines if either load balancing has improved
     over the course of the run, or if load balancing was already good from the start."""
     sourcesdir = 'src/ALL+OBMD'
-    readonly_files = all_files(sourcesdir)
 
     # This requires a LAMMPS with ALL functionality, i.e. only select modules with ALL in the versionsuffix
     module_name = parameter(find_modules(r'LAMMPS\/.*-.*ALL', name_only=False))
@@ -364,7 +362,6 @@ class EESSI_LAMMPS_ALL_OBMD_simulation_staggered_global(EESSI_LAMMPS_base, EESSI
     water model. The density of DPD water in the region of interest is checked as part of the sanity check.
     If the density equals the desired value (within predetermined error), the test is successful."""
     sourcesdir = 'src/ALL+OBMD'
-    readonly_files = all_files(sourcesdir)
 
     executable = 'lmp -in in.simulation.staggered.global'
 
@@ -401,7 +398,6 @@ class EESSI_LAMMPS_OBMD_simulation(EESSI_LAMMPS_base, EESSI_Mixin):
     water model. The density of DPD water in the region of interest is checked as part of the sanity check.
     If the density equals the desired value (within predetermined error), the test is successful."""
     sourcesdir = 'src/ALL+OBMD'
-    readonly_files = all_files(sourcesdir)
 
     prerun_cmds = ['python generate_obmd_input.py']
 
