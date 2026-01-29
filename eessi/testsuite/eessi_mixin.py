@@ -1,5 +1,3 @@
-import os
-
 from reframe.core.backends import getlauncher
 from reframe.core.builtins import parameter, run_after, run_before, variable
 from reframe.core.exceptions import ReframeFatalError
