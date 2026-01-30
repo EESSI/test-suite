@@ -115,7 +115,11 @@ class EESSI_Mixin(RegressionTestPlugin):
     def mark_all_files_readonly(self):
         """Mark all files in the sourcesdir as read-only"""
         if self.all_readonly_files:
-            self.readonly_files = os.listdir(self.sourcesdir)
+            if os.path.isabs(self.sourcesdir):
+                path = self.sourcesdir
+            else:
+                path = os.path.join(self.prefix, self.sourcesdir)
+            self.readonly_files = os.listdir(path)
 
     @run_after('init')
     def EESSI_mixin_validate_init(self):
