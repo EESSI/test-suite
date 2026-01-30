@@ -87,14 +87,7 @@ class EESSI_Mixin(RegressionTestPlugin):
         cls.valid_systems = ['*']
         if not cls.time_limit:
             cls.time_limit = '1h'
-        if not (cls.readonly_files or cls.all_readonly_files):
-            msg = ' '.join([
-                "Built-in attribute `readonly_files` is empty. To avoid excessive copying, it's highly recommended",
-                "to add all files and/or dirs in `sourcesdir` that are needed but not modified during the test,",
-                "thus can be symlinked into the stage dirs. If you are sure there are no such files,",
-                "set `readonly_files = ['']`.",
-            ])
-            raise ReframeFatalError(msg)
+
         if cls._rfm_local_param_space.get('scale'):
             getlogger().verbose(f"Scales supported by {cls.__qualname__}: {cls._rfm_local_param_space['scale'].values}")
 
@@ -112,6 +105,19 @@ class EESSI_Mixin(RegressionTestPlugin):
             else:
                 msg = f"The variable '{item}' has value {value}, but the only valid values are {valid_items}"
             raise ReframeFatalError(msg)
+
+    @run_after('init')
+    def EESSI_check_readonly_files(self):
+        if not (self.readonly_files or self.all_readonly_files):
+            msg = ' '.join([
+                "Built-in attribute `readonly_files` is empty. To avoid excessive copying, it's highly recommended",
+                "to add all files and/or dirs in `sourcesdir` that are needed but not modified during the test,",
+                "thus can be symlinked into the stage dirs. If you are sure there are no such files,",
+                "set `readonly_files = ['']`. To symlink all files in `sourcesdir`, set `all_readonly_files = True`.",
+            ])
+            if self.readonly_files_undefined_policy == 'error':
+                raise ReframeFatalError(msg)
+            log_once(self, msg, msg_id='1', level=self.readonly_files_undefined_policy)
 
     @run_after('init')
     def mark_all_files_readonly(self):
