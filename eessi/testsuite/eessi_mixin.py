@@ -2,7 +2,6 @@ import os
 
 from reframe.core.backends import getlauncher
 from reframe.core.builtins import parameter, run_after, run_before, variable
-from reframe.core.exceptions import ReframeFatalError
 from reframe.core.logging import getlogger
 try:
     from reframe.core.pipeline import RegressionTestPlugin
@@ -12,8 +11,8 @@ from reframe.utility.sanity import make_performance_function
 import reframe.utility.sanity as sn
 
 from eessi.testsuite import hooks
-from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNITS, TAGS
-from eessi.testsuite.utils import log
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES, TAGS
+from eessi.testsuite.utils import EESSIError, log
 from eessi.testsuite import __version__ as testsuite_version
 
 
@@ -92,7 +91,7 @@ class EESSI_Mixin(RegressionTestPlugin):
                 "thus can be symlinked into the stage dirs. If you are sure there are no such files,",
                 "set `readonly_files = ['']`.",
             ])
-            raise ReframeFatalError(msg)
+            raise EESSIError(msg)
         if cls._rfm_local_param_space.get('scale'):
             getlogger().verbose(f"Scales supported by {cls.__qualname__}: {cls._rfm_local_param_space['scale'].values}")
 
@@ -109,7 +108,7 @@ class EESSI_Mixin(RegressionTestPlugin):
                 msg = f"The variable '{item}' has value {value}, but the only valid value is {valid_items[0]}"
             else:
                 msg = f"The variable '{item}' has value {value}, but the only valid values are {valid_items}"
-            raise ReframeFatalError(msg)
+            raise EESSIError(msg)
 
     @run_after('init')
     def mark_all_files_readonly(self):
@@ -126,7 +125,7 @@ class EESSI_Mixin(RegressionTestPlugin):
             if not hasattr(self, var):
                 msg = "The variable '%s' should be defined in any test class that inherits" % var
                 msg += " from EESSI_Mixin before (or in) the init phase, but it wasn't"
-                raise ReframeFatalError(msg)
+                raise EESSIError(msg)
 
         # Check that the value for these variables is valid,
         # i.e. exists in their respective dict from eessi.testsuite.constants
@@ -156,7 +155,7 @@ class EESSI_Mixin(RegressionTestPlugin):
             hooks.set_compact_thread_binding(self)
         elif thread_binding != 'false':
             err_msg = f"Invalid thread_binding value '{thread_binding}'. Valid values: 'true', 'compact', or 'false'."
-            raise ReframeFatalError(err_msg)
+            raise EESSIError(err_msg)
 
         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
 
@@ -195,7 +194,7 @@ class EESSI_Mixin(RegressionTestPlugin):
             if not hasattr(self, var):
                 msg = "The variable '%s' should be defined in any test class that inherits" % var
                 msg += " from EESSI_Mixin before (or in) the setup phase, but it wasn't"
-                raise ReframeFatalError(msg)
+                raise EESSIError(msg)
 
         # Check if mem_func was defined to compute the required memory per node as function of the number of
         # tasks per node
@@ -204,7 +203,7 @@ class EESSI_Mixin(RegressionTestPlugin):
             msg += " from EESSI_Mixin before (or in) the setup phase, but it wasn't. Note that this function"
             msg += " can use self.num_tasks_per_node, as it will be called after that attribute"
             msg += " has been set."
-            raise ReframeFatalError(msg)
+            raise EESSIError(msg)
 
         # Check that the value for these variables is valid
         # i.e. exists in their respective dict from eessi.testsuite.constants
