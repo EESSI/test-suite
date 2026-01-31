@@ -108,6 +108,7 @@ class EESSI_Mixin(RegressionTestPlugin):
 
     @run_after('init')
     def EESSI_check_readonly_files(self):
+        # This check must occur after init phase to support setting `readonly_files_undefined_policy` on the cmd line
         if not (self.readonly_files or self.all_readonly_files):
             msg = ' '.join([
                 "Built-in attribute `readonly_files` is empty. To avoid excessive copying, it's highly recommended",
