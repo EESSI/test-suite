@@ -13,7 +13,7 @@ import reframe.utility.sanity as sn
 
 from eessi.testsuite import hooks
 from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNITS, TAGS
-from eessi.testsuite.utils import log
+from eessi.testsuite.utils import log, log_once
 from eessi.testsuite import __version__ as testsuite_version
 
 
@@ -50,6 +50,8 @@ class EESSI_Mixin(RegressionTestPlugin):
     exact_memory = variable(bool, value=False)
     user_executable_opts = variable(str, value='')
     thread_binding = variable(str, value='false')
+    required_mem_per_node_undefined_policy = variable(str, value='warning')
+    readonly_files_undefined_policy = variable(str, value='warning')
 
     # Set defaults for these class variables, can be overwritten by child class if desired
     scale = parameter(SCALES.keys())
@@ -85,14 +87,7 @@ class EESSI_Mixin(RegressionTestPlugin):
         cls.valid_systems = ['*']
         if not cls.time_limit:
             cls.time_limit = '1h'
-        if not (cls.readonly_files or cls.all_readonly_files):
-            msg = ' '.join([
-                "Built-in attribute `readonly_files` is empty. To avoid excessive copying, it's highly recommended",
-                "to add all files and/or dirs in `sourcesdir` that are needed but not modified during the test,",
-                "thus can be symlinked into the stage dirs. If you are sure there are no such files,",
-                "set `readonly_files = ['']`.",
-            ])
-            raise ReframeFatalError(msg)
+
         if cls._rfm_local_param_space.get('scale'):
             getlogger().verbose(f"Scales supported by {cls.__qualname__}: {cls._rfm_local_param_space['scale'].values}")
 
@@ -110,6 +105,20 @@ class EESSI_Mixin(RegressionTestPlugin):
             else:
                 msg = f"The variable '{item}' has value {value}, but the only valid values are {valid_items}"
             raise ReframeFatalError(msg)
+
+    @run_after('init')
+    def EESSI_check_readonly_files(self):
+        # This check must occur after init phase to support setting `readonly_files_undefined_policy` on the cmd line
+        if not (self.readonly_files or self.all_readonly_files):
+            msg = ' '.join([
+                "Built-in attribute `readonly_files` is empty. To avoid excessive copying, it's highly recommended",
+                "to add all files and/or dirs in `sourcesdir` that are needed but not modified during the test,",
+                "thus can be symlinked into the stage dirs. If you are sure there are no such files,",
+                "set `readonly_files = ['']`. To symlink all files in `sourcesdir`, set `all_readonly_files = True`.",
+            ])
+            if self.readonly_files_undefined_policy == 'error':
+                raise ReframeFatalError(msg)
+            log_once(self, msg, msg_id='1', level=self.readonly_files_undefined_policy)
 
     @run_after('init')
     def mark_all_files_readonly(self):
@@ -208,7 +217,9 @@ class EESSI_Mixin(RegressionTestPlugin):
             msg += " from EESSI_Mixin before (or in) the setup phase, but it wasn't. Note that this function"
             msg += " can use self.num_tasks_per_node, as it will be called after that attribute"
             msg += " has been set."
-            raise ReframeFatalError(msg)
+            if self.required_mem_per_node_undefined_policy == 'error':
+                raise ReframeFatalError(msg)
+            log_once(self, msg, msg_id='2', level=self.required_mem_per_node_undefined_policy)
 
         # Check that the value for these variables is valid
         # i.e. exists in their respective dict from eessi.testsuite.constants
@@ -235,7 +246,8 @@ class EESSI_Mixin(RegressionTestPlugin):
     @run_after('setup')
     def EESSI_mixin_request_mem(self):
         """Call hook to request the required amount of memory per node"""
-        hooks.req_memory_per_node(self, app_mem_req=self.required_mem_per_node())
+        if hasattr(self, 'required_mem_per_node'):
+            hooks.req_memory_per_node(self, app_mem_req=self.required_mem_per_node())
 
     @run_after('setup')
     def EESSI_mixin_log_runtime_info(self):

@@ -42,7 +42,7 @@ jobs:
             reframe -vvv --show-config
 
             # perform a dry run of *all* tests, without any filtering
-            time reframe --dry-run 2>&1 | tee dry_run.out
+            time reframe --dry-run -S readonly_files_undefined_policy=error -S required_mem_per_node_undefined_policy=error 2>&1 | tee dry_run.out
             pattern='PASSED .*0 failure'
             grep "${pattern}" dry_run.out || (echo "Pattern '${pattern}' not found!" && exit 1)
 
