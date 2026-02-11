@@ -35,20 +35,23 @@ format_perfvars = '|'.join([
 ])
 
 
-def set_common_required_config(site_configuration, set_memory=True):
+def set_common_required_config(site_configuration: dict, set_memory: bool = True):
     """
-    Update ReFrame configuration file: set common required config options
-    Must be called at the end of the site configuration file (below the `site_configuration` dict)
+    Update ReFrame configuration file: set common required config options.
+    Must be called at the end of the site configuration file (below the `site_configuration` dict).
     :param site_configuration: site configuration dictionary
-    :param set_memory: set memory resources
+    :param set_memory: whether to set memory resources
     """
     environments = [{'name': 'default'}]
     environs = ['default']
     use_nodes_option = True
-    resources_memory = [{
-        'name': 'memory',
-        'options': ['--mem={size}'],
-    }]
+    if set_memory:
+        resources_memory = [{
+            'name': 'memory',
+            'options': ['--mem={size}'],
+        }]
+    else:
+        resources_memory = []
     resources_gpu = [{
         'name': '_rfm_gpu',
         'options': ['--gpus-per-node={num_gpus_per_node}'],
