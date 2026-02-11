@@ -38,7 +38,7 @@ format_perfvars = '|'.join([
 def set_common_required_config(site_configuration, set_memory=True):
     """
     Update ReFrame configuration file: set common required config options
-    This function must be called at the end of the site configuration file (after defining site_configuration)
+    Must be called at the end of the site configuration file (below the `site_configuration` dict)
     :param site_configuration: site configuration dictionary
     :param set_memory: set memory resources
     """
@@ -54,43 +54,49 @@ def set_common_required_config(site_configuration, set_memory=True):
         'options': ['--gpus-per-node={num_gpus_per_node}'],
     }]
 
-    if site_configuration.get('environments') and site_configuration['environments'] != environments:
+    if 'environments' in site_configuration and site_configuration['environments'] != environments:
         getlogger().info(f"Changing environments in site config to {environments}")
     site_configuration['environments'] = environments
 
-    for system in site_configuration['systems']:
-        for partition in system['partitions']:
-            if partition.get('environs') and partition['environs'] != environs:
+    for system in site_configuration.get('systems', []):
+        for partition in system.get('partitions', []):
+            # Set or overwrite the partition environment
+            if 'environs' in partition and partition['environs'] != environs:
                 getlogger().info(
                     f"Changing environs in site config to {environs} for {system['name']}:{partition['name']}")
             partition['environs'] = environs
+
+            # Set or overwrite the 'use_nodes_option' scheduler option, if this is a SLURM-like scheduler
             if partition['scheduler'] in ['slurm', 'squeue']:
                 # use --nodes option to ensure the exact number of nodes is requested
                 if (
-                    partition.get('sched_options')
-                    and partition['sched_options'].get('use_nodes_option', use_nodes_option) is not use_nodes_option
+                    'sched_options' in partition
+                    and 'use_nodes_option' in partition['sched_options']
+                    and partition['sched_options']['use_nodes_option'] is not use_nodes_option
                 ):
                     getlogger().info(' '.join([
                         "Changing sched_options['use_nodes_option'] in site config to",
                         f"{use_nodes_option} for {system['name']}:{partition['name']}",
                     ]))
-                if partition.get('sched_options'):
+                if 'sched_options' in partition:
                     partition['sched_options']['use_nodes_option'] = use_nodes_option
                 else:
                     partition['sched_options'] = {'use_nodes_option': use_nodes_option}
-                if FEATURES.GPU in partition['features']:
-                    resources = resources_memory + resources_gpu
-                else:
-                    resources = resources_memory
-                if partition.get('resources'):
-                    orig = {json.dumps(x, sort_keys=True) for x in partition['resources']}
-                    new = {json.dumps(x, sort_keys=True) for x in resources}
-                    if orig != new:
-                        getlogger().info(' '.join([
-                            f"Changing resources in site config to {resources}",
-                            f"for {system['name']}:{partition['name']}",
-                        ]))
-                partition['resources'] = resources
+
+            # Set or overwrite the partition resources
+            if 'features' in partition and FEATURES.GPU in partition['features']:
+                resources = resources_memory + resources_gpu
+            else:
+                resources = resources_memory
+            if 'resources' in partition:
+                orig = {json.dumps(x, sort_keys=True) for x in partition['resources']}
+                new = {json.dumps(x, sort_keys=True) for x in resources}
+                if orig != new:
+                    getlogger().info(' '.join([
+                        f"Changing resources in site config to {resources}",
+                        f"for {system['name']}:{partition['name']}",
+                    ]))
+            partition['resources'] = resources
 
 
 def common_logging_config(prefix=None):
