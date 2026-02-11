@@ -340,4 +340,4 @@ def log_once(test: rfm.RegressionTest, msg: str, msg_id: str, level: str = 'info
 
     _unique_msg_ids.append(unique_id)
     loglevel = getattr(getlogger(), level)
-    loglevel(msg)
+    loglevel(f'{test.__class__.__name__}: {msg}')

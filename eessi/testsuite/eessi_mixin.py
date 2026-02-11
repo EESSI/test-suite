@@ -4,13 +4,16 @@ from reframe.core.backends import getlauncher
 from reframe.core.builtins import parameter, run_after, run_before, variable
 from reframe.core.exceptions import ReframeFatalError
 from reframe.core.logging import getlogger
-from reframe.core.pipeline import RegressionMixin
+try:
+    from reframe.core.pipeline import RegressionTestPlugin
+except ImportError:
+    from reframe.core.pipeline import RegressionMixin as RegressionTestPlugin
 from reframe.utility.sanity import make_performance_function
 import reframe.utility.sanity as sn
 
 from eessi.testsuite import hooks
 from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNITS, TAGS
-from eessi.testsuite.utils import log
+from eessi.testsuite.utils import log, log_once
 from eessi.testsuite import __version__ as testsuite_version
 
 
@@ -27,19 +30,19 @@ from eessi.testsuite import __version__ as testsuite_version
 # Maybe we can move those to an __init__ step of the Mixin, even though that is not typically how ReFrame
 # does it anymore?
 # That way, the child class could define it as class variables, and the parent can use it in its __init__ method?
-class EESSI_Mixin(RegressionMixin):
+class EESSI_Mixin(RegressionTestPlugin):
     """
     All EESSI tests should derive from this mixin class unless they have a very good reason not to.
     To run correctly, tests inheriting from this class need to define variables and parameters that are used here.
     That definition needs to be done 'on time', i.e. early enough in the execution of the ReFrame pipeline.
     Here, we list which class attributes must be defined by the child class, and by (the end of) what phase:
 
-    - Init phase: device_type, scale, module_name, bench_name (if bench_name_ci is set)
+    - Init phase: device_type, scale, module_name, bench_name
     - Setup phase: compute_unit, required_mem_per_node
 
     The child class may also overwrite the following attributes:
 
-    - Init phase: time_limit, measure_memory_usage, bench_name_ci, all_readonly_files
+    - Init phase: time_limit, measure_memory_usage, all_readonly_files
     """
 
     # Defaults for ReFrame variables that can be overwritten on the cmd line
@@ -47,11 +50,12 @@ class EESSI_Mixin(RegressionMixin):
     exact_memory = variable(bool, value=False)
     user_executable_opts = variable(str, value='')
     thread_binding = variable(str, value='false')
+    required_mem_per_node_undefined_policy = variable(str, value='warning')
+    readonly_files_undefined_policy = variable(str, value='warning')
 
     # Set defaults for these class variables, can be overwritten by child class if desired
     scale = parameter(SCALES.keys())
     bench_name = None
-    bench_name_ci = None
     is_ci_test = False
     num_tasks_per_compute_unit = 1
     always_request_gpus = None
@@ -83,14 +87,7 @@ class EESSI_Mixin(RegressionMixin):
         cls.valid_systems = ['*']
         if not cls.time_limit:
             cls.time_limit = '1h'
-        if not (cls.readonly_files or cls.all_readonly_files):
-            msg = ' '.join([
-                "Built-in attribute `readonly_files` is empty. To avoid excessive copying, it's highly recommended",
-                "to add all files and/or dirs in `sourcesdir` that are needed but not modified during the test,",
-                "thus can be symlinked into the stage dirs. If you are sure there are no such files,",
-                "set `readonly_files = ['']`.",
-            ])
-            raise ReframeFatalError(msg)
+
         if cls._rfm_local_param_space.get('scale'):
             getlogger().verbose(f"Scales supported by {cls.__qualname__}: {cls._rfm_local_param_space['scale'].values}")
 
@@ -110,10 +107,28 @@ class EESSI_Mixin(RegressionMixin):
             raise ReframeFatalError(msg)
 
     @run_after('init')
+    def EESSI_check_readonly_files(self):
+        # This check must occur after init phase to support setting `readonly_files_undefined_policy` on the cmd line
+        if not (self.readonly_files or self.all_readonly_files):
+            msg = ' '.join([
+                "Built-in attribute `readonly_files` is empty. To avoid excessive copying, it's highly recommended",
+                "to add all files and/or dirs in `sourcesdir` that are needed but not modified during the test,",
+                "thus can be symlinked into the stage dirs. If you are sure there are no such files,",
+                "set `readonly_files = ['']`. To symlink all files in `sourcesdir`, set `all_readonly_files = True`.",
+            ])
+            if self.readonly_files_undefined_policy == 'error':
+                raise ReframeFatalError(msg)
+            log_once(self, msg, msg_id='1', level=self.readonly_files_undefined_policy)
+
+    @run_after('init')
     def mark_all_files_readonly(self):
         """Mark all files in the sourcesdir as read-only"""
         if self.all_readonly_files:
-            self.readonly_files = os.listdir(self.sourcesdir)
+            if os.path.isabs(self.sourcesdir):
+                path = self.sourcesdir
+            else:
+                path = os.path.join(self.prefix, self.sourcesdir)
+            self.readonly_files = os.listdir(path)
 
     @run_after('init')
     def EESSI_mixin_validate_init(self):
@@ -172,20 +187,13 @@ class EESSI_Mixin(RegressionMixin):
     @run_after('init', always_last=True)
     def EESSI_mixin_set_tag_ci(self):
         """
-        Set CI tag if is_ci_test is True or (bench_name_ci and bench_name are set and are equal)
+        Set CI tag if is_ci_test is True
         Also set tag on bench_name if set
         """
         tags_added = False
         if self.is_ci_test:
             self.tags.add(TAGS.CI)
             tags_added = True
-        elif self.bench_name_ci:
-            if not self.bench_name:
-                msg = "Attribute bench_name_ci is set, but bench_name is not set"
-                raise ReframeFatalError(msg)
-            if self.bench_name == self.bench_name_ci:
-                self.tags.add(TAGS.CI)
-                tags_added = True
         if self.bench_name:
             self.tags.add(self.bench_name)
             tags_added = True
@@ -209,7 +217,9 @@ class EESSI_Mixin(RegressionMixin):
             msg += " from EESSI_Mixin before (or in) the setup phase, but it wasn't. Note that this function"
             msg += " can use self.num_tasks_per_node, as it will be called after that attribute"
             msg += " has been set."
-            raise ReframeFatalError(msg)
+            if self.required_mem_per_node_undefined_policy == 'error':
+                raise ReframeFatalError(msg)
+            log_once(self, msg, msg_id='2', level=self.required_mem_per_node_undefined_policy)
 
         # Check that the value for these variables is valid
         # i.e. exists in their respective dict from eessi.testsuite.constants
@@ -236,7 +246,8 @@ class EESSI_Mixin(RegressionMixin):
     @run_after('setup')
     def EESSI_mixin_request_mem(self):
         """Call hook to request the required amount of memory per node"""
-        hooks.req_memory_per_node(self, app_mem_req=self.required_mem_per_node())
+        if hasattr(self, 'required_mem_per_node'):
+            hooks.req_memory_per_node(self, app_mem_req=self.required_mem_per_node())
 
     @run_after('setup')
     def EESSI_mixin_log_runtime_info(self):
