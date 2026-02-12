@@ -36,8 +36,15 @@ except ImportError:
 
 
 class EESSIError(ReframeFatalError):
-    # don't show traceback for EESSI errors
-    sys.tracebacklimit = 0
+    traceback = os.getenv('TRACEBACK', "0")
+    addendum = ''
+    if traceback.lower() not in ('1', 'true', 'yes', 'on'):
+        # don't show traceback for EESSI errors
+        sys.tracebacklimit = 0
+        addendum = '\nRerun with `TRACEBACK=1 reframe ...` to show the full traceback.'
+
+    def __str__(self):
+        return super().__str__() + EESSIError.addendum
 
 
 def log(msg, logger=printer.debug):
