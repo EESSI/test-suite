@@ -43,12 +43,15 @@ site_configuration = {
                 {
                     'name': 'arriesgado',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [common_eessi_init()],
+                    'prepare_cmds': [
+                        'export EESSI_VERSION_OVERRIDE=2025.06-001',
+                        'source /cvmfs/software.eessi.io/versions/%s/init/bash' % os.getenv('EESSI_VERSION', '2025.06')
+                    ],
                     'launcher': 'mpirun',
                     'sched_options': {
                         'use_nodes_option': True,
                     },
-                    'access': ['-p arriesgado-hirsute', '--nodelist arriesgado-1', '--export=None'],
+                    'access': ['-p arriesgado-hirsute', '--nodelist arriesgado-1', '--export=None', '--time=1:00:00'],
                     'environs': ['default'],
                     'max_jobs': 2,
                     'resources': [
@@ -71,13 +74,14 @@ site_configuration = {
                     'name': 'banana',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
-                        common_eessi_init()
+                        'export EESSI_VERSION_OVERRIDE=2025.06-001',
+                        'source /cvmfs/software.eessi.io/versions/%s/init/bash' % os.getenv('EESSI_VERSION', '2025.06')
                     ],
                     'launcher': 'mpirun',
                     'sched_options': {
                         'use_nodes_option': True,
                     },
-                    'access': ['-p bananaf3-k6.6', '--nodelist bananaf3-8', '--export=None'],
+                    'access': ['-p bananaf3-k6.6', '--nodelist bananaf3-8', '--export=None', '--time=1:00:00'],
                     'environs': ['default'],
                     'max_jobs': 2,
                     'resources': [
@@ -99,12 +103,15 @@ site_configuration = {
                 {
                     'name': 'premier',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [common_eessi_init()],
+                    'prepare_cmds': [
+                        'export EESSI_VERSION_OVERRIDE=2025.06-001',
+                        'source /cvmfs/software.eessi.io/versions/%s/init/bash' % os.getenv('EESSI_VERSION', '2025.06')
+                    ],
                     'launcher': 'mpirun',
                     'sched_options': {
                         'use_nodes_option': True,
                     },
-                    'access': ['-p premier', '--export=None'],
+                    'access': ['-p premier', '--export=None', '--time=1:00:00'],
                     'environs': ['default'],
                     'max_jobs': 8,
                     'resources': [
