@@ -12,7 +12,8 @@
 
 import os
 
-from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
+from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
+                                           set_common_required_config)
 from eessi.testsuite.constants import EXTRAS, FEATURES, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
@@ -72,14 +73,6 @@ site_configuration = {
             ]
         },
     ],
-    'environments': [
-        {
-            'name': 'default',
-            'cc': 'cc',
-            'cxx': '',
-            'ftn': '',
-        },
-    ],
     'logging': common_logging_config(reframe_prefix),
     'general': [
         {
@@ -95,7 +88,6 @@ site_configuration = {
 partition_defaults = {
     'scheduler': 'slurm',
     'launcher': 'mpirun',
-    'environs': ['default'],
     'features': [
         FEATURES.CPU
     ] + list(SCALES.keys()),
@@ -104,12 +96,6 @@ partition_defaults = {
         # Required when using srun as launcher with --export=NONE in partition access, in order to ensure job
         # steps inherit environment. It doesn't hurt to define this even if srun is not used
         'export SLURM_EXPORT_ENV=ALL'
-    ],
-    'resources': [
-        {
-            'name': 'memory',
-            'options': ['--mem={size}'],
-        }
     ],
     'extras': {
         # Node types have somewhat varying amounts of memory, but we'll make it easy on ourselves
@@ -121,3 +107,6 @@ partition_defaults = {
 for system in site_configuration['systems']:
     for partition in system['partitions']:
         partition.update(partition_defaults)
+
+# Set common Slurm config options
+set_common_required_config(site_configuration)
