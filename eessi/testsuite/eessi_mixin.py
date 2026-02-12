@@ -11,7 +11,7 @@ except ImportError:
 from reframe.utility.sanity import make_performance_function
 import reframe.utility.sanity as sn
 
-from eessi.testsuite import hooks
+from eessi.testsuite import check_process_binding, hooks
 from eessi.testsuite.constants import DEVICE_TYPES, SCALES, COMPUTE_UNITS, TAGS
 from eessi.testsuite.utils import log, log_once
 from eessi.testsuite import __version__ as testsuite_version
@@ -74,6 +74,9 @@ class EESSI_Mixin(RegressionTestPlugin):
 
     # Make sure the version of the EESSI test suite gets logged in the ReFrame report
     eessi_testsuite_version = variable(str, value=testsuite_version)
+
+    # Check process binding in a prerun cmd
+    check_process_binding = variable(bool, value=True)
 
     # Note that the error for an empty parameter is a bit unclear for ReFrame 4.6.2, but that will hopefully improve
     # see https://github.com/reframe-hpc/reframe/issues/3254
@@ -269,6 +272,27 @@ class EESSI_Mixin(RegressionTestPlugin):
                 'specified on cmd line {[self.user_executable_opts]}')
             self.executable_opts = [self.user_executable_opts]
 
+    @run_before('run', always_last=True)
+    def EESSI_check_proc_binding(self):
+        """Check process binding in a pre-run cmd. Result is written into job error file."""
+        if not self.check_process_binding:
+            return
+        check_binding_script = check_process_binding.__file__
+        get_binding = os.path.join(os.path.dirname(check_binding_script), 'get_process_binding.sh')
+        check_binding = ' '.join([
+            f'{check_binding_script}',
+            f'--cpus-per-proc {self.num_cpus_per_task}',
+            f'--procs {self.num_tasks}',
+            f'--nodes {self.num_tasks // self.num_tasks_per_node}',
+        ])
+        self.prerun_cmds.extend([
+            "if command -v hwloc-calc >/dev/null; then",
+            f"{self.job.launcher.run_command(self.job)} {get_binding} | tee /dev/stderr | {check_binding}",
+            "else",
+            "echo 'PROCESS BINDING WARNING: hwloc not available, skipping process binding check' >/dev/stderr",
+            "fi",
+        ])
+
     @run_after('run')
     def EESSI_mixin_extract_runtime_info_from_log(self):
         """Extracts the printed runtime info from the job log and logs it as reframe variables"""
@@ -290,3 +314,15 @@ class EESSI_Mixin(RegressionTestPlugin):
                                     'modpath', str)
         if module_path:
             self.full_modulepath = f'{module_path}'
+
+    @run_after('run')
+    def EESSI_mixin_extract_errors_warnings(self):
+        """Extract the printed errors and warnings from the job error file and log them"""
+        if self.is_dry_run() or self.check_process_binding is False:
+            return
+
+        messages = sn.extractall(r'PROCESS BINDING ERROR: .*', f'{self.stagedir}/{self.stderr}')
+        messages += sn.extractall(r'PROCESS BINDING WARNING: .*', f'{self.stagedir}/{self.stderr}')
+        if messages:
+            for msg in messages:
+                getlogger().warning(msg)
