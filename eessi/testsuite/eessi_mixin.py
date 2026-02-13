@@ -58,6 +58,7 @@ class EESSI_Mixin(RegressionTestPlugin):
     bench_name = None
     is_ci_test = False
     num_tasks_per_compute_unit = 1
+    used_cpus_per_task = None  # effectively used cpus per task
     always_request_gpus = None
     require_buildenv_module = False
     require_internet = False
@@ -231,8 +232,7 @@ class EESSI_Mixin(RegressionTestPlugin):
     @run_after('setup')
     def EESSI_mixin_assign_tasks_per_compute_unit(self):
         """Call hooks to assign tasks per compute unit, set OMP_NUM_THREADS, and set compact process binding"""
-        hooks.assign_tasks_per_compute_unit(test=self, compute_unit=self.compute_unit,
-                                            num_per=self.num_tasks_per_compute_unit)
+        hooks.assign_tasks_per_compute_unit(self)
 
         # Set OMP_NUM_THREADS environment variable
         hooks.set_omp_num_threads(self)
@@ -281,7 +281,7 @@ class EESSI_Mixin(RegressionTestPlugin):
         get_binding = os.path.join(os.path.dirname(check_binding_script), 'get_process_binding.sh')
         check_binding = ' '.join([
             f'{check_binding_script}',
-            f'--cpus-per-proc {self.num_cpus_per_task}',
+            f'--cpus-per-proc {self.used_cpus_per_task}',
             f'--procs {self.num_tasks}',
             f'--nodes {self.num_tasks // self.num_tasks_per_node}',
         ])
