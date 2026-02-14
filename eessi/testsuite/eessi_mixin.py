@@ -236,7 +236,6 @@ class EESSI_Mixin(RegressionTestPlugin):
                    ' Please use `eessi.testsuite.common_config.eessi-srun` instead.')
             log_once(self, msg, msg_id='3', level='warning')
 
-
     @run_after('setup')
     def EESSI_mixin_assign_tasks_per_compute_unit(self):
         """Call hooks to assign tasks per compute unit, set OMP_NUM_THREADS, and set compact process binding"""
