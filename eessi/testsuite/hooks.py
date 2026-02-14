@@ -161,6 +161,9 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest):
     if not test.used_cpus_per_task:
         test.used_cpus_per_task = test.num_cpus_per_task
 
+    # Tell srun to use the number of actually used cpus per tasks, not the number of allocated cpus per task.
+    # With the default srun launcher in ReFrame this doesn’t work because it sets `srun --cpus-per-task`.
+    # To make it work, a custom srun launcher should be used that doesn’t set `srun --cpus-per-task`.
     test.env_vars['SLURM_CPUS_PER_TASK'] = test.used_cpus_per_task
 
     if test.current_partition.launcher_type().registered_name == 'srun':
@@ -169,7 +172,6 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest):
         # https://bugs.schedmd.com/show_bug.cgi?id=13351
         # https://bugs.schedmd.com/show_bug.cgi?id=11275
         # https://bugs.schedmd.com/show_bug.cgi?id=15632#c43
-        # Also make sure srun uses the actually used cpus per tasks
         test.env_vars['SRUN_CPUS_PER_TASK'] = test.used_cpus_per_task
         log(f'Set environment variable SRUN_CPUS_PER_TASK to {test.env_vars["SRUN_CPUS_PER_TASK"]}')
 
