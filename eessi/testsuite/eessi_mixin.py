@@ -58,7 +58,7 @@ class EESSI_Mixin(RegressionTestPlugin):
     bench_name = None
     is_ci_test = False
     num_tasks_per_compute_unit = 1
-    used_cpus_per_task = None  # effectively used cpus per task
+    used_cpus_per_task = None  # actually used cpus per task
     always_request_gpus = None
     require_buildenv_module = False
     require_internet = False
@@ -228,6 +228,14 @@ class EESSI_Mixin(RegressionTestPlugin):
         # Check that the value for these variables is valid
         # i.e. exists in their respective dict from eessi.testsuite.constants
         self.EESSI_mixin_validate_item_in_list('compute_unit', COMPUTE_UNITS[:])
+
+        # Check that default ReFrame srun launcher is not used
+        launcher = self.current_partition.launcher_type().registered_name
+        if launcher == 'srun':
+            msg = ('The default ReFrame srun launcher is not fully supported by the EESSI test suite.'
+                   ' Please use `eessi.testsuite.common_config.eessi-srun` instead.')
+            log_once(self, msg, msg_id='3', level='warning')
+
 
     @run_after('setup')
     def EESSI_mixin_assign_tasks_per_compute_unit(self):
