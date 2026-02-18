@@ -30,7 +30,6 @@ def _set_job_resources(test: rfm.RegressionTest):
     test.job.num_tasks_per_socket = test.num_tasks_per_socket
     test.job.num_cpus_per_task = test.num_cpus_per_task
     test.job.use_smt = test.use_multithreading
-    test.job.used_cpus_per_task = test.used_cpus_per_task
 
 
 def _assign_default_num_cpus_per_node(test: rfm.RegressionTest):
@@ -162,7 +161,9 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest):
     if not test.used_cpus_per_task:
         test.used_cpus_per_task = test.num_cpus_per_task
 
-    if test.current_partition.launcher_type().registered_name in ['eessi-srun', 'srun']:
+    if test.current_partition.launcher_type().registered_name == 'srun':
+        # Add again --cpus-per-task to srun, which wins because it is set last:
+        test.job.launcher.options += ['--cpus-per-task', str(test.used_cpus_per_task)]
         # Make sure srun inherits --cpus-per-task from the job environment for Slurm versions >= 22.05 < 23.11,
         # ensuring the same task binding across all Slurm versions.
         # https://bugs.schedmd.com/show_bug.cgi?id=13351
@@ -722,7 +723,7 @@ def set_compact_process_binding(test: rfm.RegressionTest):
         if any(re.search(pattern, x) for x in test.modules):
             test.job.launcher.options.append(f'--map-by slot:PE={physical_cpus_per_task} --report-bindings')
             log(f'Set launcher command to {test.job.launcher.run_command(test.job)}')
-    elif launcher in ['eessi-srun', 'srun']:
+    elif launcher == 'srun':
         # Set compact binding for SLURM. Only effective if the task/affinity plugin is enabled
         # and when number of tasks times cpus per task equals either socket, core or thread count
         env_vars = {

@@ -145,24 +145,3 @@ def get_sbatch_account():
         err_msg += " It is required to set `SBATCH_ACCOUNT` to run on this system."
         raise ValueError(err_msg)
     return sbatch_account
-
-
-@register_launcher('eessi-srun')
-class EESSISrunLauncher(SrunLauncher):
-    """
-    Custom srun launcher for the EESSI test suite
-    Sets srun cpus per task to the actually used cpus per task (used_cpus_per_task)
-    """
-
-    def command(self, job):
-        ret = ['srun']
-        if hasattr(job, 'used_cpus_per_task') and job.used_cpus_per_task:
-            ret.append(f'--cpus-per-task={job.used_cpus_per_task}')
-        elif self.use_cpus_per_task and job.num_cpus_per_task:
-            ret.append(f'--cpus-per-task={job.num_cpus_per_task}')
-
-        if self.env_vars:
-            env_vars = ','.join(f'{k}={v}' for k, v in self.env_vars.items())
-            ret.append(f'--export={env_vars}')
-
-        return ret
