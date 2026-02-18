@@ -1,7 +1,5 @@
 import os
 
-from reframe.core.backends import register_launcher
-from reframe.core.launchers.mpi import SrunLauncher
 import reframe.core.logging as rflog
 
 perflog_format = '|'.join([
