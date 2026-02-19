@@ -1,5 +1,6 @@
 import os
 
+from reframe.core.launchers.mpi import SrunLauncher
 import reframe.core.logging as rflog
 
 perflog_format = '|'.join([
@@ -143,3 +144,16 @@ def get_sbatch_account():
         err_msg += " It is required to set `SBATCH_ACCOUNT` to run on this system."
         raise ValueError(err_msg)
     return sbatch_account
+
+
+# Monkeypatch the srun launcher: remove '--cpus-per-task' option:
+# we add it ourselves, see the `assign_tasks_per_compute_unit` hook
+_srunlauncher_command = SrunLauncher.command
+
+
+def _srunlauncher_patched_command(self, job):
+    cmd = _srunlauncher_command(self, job)
+    return [x for x in cmd if not x.startswith('--cpus-per-task=')]
+
+
+SrunLauncher.command = _srunlauncher_patched_command

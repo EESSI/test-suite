@@ -162,7 +162,7 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest):
         test.used_cpus_per_task = test.num_cpus_per_task
 
     if test.current_partition.launcher_type().registered_name == 'srun':
-        # Add again --cpus-per-task to srun, which wins because it is set last:
+        # Add (again) --cpus-per-task to srun, which wins because it is set last:
         test.job.launcher.options += ['--cpus-per-task', str(test.used_cpus_per_task)]
         # Make sure srun inherits --cpus-per-task from the job environment for Slurm versions >= 22.05 < 23.11,
         # ensuring the same task binding across all Slurm versions.
