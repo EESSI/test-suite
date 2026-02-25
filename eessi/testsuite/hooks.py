@@ -2,6 +2,7 @@
 Hooks for adding tags, filtering and setting job resources in ReFrame tests
 """
 import math
+import re
 
 import reframe as rfm
 import reframe.core.logging as rflog
@@ -15,6 +16,20 @@ from eessi.testsuite.utils import (check_extras_key_defined, check_proc_attribut
 
 # global variables
 _buildenv_modules = []
+
+
+def _set_job_resources(test: rfm.RegressionTest):
+    "Set job resources"
+    # This is needed to get the correct launcher run_command with `self.job.launcher.run_command(self.job)`.
+    # ReFrame already sets job resources during the run step,
+    # but some hooks use the launcher run_command before the run step.
+    # See the `run` method of the `RegressionTest` class in reframe/core/pipeline.py
+    test.job.num_tasks = test.num_tasks
+    test.job.num_tasks_per_node = test.num_tasks_per_node
+    test.job.num_tasks_per_core = test.num_tasks_per_core
+    test.job.num_tasks_per_socket = test.num_tasks_per_socket
+    test.job.num_cpus_per_task = test.num_cpus_per_task
+    test.job.use_smt = test.use_multithreading
 
 
 def _assign_default_num_cpus_per_node(test: rfm.RegressionTest):
@@ -149,6 +164,8 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
         # https://bugs.schedmd.com/show_bug.cgi?id=15632#c43
         test.env_vars['SRUN_CPUS_PER_TASK'] = test.num_cpus_per_task
         log(f'Set environment variable SRUN_CPUS_PER_TASK to {test.env_vars["SRUN_CPUS_PER_TASK"]}')
+
+    _set_job_resources(test)
 
 
 def _assign_num_tasks_per_node(test: rfm.RegressionTest, num_per: int = 1):
@@ -667,7 +684,7 @@ def set_compact_process_binding(test: rfm.RegressionTest):
 
     It is hard to do this in a portable way. Currently supported for process binding are:
     - Intel MPI (through I_MPI_PIN_DOMAIN)
-    - OpenMPI (through OMPI_MCA_rmaps_base_mapping_policy)
+    - OpenMPI (through cmdline option --map-by slot:PE=x)
     - srun (LIMITED SUPPORT: through SLURM_CPU_BIND, but only effective if task/affinity plugin is enabled)
     """
 
@@ -680,21 +697,32 @@ def set_compact_process_binding(test: rfm.RegressionTest):
 
     if test.current_partition.launcher_type().registered_name == 'mpirun':
         # Do binding for intel and OpenMPI's mpirun, and srun
-        test.env_vars['I_MPI_PIN_CELL'] = 'core'  # Don't bind to hyperthreads, only to physcial cores
-        test.env_vars['I_MPI_PIN_DOMAIN'] = '%s:compact' % physical_cpus_per_task
-        test.env_vars['OMPI_MCA_rmaps_base_mapping_policy'] = 'slot:PE=%s' % physical_cpus_per_task
-        log(f'Set environment variable I_MPI_PIN_CELL to {test.env_vars["I_MPI_PIN_CELL"]}')
-        log(f'Set environment variable I_MPI_PIN_DOMAIN to {test.env_vars["I_MPI_PIN_DOMAIN"]}')
-        log('Set environment variable OMPI_MCA_rmaps_base_mapping_policy to '
-            f'{test.env_vars["OMPI_MCA_rmaps_base_mapping_policy"]}')
+        env_vars = {
+            'I_MPI_PIN_CELL': 'core',  # Don't bind to hyperthreads, only to physcial cores
+            'I_MPI_PIN_DOMAIN': f'{physical_cpus_per_task}:compact',
+            'I_MPI_DEBUG': '4',
+        }
+        ompi_patterns = [
+            r'.+/.+-gompi-', r'^gompi/',
+            r'.+/.+-foss-', r'^foss/',
+            r'.+/.+-gomkl-', r'^gomkl/',
+            r'.+/.+-iomkl-', r'^iomkl/',
+            r'.+/.+-lompi-', r'^lompi/',
+            r'.+/.+-lfoss-', r'^lfoss/',
+            r'^OpenMPI/']
+        pattern = "|".join(ompi_patterns)
+        if any(re.search(pattern, x) for x in test.modules):
+            test.job.launcher.options.append(f'--map-by slot:PE={physical_cpus_per_task} --report-bindings')
+            log(f'Set launcher command to {test.job.launcher.run_command(test.job)}')
     elif test.current_partition.launcher_type().registered_name == 'srun':
         # Set compact binding for SLURM. Only effective if the task/affinity plugin is enabled
         # and when number of tasks times cpus per task equals either socket, core or thread count
-        test.env_vars['SLURM_DISTRIBUTION'] = 'block:block'
-        test.env_vars['SLURM_CPU_BIND'] = 'verbose'
-        log(f'Set environment variable SLURM_DISTRIBUTION to {test.env_vars["SLURM_DISTRIBUTION"]}')
-        log(f'Set environment variable SLURM_CPU_BIND to {test.env_vars["SLURM_CPU_BIND"]}')
+        env_vars = {
+            'SLURM_DISTRIBUTION': 'block:block',
+            'SLURM_CPU_BIND': 'verbose',
+        }
     else:
+        env_vars = {}
         msg = "hooks.set_compact_process_binding does not support the current launcher"
         msg += f" ({test.current_partition.launcher_type().registered_name})."
         msg += " The test will run, but using the default binding strategy of your parallel launcher."
@@ -702,6 +730,10 @@ def set_compact_process_binding(test: rfm.RegressionTest):
         msg += " Please expand the functionality of hooks.set_compact_process_binding for your parallel launcher."
         # Warnings will, at default loglevel, be printed on stdout when executing the ReFrame command
         rflog.getlogger().warning(msg)
+
+    for key, value in env_vars.items():
+        test.env_vars[key] = value
+        log(f'Set environment variable {key} to {test.env_vars[key]}')
 
 
 def set_compact_thread_binding(test: rfm.RegressionTest):
