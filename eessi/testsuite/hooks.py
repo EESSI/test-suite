@@ -77,7 +77,7 @@ def _assign_default_num_gpus_per_node(test: rfm.RegressionTest):
     log(f'default_num_gpus_per_node set to {test.default_num_gpus_per_node}')
 
 
-def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, num_per: int = 1):
+def assign_tasks_per_compute_unit(test: rfm.RegressionTest):
     """
     Assign one task per compute unit. More than 1 task per compute unit can be assigned with
     num_per for compute units that support it.
@@ -102,7 +102,9 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
     - assign_tasks_per_compute_unit(test, COMPUTE_UNITS.CPU_SOCKET) will launch 2 tasks with 64 threads per task
 
     """
-    log(f'assign_tasks_per_compute_unit called with compute_unit: {compute_unit} and num_per: {num_per}')
+    compute_unit = test.compute_unit
+    num_per = test.num_tasks_per_compute_unit
+    log(f'assign_tasks_per_compute_unit with compute_unit: {compute_unit} and num_per: {num_per}')
 
     if num_per != 1 and compute_unit not in [COMPUTE_UNITS.NODE]:
         raise NotImplementedError(
@@ -150,25 +152,32 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest, compute_unit: str, n
     elif compute_unit == COMPUTE_UNITS.NUMA_NODE:
         _assign_one_task_per_numa_node(test)
     elif compute_unit == COMPUTE_UNITS.NODE:
-        _assign_num_tasks_per_node(test, num_per)
+        _assign_num_tasks_per_node(test)
     else:
         raise ValueError(f'compute unit {compute_unit} is currently not supported')
 
     _check_always_request_gpus(test)
 
+    if not test.used_cpus_per_task:
+        test.used_cpus_per_task = test.num_cpus_per_task
+
     if test.current_partition.launcher_type().registered_name == 'srun':
+        # Don’t let srun launcher set --cpus-per-task
+        test.job.launcher.use_cpus_per_task = False
+        # Add --cpus-per-task to srun launcher
+        test.job.launcher.options += [f'--cpus-per-task={test.used_cpus_per_task}']
         # Make sure srun inherits --cpus-per-task from the job environment for Slurm versions >= 22.05 < 23.11,
         # ensuring the same task binding across all Slurm versions.
         # https://bugs.schedmd.com/show_bug.cgi?id=13351
         # https://bugs.schedmd.com/show_bug.cgi?id=11275
         # https://bugs.schedmd.com/show_bug.cgi?id=15632#c43
-        test.env_vars['SRUN_CPUS_PER_TASK'] = test.num_cpus_per_task
+        test.env_vars['SRUN_CPUS_PER_TASK'] = test.used_cpus_per_task
         log(f'Set environment variable SRUN_CPUS_PER_TASK to {test.env_vars["SRUN_CPUS_PER_TASK"]}')
 
     _set_job_resources(test)
 
 
-def _assign_num_tasks_per_node(test: rfm.RegressionTest, num_per: int = 1):
+def _assign_num_tasks_per_node(test: rfm.RegressionTest):
     """
     Sets num_tasks_per_node and num_cpus_per_task such that it will run
     'num_per' tasks per node, unless specified with:
@@ -183,6 +192,7 @@ def _assign_num_tasks_per_node(test: rfm.RegressionTest, num_per: int = 1):
     - num_tasks_per_node = num_per
     - num_cpus_per_task = test.default_num_cpus_per_node / num_tasks_per_node
     """
+    num_per = test.num_tasks_per_compute_unit
 
     # neither num_tasks_per_node nor num_cpus_per_task are set
     if not test.num_tasks_per_node and not test.num_cpus_per_task:
@@ -693,9 +703,10 @@ def set_compact_process_binding(test: rfm.RegressionTest):
     # TODO: check if this also leads to sensible binding when using COMPUTE_UNITS.HWTHREAD
     check_proc_attribute_defined(test, 'num_cpus_per_core')
     num_cpus_per_core = test.current_partition.processor.num_cpus_per_core
-    physical_cpus_per_task = int(test.num_cpus_per_task / num_cpus_per_core)
+    physical_cpus_per_task = int(test.used_cpus_per_task / num_cpus_per_core)
+    launcher = test.current_partition.launcher_type().registered_name
 
-    if test.current_partition.launcher_type().registered_name == 'mpirun':
+    if launcher == 'mpirun':
         # Do binding for intel and OpenMPI's mpirun, and srun
         env_vars = {
             'I_MPI_PIN_CELL': 'core',  # Don't bind to hyperthreads, only to physcial cores
@@ -714,17 +725,16 @@ def set_compact_process_binding(test: rfm.RegressionTest):
         if any(re.search(pattern, x) for x in test.modules):
             test.job.launcher.options.append(f'--map-by slot:PE={physical_cpus_per_task} --report-bindings')
             log(f'Set launcher command to {test.job.launcher.run_command(test.job)}')
-    elif test.current_partition.launcher_type().registered_name == 'srun':
+    elif launcher == 'srun':
         # Set compact binding for SLURM. Only effective if the task/affinity plugin is enabled
         # and when number of tasks times cpus per task equals either socket, core or thread count
         env_vars = {
             'SLURM_DISTRIBUTION': 'block:block',
-            'SLURM_CPU_BIND': 'verbose',
+            'SLURM_CPU_BIND': 'verbose,cores',
         }
     else:
         env_vars = {}
-        msg = "hooks.set_compact_process_binding does not support the current launcher"
-        msg += f" ({test.current_partition.launcher_type().registered_name})."
+        msg = f"hooks.set_compact_process_binding does not support the current launcher ({launcher})."
         msg += " The test will run, but using the default binding strategy of your parallel launcher."
         msg += " This may lead to suboptimal performance."
         msg += " Please expand the functionality of hooks.set_compact_process_binding for your parallel launcher."
@@ -760,7 +770,7 @@ def set_omp_num_threads(test: rfm.RegressionTest):
     """
     Set number of OpenMP threads equal to number of CPUs per task
     """
-    test.env_vars['OMP_NUM_THREADS'] = test.num_cpus_per_task
+    test.env_vars['OMP_NUM_THREADS'] = test.used_cpus_per_task
     log(f'Set environment variable OMP_NUM_THREADS to {test.env_vars["OMP_NUM_THREADS"]}')
 
 
