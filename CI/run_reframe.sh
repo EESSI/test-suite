@@ -146,7 +146,7 @@ if [ "$SET_LOCAL_MODULE_ENV" == "True" ]; then
         echo "You have to add the name of the module in the ci_config.sh file of your system"
         exit 1
     fi
-    module load "${LOCAL_MODULES}"
+    module load ${LOCAL_MODULES}
 fi
 
 # Start the EESSI environment
