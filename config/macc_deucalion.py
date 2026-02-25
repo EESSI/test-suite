@@ -1,7 +1,8 @@
 import os
 
-from eessi.testsuite.common_config import common_logging_config, common_general_config, common_eessi_init
-from eessi.testsuite.constants import *  # noqa: F403
+from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
+                                           set_common_required_config)
+from eessi.testsuite.constants import EXTRAS, FEATURES, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
 # Override with RFM_PREFIX environment variable
@@ -32,14 +33,7 @@ site_configuration = {
                     'launcher': 'mpirun',
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
                     'access': ['-p normal-arm', '--export=None'],
-                    'environs': ['default'],
                     'max_jobs': 120,
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'features': [
                         FEATURES.CPU,
                     ] + list(SCALES.keys()),
@@ -55,14 +49,6 @@ site_configuration = {
             ]
         },
     ],
-    'environments': [
-        {
-            'name': 'default',
-            'cc': 'cc',
-            'cxx': '',
-            'ftn': '',
-        },
-    ],
     'logging': common_logging_config(reframe_prefix),
     'general': [
         {
@@ -73,3 +59,6 @@ site_configuration = {
         }
     ],
 }
+
+# Set common Slurm config options
+set_common_required_config(site_configuration)

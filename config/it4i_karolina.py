@@ -15,11 +15,9 @@
 
 import os
 
-from eessi.testsuite.common_config import (common_eessi_init,
-                                           common_general_config,
-                                           common_logging_config,
-                                           get_sbatch_account)
-from eessi.testsuite.constants import *  # noqa: F403
+from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
+                                           get_sbatch_account, set_common_required_config)
+from eessi.testsuite.constants import EXTRAS, FEATURES, SCALES
 
 # This config will write all staging, output and logging to subdirs under this prefix
 # Override with RFM_PREFIX environment variable
@@ -63,17 +61,10 @@ site_configuration = {
                     # Use --export=None to avoid that login environment is passed down to submitted jobs
                     # Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
                     'access': [f'-A {sbatch_account}', '-p qcpu', '--export=None'],
-                    'environs': ['default'],
                     'max_jobs': 120,
                     'features': [
                         FEATURES.CPU,
                     ] + list(SCALES.keys()),
-                    'resources': [
-                        {
-                            'name': 'memory',
-                            'options': ['--mem={size}'],
-                        }
-                    ],
                     'extras': {
                         # Make sure to round down, otherwise a job might ask for more mem than is available
                         # per node
@@ -99,18 +90,11 @@ site_configuration = {
                 #     # Use --export=None to avoid that login environment is passed down to submitted jobs
                 #     # Note that we rely on the SBATCH_ACCOUNT environment variable to be specified
                 #     'access':  ['-p gpu', '--export=None'],
-                #     'environs': ['default'],
                 #     'max_jobs': 60,
                 #     'devices': [
                 #         {
                 #             'type': DEVICE_TYPES.GPU,
                 #             'num_devices': 8,
-                #         }
-                #     ],
-                #     'resources': [
-                #         {
-                #             'name': '_rfm_gpu',
-                #             'options': ['--gpus-per-node={num_gpus_per_node}'],
                 #         }
                 #     ],
                 #     'features': [
@@ -119,14 +103,6 @@ site_configuration = {
                 #     'descr': 'GPU partition with accelerated nodes, https://docs.it4i.cz/karolina/hardware-overview/'
                 # },
             ]
-        },
-    ],
-    'environments': [
-        {
-            'name': 'default',
-            'cc': 'cc',
-            'cxx': '',
-            'ftn': '',
         },
     ],
     'logging': common_logging_config(reframe_prefix),
@@ -139,3 +115,6 @@ site_configuration = {
         }
     ],
 }
+
+# Set common Slurm config options
+set_common_required_config(site_configuration)
