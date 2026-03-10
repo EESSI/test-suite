@@ -289,7 +289,7 @@ def check_proc_attribute_defined(test: rfm.RegressionTest, attribute) -> bool:
             msg = (
                 f"Processor information ({attribute}) missing. "
                 "Check that processor information is either autodetected "
-                "(see https://reframe-hpc.readthedocs.io/en/stable/configure.html#proc-autodetection), "
+                "(see https://reframe-hpc.readthedocs.io/en/stable/config_reference.html#config.systems.partitions.processor), "  # noqa: E501
                 "or manually set in the ReFrame configuration file "
                 "(see https://reframe-hpc.readthedocs.io/en/stable/config_reference.html#processor-info)."
             )
