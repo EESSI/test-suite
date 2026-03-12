@@ -31,12 +31,13 @@ See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 
 import reframe as rfm
 from reframe.core.builtins import parameter, run_after  # added only to make the linter happy
+from reframe.utility import find_modules
 
 from hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
 
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
-from eessi.testsuite.utils import find_modules, log
+from eessi.testsuite.utils import log
 
 
 class EESSI_GROMACS_base(gromacs_check):
@@ -49,7 +50,7 @@ class EESSI_GROMACS_base(gromacs_check):
 class EESSI_GROMACS(EESSI_GROMACS_base, EESSI_Mixin):
     scale = parameter(SCALES.keys())
     time_limit = '30m'
-    module_name = parameter(find_modules('GROMACS'))
+    module_info = parameter(find_modules('GROMACS'))
     # input files are downloaded
     readonly_files = ['']
     # executable_opts in addition to those set by the hpctestlib

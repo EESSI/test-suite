@@ -12,10 +12,10 @@ Tested matrix operations with NumPy:
 import reframe as rfm
 import reframe.utility.sanity as sn
 from reframe.core.builtins import parameter, run_after, run_before, sanity_function, variable
+from reframe.utility import find_modules
 
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
-from eessi.testsuite.utils import find_modules
 
 
 @rfm.simple_test
@@ -24,7 +24,7 @@ class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     executable = './np_ops.py'
     time_limit = '30m'
     readonly_files = ['np_ops.py']
-    module_name = parameter(find_modules('SciPy-bundle'))
+    module_info = parameter(find_modules('SciPy-bundle'))
     device_type = DEVICE_TYPES.CPU
     compute_unit = COMPUTE_UNITS.NODE
     scale = parameter([

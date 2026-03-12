@@ -42,8 +42,11 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
     :param site_configuration: site configuration dictionary
     :param set_memory: whether to set memory resources
     """
-    environments = [{'name': 'default'}]
-    environs = ['default']
+    environments = [
+        {'name': 'EESSI-2023.06', 'modules': ['EESSI/2023.06']},
+        {'name': 'EESSI-2025.06', 'modules': ['EESSI/2025.06']},
+    ]
+    environs = ['EESSI-2023.06', 'EESSI-2025.06']
     use_nodes_option = True
     if set_memory:
         resources_memory = [{

@@ -9,6 +9,7 @@ except ImportError:
     from reframe.core.pipeline import RegressionMixin as RegressionTestPlugin
 from reframe.utility.sanity import make_performance_function
 import reframe.utility.sanity as sn
+from reframe.core.runtime import valid_sysenv_comb
 
 from eessi.testsuite import check_process_binding, hooks
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES, TAGS
@@ -36,7 +37,7 @@ class EESSI_Mixin(RegressionTestPlugin):
     That definition needs to be done 'on time', i.e. early enough in the execution of the ReFrame pipeline.
     Here, we list which class attributes must be defined by the child class, and by (the end of) what phase:
 
-    - Init phase: device_type, scale, module_name, bench_name
+    - Init phase: device_type, scale, module_info, bench_name
     - Setup phase: compute_unit, required_mem_per_node
 
     The child class may also overwrite the following attributes:
@@ -80,8 +81,8 @@ class EESSI_Mixin(RegressionTestPlugin):
 
     # Note that the error for an empty parameter is a bit unclear for ReFrame 4.6.2, but that will hopefully improve
     # see https://github.com/reframe-hpc/reframe/issues/3254
-    # If that improves: uncomment the following to force the user to set module_name
-    # module_name = parameter()
+    # If that improves: uncomment the following to force the user to set module_info
+    # module_info = parameter()
 
     def __init_subclass__(cls, **kwargs):
         " set default values for built-in ReFrame attributes "
@@ -137,7 +138,7 @@ class EESSI_Mixin(RegressionTestPlugin):
     def EESSI_mixin_validate_init(self):
         """Check that all variables that have to be set for subsequent hooks in the init phase have been set"""
         # List which variables we will need/use in the run_after('init') hooks
-        var_list = ['device_type', 'scale', 'module_name', 'measure_memory_usage']
+        var_list = ['device_type', 'scale', 'module_info', 'measure_memory_usage']
         for var in var_list:
             if not hasattr(self, var):
                 msg = "The variable '%s' should be defined in any test class that inherits" % var
@@ -162,8 +163,6 @@ class EESSI_Mixin(RegressionTestPlugin):
         # Filter on which scales are supported by the partitions defined in the ReFrame configuration
         hooks.filter_supported_scales(self)
 
-        hooks.set_modules(self)
-
         if self.require_buildenv_module:
             hooks.add_buildenv_module(self)
 
@@ -174,7 +173,23 @@ class EESSI_Mixin(RegressionTestPlugin):
             err_msg = f"Invalid thread_binding value '{thread_binding}'. Valid values: 'true', 'compact', or 'false'."
             raise EESSIError(err_msg)
 
+        # Unpack module_info
+        s, e, m = self.module_info
+        self.valid_prog_environs = [e]
+        self.module_name = [m]
+
+        # Set modules
+        hooks.set_modules(self)
+
+        # Filter by defice type. E.g. add features based on whether CUDA appears in the module name
         hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
+
+        # Check if the partitions returned by find_modules satisfy the current features/extras specified in valid_systems
+        valid_partitions = [part.fullname for part in valid_sysenv_comb(self.valid_systems, e)]
+        if s in valid_partitions:
+            self.valid_systems = [s]
+        else:
+            self.valid_systems = []
 
         # Set scales as tags
         hooks.set_tag_scale(self)
