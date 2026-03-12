@@ -40,7 +40,7 @@ from eessi.testsuite.utils import find_modules
 @rfm.simple_test
 class EESSI_QuantumESPRESSO_PW(QEspressoPWCheck, EESSI_Mixin):
     time_limit = '30m'
-    module_name = parameter(find_modules('QuantumESPRESSO'))
+    module_info = parameter(find_modules('QuantumESPRESSO'))
     # For now, QE is built for CPU targets only
     device_type = parameter([DEVICE_TYPES.CPU])
     readonly_files = ['']

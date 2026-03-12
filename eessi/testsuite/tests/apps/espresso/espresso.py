@@ -36,7 +36,7 @@ def filter_scales():
 
 
 class EESSI_ESPRESSO_base(rfm.RunOnlyRegressionTest):
-    module_name = parameter(find_modules('^ESPResSo$'))
+    module_info = parameter(find_modules('^ESPResSo$'))
     device_type = DEVICE_TYPES.CPU
     compute_unit = COMPUTE_UNITS.CPU
     time_limit = '300m'

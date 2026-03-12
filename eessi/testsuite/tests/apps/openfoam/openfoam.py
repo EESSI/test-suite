@@ -87,7 +87,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_64M(rfm.RunOnlyRegressionTest, EESSI_Mixi
     time_limit = '120m'
     readonly_files = ['']
     device_type = parameter([DEVICE_TYPES.CPU])
-    module_name = parameter(find_modules('OpenFOAM/v', name_only=False))
+    module_info = parameter(find_modules('OpenFOAM/v', name_only=False))
     valid_systems = ['*']
     scale = parameter(filter_scales_64M())
 

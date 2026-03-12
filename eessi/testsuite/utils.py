@@ -13,6 +13,7 @@ from reframe.core.exceptions import ReframeFatalError
 from reframe.core.logging import getlogger
 import reframe.core.runtime as rt
 from reframe.frontend.printer import PrettyPrinter
+from reframe.utility import find_modules as rf_find_modules
 
 from eessi.testsuite.constants import DEVICE_TYPES
 
@@ -145,67 +146,12 @@ def get_avail_modules() -> List[str]:
     return _available_modules
 
 
-def find_modules(regex: str, name_only=True) -> Iterator[str]:
+def find_modules(substr, environ_mapping=None) -> Iterator[tuple[str, str, str]]:
     """
-    Return all modules matching the regular expression regex. Note that since we use re.search,
-    a module matches if the regex matches the module name at any place. I.e. the match does
-    not have to be at the start of the smodule name
-
-    Arguments:
-    - regex: a regular expression
-    - name_only: regular expressions will only be matched on the module name, not the version (default: True).
-
-    Note: the name_only feature assumes anything after the last forward '/' is the version,
-    and strips that before doing a match.
-
-    Example
-
-    Suppose we have the following modules on a system:
-
-    gompic/2022a
-    gompi/2022a
-    CGAL/4.14.3-gompi-2022a
-
-    The following calls would return the following respective modules
-
-    find_modules('gompi') => [gompic/2022a, gompi/2022a]
-    find_modules('gompi$') => [gompi/2022a]
-    find_modules('gompi', name_only = False) => [gompic/2022a, gompi/2022a, CGAL/4.14.3-gompi-2022a]
-    find_modules('^gompi', name_only = False) => [gompic/2022a, gompi/2022a]
-    find_modules('^gompi/', name_only = False) => [gompi/2022a]
-    find_modules('-gompi-2022a', name_only = False) => [CGAL/4.14.3-gompi-2022a]
-
+    Wraps reframe.utility.find_modules in order to provide caching, so that we don't have to do repeated
+    module avail calls.
     """
-
-    if not isinstance(regex, str):
-        raise TypeError("'substr' argument must be a string")
-
-    seen = set()
-    dupes = []
-    for mod in get_avail_modules():
-        # The thing we yield should always be the original module name (orig_mod), including version
-        orig_mod = mod
-        if name_only:
-            # Remove trailing slashes from the regex (in case the callee forgot)
-            regex = regex.rstrip('/')
-            # Remove part after the last forward slash, as we assume this is the version
-            mod = re.sub('/[^/]*$', '', mod)
-        # Match the actual regular expression
-        log(f"Matching module {mod} with regex {regex}")
-        if re.search(regex, mod):
-            log("Match!")
-            if orig_mod in seen:
-                dupes.append(orig_mod)
-            else:
-                seen.add(orig_mod)
-            yield orig_mod
-
-    if dupes:
-        err_msg = "EESSI test-suite cannot handle duplicate modules. "
-        err_msg += "Please make sure that only one is available on your system. "
-        err_msg += f"The following modules have a duplicate on your system: {dupes}"
-        raise ValueError(err_msg)
-
+    return rf_find_modules(substr, environ_mapping)
 
 def get_tc_hierarchy(tcdict):
     """
