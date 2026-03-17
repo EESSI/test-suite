@@ -46,6 +46,21 @@ site_configuration = {
                     'descr': 'Skylake, 16 cores, 30 GB',
                 },
                 {
+                    'name': 'x86_64-cascadelake-16c-64gb',
+                    'access': ['--partition=x86-64-intel-caslake-node', '--export=NONE'],
+                    'descr': 'Cascadelake, 16 cores, 64 GB',
+                },
+                {
+                    'name': 'x86_64-icelake-16c-32gb',
+                    'access': ['--partition=x86-64-intel-icelake-node', '--export=NONE'],
+                    'descr': 'Icelake, 16 cores, 32 GB',
+                },
+                {
+                    'name': 'x86_64-sapphirerapids-16c-32gb',
+                    'access': ['--partition=x86-64-intel-srapids-node', '--export=NONE'],
+                    'descr': 'Sapphire Rapids, 16 cores, 32 GB',
+                },
+                {
                     'name': 'x86_64-zen2-16c-30gb',
                     'access': ['--partition=x86-64-amd-zen2-node', '--export=NONE'],
                     'descr': 'Zen2, 16 cores, 30 GB',
@@ -54,6 +69,11 @@ site_configuration = {
                     'name': 'x86_64-zen3-16c-30gb',
                     'access': ['--partition=x86-64-amd-zen3-node', '--export=NONE'],
                     'descr': 'Zen3, 16 cores, 30 GiB',
+                },
+                {
+                    'name': 'x86_64-zen4-16c-32gb',
+                    'access': ['--partition=x86-64-amd-zen4-node', '--export=NONE'],
+                    'descr': 'Zen4, 16 cores, 32 GiB',
                 },
                 {
                     'name': 'aarch64-generic-16c-32gb',
