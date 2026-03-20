@@ -9,7 +9,7 @@ import reframe as rfm
 from reframe.core.builtins import parameter, run_after
 from reframe.utility import reframe
 
-from hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
+from eessi.testsuite.hpctestlib.microbenchmarks.mpi.osu import osu_benchmark
 
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, INVALID_SYSTEM, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin

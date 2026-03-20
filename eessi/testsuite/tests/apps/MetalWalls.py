@@ -28,7 +28,7 @@ Hooks acting on concrete test cases (after filtering) are called after the 'setu
 See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 """
 import reframe as rfm
-from hpctestlib.sciapps.metalwalls.benchmarks import MetalWallsCheck
+from eessi.testsuite.hpctestlib.sciapps.metalwalls.benchmarks import MetalWallsCheck
 from reframe.core.builtins import run_after
 from reframe.core.parameters import TestParam as parameter
 
