@@ -100,9 +100,11 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
         # 1 task per CPU for CPU-only tests, 1 task per GPU for GPU tests.
         # Also support setting the resources on the cmd line.
         if self.compute_device == DEVICE_TYPES.GPU:
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNITS.GPU)
+            self.compute_unit = COMPUTE_UNITS.GPU
+            hooks.assign_tasks_per_compute_unit(test=self)
         else:
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNITS.CPU)
+            self.compute_unit = COMPUTE_UNITS.CPU
+            hooks.assign_tasks_per_compute_unit(test=self)
 
     @run_after('setup')
     def set_binding(self):
