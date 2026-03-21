@@ -74,7 +74,7 @@ class gromacs_check(rfm.RunOnlyRegressionTest):
     def bench_name(self):
         '''The benchmark name.
 
-        :type: :class:`str`
+        # :type: :class:`str`
         '''
 
         return self.__bench
@@ -83,7 +83,7 @@ class gromacs_check(rfm.RunOnlyRegressionTest):
     def energy_ref(self):
         '''The energy reference value for this benchmark.
 
-        :type: :class:`str`
+        # :type: :class:`str`
         '''
         return self.__nrg_ref
 
@@ -91,7 +91,7 @@ class gromacs_check(rfm.RunOnlyRegressionTest):
     def energy_tol(self):
         '''The energy tolerance value for this benchmark.
 
-        :type: :class:`str`
+        # :type: :class:`str`
         '''
         return self.__nrg_tol
 
