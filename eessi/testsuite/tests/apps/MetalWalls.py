@@ -56,7 +56,7 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
     # compute_device = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])
     compute_device = parameter([DEVICE_TYPES.CPU])
     num_tasks_per_compute_unit = 1
-    used_cpus_per_task = 1
+    used_cpus_per_task = None
 
     @run_after('init')
     def run_after_init(self):
