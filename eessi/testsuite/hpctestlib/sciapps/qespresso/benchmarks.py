@@ -1,4 +1,7 @@
 """ReFrame benchmark for QuantumESPRESSO"""
+
+# flake8: noqa: F821
+
 import os
 from typing import TypeVar
 

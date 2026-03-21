@@ -22,5 +22,4 @@ jobs:
           pip install --upgrade flake8
 
       - name: Run flake8 to verify PEP8-compliance of Python code
-        # exclude hpctestlib
-        run: flake8 --exclude eessi/testsuite/hpctestlib
+        run: flake8

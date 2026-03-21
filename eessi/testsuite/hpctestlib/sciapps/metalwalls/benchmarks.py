@@ -1,4 +1,7 @@
 """ReFrame benchmark for MetalWalls"""
+
+# flake8: noqa: F821
+
 import re
 
 import reframe as rfm

@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+# flake8: noqa: F821
+
 import reframe as rfm
 import reframe.utility as util
 import reframe.utility.sanity as sn
