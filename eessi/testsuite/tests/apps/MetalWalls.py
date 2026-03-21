@@ -55,6 +55,7 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
     # For now, MetalWalls is being build for CPU targets only
     # compute_device = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])
     compute_device = parameter([DEVICE_TYPES.CPU])
+    num_tasks_per_compute_unit = 1
 
     @run_after('init')
     def run_after_init(self):
