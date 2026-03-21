@@ -29,11 +29,11 @@ See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 """
 
 import reframe as rfm
-from eessi.testsuite.hpctestlib.sciapps.qespresso.benchmarks import QEspressoPWCheck
 from reframe.core.builtins import parameter, run_after
 
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
+from eessi.testsuite.hpctestlib.sciapps.qespresso.benchmarks import QEspressoPWCheck
 from eessi.testsuite.utils import find_modules
 
 

@@ -32,10 +32,10 @@ See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 import reframe as rfm
 from reframe.core.builtins import parameter, run_after  # added only to make the linter happy
 
-from eessi.testsuite.hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
 
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
+from eessi.testsuite.hpctestlib.sciapps.gromacs.benchmarks import gromacs_check
 from eessi.testsuite.utils import find_modules, log
 
 
