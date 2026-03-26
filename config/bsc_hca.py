@@ -107,6 +107,11 @@ site_configuration = {
                         'export EESSI_VERSION_OVERRIDE=2025.06-001',
                         'source /cvmfs/software.eessi.io/versions/%s/init/bash' % os.getenv('EESSI_VERSION', '2025.06')
                     ],
+                    # Avoid error 
+                    # "The gds/shmem2 component attempted to attach to a shared-memory segment at a particular base
+                    # address, but was given a different one."
+                    # by disabling the gds/shmem2 component
+                    'env_vars': [['PMIX_MCA_gds', 'hash']],
                     'launcher': 'mpirun',
                     'sched_options': {
                         'use_nodes_option': True,
