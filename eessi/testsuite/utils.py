@@ -6,7 +6,7 @@ import inspect
 import os
 import re
 import sys
-from typing import Iterator, List
+from typing import Iterator, List, Tuple
 
 import reframe as rfm
 from reframe.core.exceptions import ReframeFatalError
