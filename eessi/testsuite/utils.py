@@ -6,7 +6,7 @@ import inspect
 import os
 import re
 import sys
-from typing import Iterator, List
+from typing import Iterator, List, Tuple
 
 import reframe as rfm
 from reframe.core.exceptions import ReframeFatalError
@@ -146,7 +146,7 @@ def get_avail_modules() -> List[str]:
     return _available_modules
 
 
-def find_modules(substr, environ_mapping=None) -> Iterator[tuple[str, str, str]]:
+def find_modules(substr, environ_mapping=None) -> Iterator[Tuple[str, str, str]]:
     """
     Wraps reframe.utility.find_modules in order to provide caching, so that we don't have to do repeated
     module avail calls.
