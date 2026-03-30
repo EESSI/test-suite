@@ -151,7 +151,9 @@ def find_modules(substr, environ_mapping=None) -> Iterator[tuple[str, str, str]]
     Wraps reframe.utility.find_modules in order to provide caching, so that we don't have to do repeated
     module avail calls.
     """
+    # TODO: implement caching to make this function more efficient
     return rf_find_modules(substr, environ_mapping)
+
 
 def get_tc_hierarchy(tcdict):
     """

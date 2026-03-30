@@ -17,6 +17,7 @@ from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
 from eessi.testsuite.utils import find_modules
 
+
 @rfm.simple_test
 class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     descr = 'Test matrix operations with NumPy'
