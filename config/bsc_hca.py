@@ -81,7 +81,7 @@ site_configuration = {
                     'sched_options': {
                         'use_nodes_option': True,
                     },
-                    'access': ['-p bananaf3-k6.6', '--nodelist bananaf3-8', '--export=None', '--time=1:00:00'],
+                    'access': ['-p bananaf3', '--nodelist bananaf3-8', '--export=None', '--time=1:00:00'],
                     'environs': ['default'],
                     'max_jobs': 2,
                     'resources': [
