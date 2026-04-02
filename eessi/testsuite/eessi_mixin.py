@@ -10,6 +10,7 @@ except ImportError:
 from reframe.utility.sanity import make_performance_function
 import reframe.utility.sanity as sn
 from reframe.core.runtime import valid_sysenv_comb
+from reframe import VERSION as reframe_version
 
 from eessi.testsuite import check_process_binding, hooks
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES, TAGS
@@ -181,15 +182,33 @@ class EESSI_Mixin(RegressionTestPlugin):
         # Set modules
         hooks.set_modules(self)
 
-        # Filter by defice type. E.g. add features based on whether CUDA appears in the module name
-        hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
+        # Checks reframe version, and if newer or equal to 4.10, use the new functionality
+        # that allows combining sys:part notation with +feat.
+        syspart_feat_supported = False
+        try:
+            import semver
+            semver.VersionInfo.parse(reframe_version) >= semver.VersionInfo.parse("4.10.0")
+            syspart_feat_supported = True
+        except:
+            pass
 
-        # Check if partitions returned by find_modules satisfy the current features/extras specified in valid_systems
-        valid_partitions = [part.fullname for part in valid_sysenv_comb(self.valid_systems, e)]
-        if s in valid_partitions:
+        # If we use reframe 4.10.0 or later, we can just set the valid system and the hook will
+        # append any relevant features. Otherwise, as a fallback, we set the features first
+        # (by calling the hook), then check if the sys:part combination from the find_modules triplet
+        # is in the list of valid combinations for the given features
+        if syspart_feat_supported:
             self.valid_systems = [s]
+            hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
         else:
-            self.valid_systems = []
+            # Filter by defice type. E.g. add features based on whether CUDA appears in the module name
+            hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
+
+            # Check if partitions returned by find_modules satisfy the current features/extras specified in valid_systems
+            valid_partitions = [part.fullname for part in valid_sysenv_comb(self.valid_systems, e)]
+            if s in valid_partitions:
+                self.valid_systems = [s]
+            else:
+                self.valid_systems = []
 
         # Set scales as tags
         hooks.set_tag_scale(self)
