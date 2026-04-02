@@ -189,7 +189,7 @@ class EESSI_Mixin(RegressionTestPlugin):
             import semver
             semver.VersionInfo.parse(reframe_version) >= semver.VersionInfo.parse("4.10.0")
             syspart_feat_supported = True
-        except:
+        except ImportError:
             pass
 
         # If we use reframe 4.10.0 or later, we can just set the valid system and the hook will
@@ -203,7 +203,7 @@ class EESSI_Mixin(RegressionTestPlugin):
             # Filter by defice type. E.g. add features based on whether CUDA appears in the module name
             hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
 
-            # Check if partitions returned by find_modules satisfy the current features/extras specified in valid_systems
+            # Check if partitions returned by find_modules satisfy the current features/extras in valid_systems
             valid_partitions = [part.fullname for part in valid_sysenv_comb(self.valid_systems, e)]
             if s in valid_partitions:
                 self.valid_systems = [s]
