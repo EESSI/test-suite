@@ -175,9 +175,9 @@ class EESSI_Mixin(RegressionTestPlugin):
             raise EESSIError(err_msg)
 
         # Unpack module_info
-        s, e, m = self.module_info
-        self.valid_prog_environs = [e]
-        self.module_name = [m]
+        sys, env, mod = self.module_info
+        self.valid_prog_environs = [env]
+        self.module_name = [mod]
 
         # Set modules
         hooks.set_modules(self)
@@ -197,16 +197,16 @@ class EESSI_Mixin(RegressionTestPlugin):
         # (by calling the hook), then check if the sys:part combination from the find_modules triplet
         # is in the list of valid combinations for the given features
         if syspart_feat_supported:
-            self.valid_systems = [s]
+            self.valid_systems = [sys]
             hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
         else:
             # Filter by defice type. E.g. add features based on whether CUDA appears in the module name
             hooks.filter_valid_systems_by_device_type(self, required_device_type=self.device_type)
 
             # Check if partitions returned by find_modules satisfy the current features/extras in valid_systems
-            valid_partitions = [part.fullname for part in valid_sysenv_comb(self.valid_systems, e)]
-            if s in valid_partitions:
-                self.valid_systems = [s]
+            valid_partitions = [part.fullname for part in valid_sysenv_comb(self.valid_systems, env)]
+            if sys in valid_partitions:
+                self.valid_systems = [sys]
             else:
                 self.valid_systems = []
 
