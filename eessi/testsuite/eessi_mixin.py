@@ -187,8 +187,8 @@ class EESSI_Mixin(RegressionTestPlugin):
         syspart_feat_supported = False
         try:
             import semver
-            semver.VersionInfo.parse(reframe_version) >= semver.VersionInfo.parse("4.10.0")
-            syspart_feat_supported = True
+            if semver.VersionInfo.parse(reframe_version) >= semver.VersionInfo.parse("4.10.0"):
+                syspart_feat_supported = True
         except ImportError:
             pass
 
