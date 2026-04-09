@@ -126,9 +126,6 @@ if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
             # Module command available
             module use "${EESSI_CVMFS_REPO}/init/modules/"
         fi
-    else
-        eessi_init_path="${EESSI_CVMFS_REPO}"/versions/"${EESSI_VERSION}"/init/bash
-        source "${eessi_init_path}"
     fi
 fi
 
