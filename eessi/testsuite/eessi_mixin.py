@@ -88,7 +88,7 @@ class EESSI_Mixin(RegressionTestPlugin):
     def __init_subclass__(cls, **kwargs):
         " set default values for built-in ReFrame attributes "
         super().__init_subclass__(**kwargs)
-        cls.valid_prog_environs = ['default']
+        cls.valid_prog_environs = ['*']
         cls.valid_systems = ['*']
         if not cls.time_limit:
             cls.time_limit = '1h'
@@ -151,7 +151,6 @@ class EESSI_Mixin(RegressionTestPlugin):
         self.EESSI_mixin_validate_item_in_list('device_type', DEVICE_TYPES[:])
         self.EESSI_mixin_validate_item_in_list('scale', SCALES.keys())
         self.EESSI_mixin_validate_item_in_list('valid_systems', [['*']])
-        self.EESSI_mixin_validate_item_in_list('valid_prog_environs', [['default']])
 
     @run_after('init')
     def EESSI_mixin_run_after_init(self):

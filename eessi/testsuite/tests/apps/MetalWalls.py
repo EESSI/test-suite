@@ -46,7 +46,7 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
     scale = parameter(SCALES.keys())
 
     valid_systems = ['*']
-    valid_prog_environs = ['default']
+    valid_prog_environs = ['*']
     time_limit = '60m'
     # input files are downloaded
     readonly_files = ['']
