@@ -61,16 +61,23 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
     }]
 
     if 'environments' in site_configuration and site_configuration['environments'] != environments:
-        getlogger().info(f"Changing environments in site config to {environments}")
-    site_configuration['environments'] = environments
+        msg = f"Appending environments {environments} to the environments already present in the site_configuration"
+        msg += f" ({site_configuration['environments']})"
+        getlogger().info(msg)
+        site_configuration['environments'].extend(environments)
+    else:
+        site_configuration['environments'] = environments
 
     for system in site_configuration.get('systems', []):
         for partition in system.get('partitions', []):
             # Set or overwrite the partition environment
             if 'environs' in partition and partition['environs'] != environs:
-                getlogger().info(
-                    f"Changing environs in site config to {environs} for {system['name']}:{partition['name']}")
-            partition['environs'] = environs
+                msg = f"Appending environs {environs} to the existing environs ({partition['environs']})"
+                msg += f" for {system['name']}:{partition['name']}"
+                getlogger().info(msg)
+                partition['environs'].extend(environs)
+            else:
+                partition['environs'] = environs
 
             # Set or overwrite the 'use_nodes_option' scheduler option, if this is a SLURM-like scheduler
             if partition['scheduler'] in ['slurm', 'squeue']:
