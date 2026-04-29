@@ -28,12 +28,12 @@ Hooks acting on concrete test cases (after filtering) are called after the 'setu
 See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 """
 import reframe as rfm
-from hpctestlib.sciapps.metalwalls.benchmarks import MetalWallsCheck
 from reframe.core.builtins import run_after
 from reframe.core.parameters import TestParam as parameter
 
 from eessi.testsuite import hooks
 from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES, TAGS
+from eessi.testsuite.hpctestlib.sciapps.metalwalls.benchmarks import MetalWallsCheck
 from eessi.testsuite.utils import find_modules, log
 
 
@@ -55,6 +55,8 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
     # For now, MetalWalls is being build for CPU targets only
     # compute_device = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])
     compute_device = parameter([DEVICE_TYPES.CPU])
+    num_tasks_per_compute_unit = 1
+    used_cpus_per_task = None
 
     @run_after('init')
     def run_after_init(self):
@@ -100,9 +102,11 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
         # 1 task per CPU for CPU-only tests, 1 task per GPU for GPU tests.
         # Also support setting the resources on the cmd line.
         if self.compute_device == DEVICE_TYPES.GPU:
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNITS.GPU)
+            self.compute_unit = COMPUTE_UNITS.GPU
+            hooks.assign_tasks_per_compute_unit(test=self)
         else:
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNITS.CPU)
+            self.compute_unit = COMPUTE_UNITS.CPU
+            hooks.assign_tasks_per_compute_unit(test=self)
 
     @run_after('setup')
     def set_binding(self):

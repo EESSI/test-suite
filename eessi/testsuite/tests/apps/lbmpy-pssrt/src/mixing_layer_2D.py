@@ -85,7 +85,7 @@ def run_benchmark(N: int, runtime: float, use_omp: bool):
 
     lbm_opt = LBMOptimisation(symbolic_field=f, symbolic_temporary_field=f_tmp)
 
-    output_fields = dict({"density": rho, "velocity": u})
+    output_fields = {"density": rho, "velocity": u}
 
     update_rule = create_lb_update_rule(
         lb_method=srt_method, lbm_optimisation=lbm_opt, output=output_fields
