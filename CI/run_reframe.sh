@@ -54,6 +54,7 @@ if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
 fi
 EESSI_CONFIGS_TESTSUITE_URL="${EESSI_CONFIGS_TESTSUITE_URL:-${EESSI_TESTSUITE_URL}}"
 EESSI_CONFIGS_TESTSUITE_BRANCH="${EESSI_CONFIGS_TESTSUITE_BRANCH:-${EESSI_TESTSUITE_BRANCH}}"
+export USE_MODULECMD_FROM_EESSI_VERSION="${USE_MODULECMD_FROM_EESSI_VERSION:-2025.06}"
 export USE_EESSI_SOFTWARE_STACK="${USE_EESSI_SOFTWARE_STACK:-True}"
 if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
     export EESSI_CVMFS_REPO="${EESSI_CVMFS_REPO:-/cvmfs/software.eessi.io}"
@@ -68,8 +69,6 @@ export RFM_PREFIX="${RFM_PREFIX:-${HOME}/reframe_CI_runs}"
 export REFRAME_TIMEOUT="${REFRAME_TIMEOUT:-1430m}"
 export UNSET_MODULEPATH="${UNSET_MODULEPATH:-True}"
 export SET_LOCAL_MODULE_ENV="${SET_LOCAL_MODULE_ENV:-False}"
-# If false, the script under versions/<eessi_version>/init/bash to initialize the environment will be sourced instead
-export USE_EESSI_MODULE="${USE_EESSI_MODULE:-True}"
 
 # Create virtualenv for ReFrame using system python
 python3 -m venv "${TEMPDIR}"/reframe_venv
@@ -119,82 +118,67 @@ if [ "$SET_LOCAL_MODULE_ENV" == "True" ]; then
     module load "${LOCAL_MODULES}"
 fi
 
-# Add correct path to MODULEPATH (only once, so outside the loop below)
-if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
-    if [ "$USE_EESSI_MODULE" == "True" ]; then
-        if command -v module &>/dev/null; then
-            # Module command available
-            module use "${EESSI_CVMFS_REPO}/init/modules/"
-        fi
+# With https://github.com/EESSI/test-suite/pull/326 we no longer need to load the EESSI module
+# before running the reframe command (reframe will load the modules for us)
+# However, on systems in which there is no module command, we do need to initialize an
+# EESSI environment to get a module command
+if ! command -v module &>/dev/null; then
+    # No module command available
+    if [ ! -z "$USE_MODULECMD_FROM_EESSI_VERSION" ] ; then
+        echo "Using module command from EESSI version ${USE_MODULECMD_FROM_EESSI_VERSION}"
+        source "${EESSI_CVMFS_REPO}/versions/${USE_MODULECMD_FROM_EESSI_VERSION}/init/lmod/bash"
+        module unload EESSI
+    else
+        msg="No module command available, and this CI run was not configured to use the EESSI module command."
+        msg="$msg Consider setting 'USE_MODULECMD_FROM_EESSI_VERSION=<eessi_version>' in your CI runs to use a module"
+        msg="$msg command from the EESSI compatibility layer. Exiting..."
+        echo $msg
+        exit 1
     fi
-fi
-
-# EESSI_VERSION can consist of multiple, comma-separated entries. Loop over those:
-IFS=',' read -r -a eessi_version_array <<< "$EESSI_VERSION"
-
-# Don't loop over EESSI_VERSIONS if we a) don't use the EESSI software stack or b) don't load it from the module
-# In this case, simply only retain the first element of the eessi_version_array to avoid looping
-if (( ${#eessi_version_array[@]} > 1 )) && \
-   [[ $USE_EESSI_SOFTWARE_STACK == "True" && $USE_EESSI_MODULE != "True" ]]; then
-   eessi_version_array=("${eessi_version_array[0]}")
-fi
-
-for EESSI_VERSION in "${eessi_version_array[@]}"; do
-    # Start the EESSI environment
+else
+    # Module command available. Make sure the EESSI modules are on the PATH if we are testing EESSI environments
     if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
-        if [ "$USE_EESSI_MODULE" == "True" ]; then
-            if command -v module &>/dev/null; then
-                # Module command available
-                module load "EESSI/${EESSI_VERSION}"
-            else
-                source "${EESSI_CVMFS_REPO}/versions/${EESSI_VERSION}/init/lmod/bash"
-            fi
-        else   
-            eessi_init_path="${EESSI_CVMFS_REPO}"/versions/"${EESSI_VERSION}"/init/bash
-            source "${eessi_init_path}"
-        fi
+        module use "${EESSI_CVMFS_REPO}/init/modules/"
     fi
-    
-    # Needed in order to make sure the reframe from our TEMPDIR is first on the PATH,
-    # prior to the one shipped with the 2021.12 compat layer
-    # Probably no longer needed with newer compat layer that doesn't include ReFrame
-    deactivate
-    source "${TEMPDIR}"/reframe_venv/bin/activate
-    
-    # Print ReFrame config
-    echo "Starting CI run with the follwing settings:"
-    echo ""
-    echo "TEMPDIR: ${TEMPDIR}"
-    echo "PYTHONPATH: ${PYTHONPATH}"
-    echo "EESSI test suite URL: ${EESSI_TESTSUITE_URL}"
-    echo "EESSI test suite version: ${EESSI_TESTSUITE_BRANCH}"
-    echo "EESSI test suite URL for configs: ${EESSI_CONFIGS_TESTSUITE_URL}"
-    echo "EESSI test suite version for configs: ${EESSI_CONFIGS_TESTSUITE_BRANCH}"
-    echo "HPCtestlib from ReFrame URL: ${REFRAME_URL}"
-    echo "HPCtestlib from ReFrame branch: ${REFRAME_BRANCH}"
-    echo "ReFrame executable: $(which reframe)"
-    echo "ReFrame version: $(reframe --version)"
-    echo "ReFrame config file: ${RFM_CONFIG_FILES}"
-    echo "ReFrame check search path: ${RFM_CHECK_SEARCH_PATH}"
-    echo "ReFrame check search recursive: ${RFM_CHECK_SEARCH_RECURSIVE}"
-    echo "ReFrame prefix: ${RFM_PREFIX}"
-    echo "ReFrame args: ${REFRAME_ARGS}"
-    echo "Using EESSI: ${USE_EESSI_SOFTWARE_STACK}"
-    echo "Using the EESSI module: ${USE_EESSI_MODULE}"
-    echo "Using EESSI version: ${EESSI_VERSION}"
-    echo "Using local software stack ${SET_LOCAL_MODULE_ENV}"
-    echo "MODULEPATH: ${MODULEPATH}"
-    echo ""
-    
-    # List tests
-    echo "Listing tests:"
-    reframe ${REFRAME_ARGS} --list
-    
-    # Run
-    echo "Run tests:"
-    timeout -v --preserve-status -s SIGTERM ${REFRAME_TIMEOUT} reframe ${REFRAME_ARGS} --run --setvar EESSI_CONFIGS_URL=${EESSI_CONFIGS_TESTSUITE_URL} --setvar EESSI_CONFIGS_BRANCH=${EESSI_CONFIGS_TESTSUITE_BRANCH}
+fi
 
-done
+# Needed in order to make sure the reframe from our TEMPDIR is first on the PATH,
+# prior to the one shipped with the 2021.12 compat layer
+# Probably no longer needed with newer compat layer that doesn't include ReFrame
+deactivate
+source "${TEMPDIR}"/reframe_venv/bin/activate
+
+# Print ReFrame config
+echo "Starting CI run with the follwing settings:"
+echo ""
+echo "TEMPDIR: ${TEMPDIR}"
+echo "PYTHONPATH: ${PYTHONPATH}"
+echo "EESSI test suite URL: ${EESSI_TESTSUITE_URL}"
+echo "EESSI test suite version: ${EESSI_TESTSUITE_BRANCH}"
+echo "EESSI test suite URL for configs: ${EESSI_CONFIGS_TESTSUITE_URL}"
+echo "EESSI test suite version for configs: ${EESSI_CONFIGS_TESTSUITE_BRANCH}"
+echo "HPCtestlib from ReFrame URL: ${REFRAME_URL}"
+echo "HPCtestlib from ReFrame branch: ${REFRAME_BRANCH}"
+echo "ReFrame executable: $(which reframe)"
+echo "ReFrame version: $(reframe --version)"
+echo "ReFrame config file: ${RFM_CONFIG_FILES}"
+echo "ReFrame check search path: ${RFM_CHECK_SEARCH_PATH}"
+echo "ReFrame check search recursive: ${RFM_CHECK_SEARCH_RECURSIVE}"
+echo "ReFrame prefix: ${RFM_PREFIX}"
+echo "Testing ReFrame programming environments: ${EESSI_VERSION}"
+echo "ReFrame args: ${REFRAME_ARGS}"
+echo "Using EESSI: ${USE_EESSI_SOFTWARE_STACK}"
+echo "Using local software stack ${SET_LOCAL_MODULE_ENV}"
+echo "MODULEPATH: ${MODULEPATH}"
+echo ""
+
+# List tests
+echo "Listing tests:"
+reframe ${REFRAME_ARGS} --list
+
+# Run
+echo "Run tests:"
+timeout -v --preserve-status -s SIGTERM ${REFRAME_TIMEOUT} reframe ${REFRAME_ARGS} --run --setvar EESSI_CONFIGS_URL=${EESSI_CONFIGS_TESTSUITE_URL} --setvar EESSI_CONFIGS_BRANCH=${EESSI_CONFIGS_TESTSUITE_BRANCH}
 
 # Cleanup
 rm -rf "${TEMPDIR}"
