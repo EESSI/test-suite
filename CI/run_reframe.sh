@@ -58,7 +58,7 @@ export USE_MODULECMD_FROM_EESSI_VERSION="${USE_MODULECMD_FROM_EESSI_VERSION:-202
 export USE_EESSI_SOFTWARE_STACK="${USE_EESSI_SOFTWARE_STACK:-True}"
 if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
     export EESSI_CVMFS_REPO="${EESSI_CVMFS_REPO:-/cvmfs/software.eessi.io}"
-    export EESSI_VERSION="${EESSI_VERSION:-2023.06,2025.06}"
+    export REFRAME_EESSI_PROGRAMMING_ENVS="${REFRAME_EESSI_PROGRAMMING_ENVS:-EESSI-2023.06,EESSI-2025.06}"
 fi
 export RFM_CONFIG_FILES="${RFM_CONFIG_FILES:-${TEMPDIR}/configs/config/${EESSI_CI_SYSTEM_NAME}.py}"
 export RFM_CHECK_SEARCH_PATH="${RFM_CHECK_SEARCH_PATH:-${TEMPDIR}/test-suite/eessi/testsuite/tests/}"
@@ -68,6 +68,7 @@ export RFM_PREFIX="${RFM_PREFIX:-${HOME}/reframe_CI_runs}"
 # This will prevent multiple ReFrame runs from piling up and exceeding the quota on our Magic Castle clusters
 export REFRAME_TIMEOUT="${REFRAME_TIMEOUT:-1430m}"
 export UNSET_MODULEPATH="${UNSET_MODULEPATH:-True}"
+export REFRAME_LOCAL_PROGRAMMING_ENVS="${REFRAME_LOCAL_PROGRAMMING_ENVS:-}"  # Assumed to be a comma seperated list
 export SET_LOCAL_MODULE_ENV="${SET_LOCAL_MODULE_ENV:-False}"
 
 # Create virtualenv for ReFrame using system python
@@ -124,7 +125,7 @@ fi
 # EESSI environment to get a module command
 if ! command -v module &>/dev/null; then
     # No module command available
-    if [ ! -z "$USE_MODULECMD_FROM_EESSI_VERSION" ] ; then
+    if [ ! -z "$USE_MODULECMD_FROM_EESSI_VERSION" ]; then
         echo "Using module command from EESSI version ${USE_MODULECMD_FROM_EESSI_VERSION}"
         source "${EESSI_CVMFS_REPO}/versions/${USE_MODULECMD_FROM_EESSI_VERSION}/init/lmod/bash"
         module unload EESSI
@@ -148,6 +149,16 @@ fi
 deactivate
 source "${TEMPDIR}"/reframe_venv/bin/activate
 
+# Modify the REFRAME_ARGS to take the requested programming environments into account
+REFRAME_PROGRAMMING_ENVS="${REFRAME_LOCAL_PROGRAMMING_ENVS},${REFRAME_EESSI_PROGRAMMING_ENVS}"
+REFRAME_PROGRAMMING_ENVS="${REFRAME_PROGRAMMING_ENVS%,}"  # Remove any leading comma in case 1st list is empty
+REFRAME_PROGRAMMING_ENVS="${REFRAME_PROGRAMMING_ENVS#,}"  # Remove any trailing comma in case 2nd list is empty
+# Replace commas by | since ReFrame expects a regex and we want tests to run if they match any of the programming envs
+REFRAME_PROGRAMMING_ENVS_PIPED="${REFRAME_PROGRAMMING_ENVS//,/|}"
+if [ -z "$REFRAME_PROGRAMMING_ENVS_PIPED" ]; then
+    REFRAME_ARGS="${REFRAME_ARGS} -p '$REFRAME_PROGRAMMING_ENVS_PIPED'"
+fi
+
 # Print ReFrame config
 echo "Starting CI run with the follwing settings:"
 echo ""
@@ -165,7 +176,7 @@ echo "ReFrame config file: ${RFM_CONFIG_FILES}"
 echo "ReFrame check search path: ${RFM_CHECK_SEARCH_PATH}"
 echo "ReFrame check search recursive: ${RFM_CHECK_SEARCH_RECURSIVE}"
 echo "ReFrame prefix: ${RFM_PREFIX}"
-echo "Testing ReFrame programming environments: ${EESSI_VERSION}"
+echo "Testing ReFrame programming environments: ${REFRAME_PROGRAMMING_ENVS}"
 echo "ReFrame args: ${REFRAME_ARGS}"
 echo "Using EESSI: ${USE_EESSI_SOFTWARE_STACK}"
 echo "Using local software stack ${SET_LOCAL_MODULE_ENV}"
