@@ -49,7 +49,7 @@ class EESSI_GROMACS_base(gromacs_check):
 class EESSI_GROMACS(EESSI_GROMACS_base, EESSI_Mixin):
     scale = parameter(SCALES.keys())
     time_limit = '30m'
-    module_name = parameter(find_modules('GROMACS'))
+    module_info = parameter(find_modules('GROMACS'))
     # input files are downloaded
     readonly_files = ['']
     # executable_opts in addition to those set by the hpctestlib

@@ -19,7 +19,7 @@ from eessi.testsuite.eessi_mixin import EESSI_Mixin
 class EESSI_TensorFlow(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     # Parameterize over all modules that start with TensorFlow
-    module_name = parameter(find_modules('TensorFlow'))
+    module_info = parameter(find_modules('TensorFlow'))
 
     # Make CPU and GPU versions of this test
     device_type = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])

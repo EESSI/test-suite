@@ -17,7 +17,7 @@ class EESSI_CP2K(rfm.RunOnlyRegressionTest, EESSI_Mixin):
         ('QS/H2O-512', -8808.1439, 1e-4),
     ], fmt=lambda x: x[0], loggable=True)
 
-    module_name = parameter(find_modules('CP2K'))
+    module_info = parameter(find_modules('CP2K'))
     scale = parameter(SCALES.keys())
 
     executable = 'cp2k.popt'

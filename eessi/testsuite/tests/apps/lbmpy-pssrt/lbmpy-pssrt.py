@@ -48,7 +48,7 @@ class EESSI_lbmpy_pssrt(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     launcher = 'local'  # no MPI module is loaded in this test
 
-    module_name = parameter(find_modules('lbmpy-pssrt'))
+    module_info = parameter(find_modules('lbmpy-pssrt'))
 
     readonly_files = ['mixing_layer_2D.py']
 

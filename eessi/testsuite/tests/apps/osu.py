@@ -57,7 +57,7 @@ def filter_scales_coll():
 class EESSI_OSU_Base(osu_benchmark):
     """ base class for OSU tests """
     time_limit = '30m'
-    module_name = parameter(find_modules('OSU-Micro-Benchmarks'))
+    module_info = parameter(find_modules('OSU-Micro-Benchmarks'))
     used_cpus_per_task = 1
 
     # reset num_tasks_per_node from the hpctestlib: we handle it ourselves

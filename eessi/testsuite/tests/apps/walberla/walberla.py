@@ -44,7 +44,7 @@ class EESSI_WALBERLA_BACKWARD_FACING_STEP(rfm.RunOnlyRegressionTest, EESSI_Mixin
     time_limit = '30m'
     readonly_files = ['']
     device_type = parameter([DEVICE_TYPES.CPU])
-    module_name = parameter(find_modules('waLBerla'))
+    module_info = parameter(find_modules('waLBerla'))
     valid_systems = ['*']
     scale = parameter(filter_scales())
 

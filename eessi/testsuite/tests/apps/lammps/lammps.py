@@ -53,7 +53,7 @@ class EESSI_LAMMPS_base(rfm.RunOnlyRegressionTest):
     device_type = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])
 
     # Parameterize over all modules that start with LAMMPS
-    module_name = parameter(find_modules('LAMMPS'))
+    module_info = parameter(find_modules('LAMMPS'))
 
     all_readonly_files = True
     is_ci_test = True
