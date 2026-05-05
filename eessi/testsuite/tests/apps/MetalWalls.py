@@ -56,6 +56,9 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
     # compute_device = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])
     compute_device = parameter([DEVICE_TYPES.CPU])
 
+    num_tasks_per_compute_unit = 1
+    used_cpus_per_task = None
+
     @run_after('init')
     def run_after_init(self):
         """Hooks to run after the init phase"""
@@ -100,9 +103,10 @@ class EESSI_MetalWalls_MW(MetalWallsCheck):
         # 1 task per CPU for CPU-only tests, 1 task per GPU for GPU tests.
         # Also support setting the resources on the cmd line.
         if self.compute_device == DEVICE_TYPES.GPU:
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNITS.GPU)
+            self.compute_unit=COMPUTE_UNITS.GPU
         else:
-            hooks.assign_tasks_per_compute_unit(test=self, compute_unit=COMPUTE_UNITS.CPU)
+            self.compute_unit=COMPUTE_UNITS.CPU
+        hooks.assign_tasks_per_compute_unit(self)
 
     @run_after('setup')
     def set_binding(self):
