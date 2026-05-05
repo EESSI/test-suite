@@ -67,7 +67,7 @@ class EESSI_MetalWalls_MW(MetalWallsCheck, EESSI_Mixin):
             self.compute_unit = COMPUTE_UNITS.GPU
         else:
             raise NotImplementedError(
-                f"Compute unit {self.compute_unit} was not implement for test {self.name}"
+                f"Compute unit {self.compute_unit} was not implemented for test {self.name}"
             )
 
     @run_after('init')
