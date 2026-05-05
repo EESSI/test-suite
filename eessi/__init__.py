@@ -5,5 +5,5 @@
 # no longer required
 try:
     __import__("pkg_resources").declare_namespace(__name__)
-except:
+except ImportError:
     pass
