@@ -37,7 +37,7 @@ elif python_version >= (3, 6) and current_setuptools_version >= pkg_resources.pa
 scm_dict['fallback_version'] = get_version_by_import()
 
 setuptools.setup(
-    packages=find_namespace_package(include="eessi*")
+    packages=find_namespace_package(include="eessi*"),
     use_scm_version=scm_dict,
     setup_requires=[setuptools_scm_requirement],
 )
