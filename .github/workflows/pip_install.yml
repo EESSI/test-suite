@@ -27,6 +27,8 @@ jobs:
               # system installed setuptools version in RHEL8 and CO7
               python -m pip install --user setuptools==39.2.0
             fi
+            echo "Setuptools version:"
+            python -c "import setuptools; print(setuptools.__version__)"
 
         - name: Install ReFrame
           run: |
