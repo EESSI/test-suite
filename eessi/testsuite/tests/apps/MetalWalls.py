@@ -31,11 +31,10 @@ import reframe as rfm
 from reframe.core.builtins import run_after
 from reframe.core.parameters import TestParam as parameter
 
-from eessi.testsuite import hooks
 from eessi.testsuite.eessi_mixin import EESSI_Mixin
-from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES, SCALES, TAGS
+from eessi.testsuite.constants import COMPUTE_UNITS, DEVICE_TYPES
 from eessi.testsuite.hpctestlib.sciapps.metalwalls.benchmarks import MetalWallsCheck
-from eessi.testsuite.utils import find_modules, log
+from eessi.testsuite.utils import find_modules
 
 
 @rfm.simple_test
@@ -68,7 +67,7 @@ class EESSI_MetalWalls_MW(MetalWallsCheck, EESSI_Mixin):
             self.compute_unit = COMPUTE_UNITS.GPU
         else:
             raise NotImplementedError(
-                f"Compute unit {compute_unit} was not implement for test {self.name}"
+                f"Compute unit {self.compute_unit} was not implement for test {self.name}"
             )
 
     @run_after('init')
