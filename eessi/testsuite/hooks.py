@@ -93,15 +93,22 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest):
 
     Arguments:
     - test: the ReFrame test to which this hook should apply
+
+    The following test attributes must be set:
     - compute_unit: a device as listed in eessi.testsuite.constants.COMPUTE_UNITS
+    - num_tasks_per_compute_unit: the number of tasks per compute unit
 
     Examples:
     On a single node with 2 sockets, 64 cores and 128 hyperthreads:
-    - assign_tasks_per_compute_unit(test, COMPUTE_UNITS.HWTHREAD) will launch 128 tasks with 1 thread per task
-    - assign_tasks_per_compute_unit(test, COMPUTE_UNITS.CPU) will launch 64 tasks with 2 threads per task
-    - assign_tasks_per_compute_unit(test, COMPUTE_UNITS.CPU_SOCKET) will launch 2 tasks with 64 threads per task
+    - test.compute_unit = COMPUTE_UNITS.HWTHREAD will launch 128 tasks with 1 thread per task
+    - test.compute_unit = COMPUTE_UNITS.CPU will launch 64 tasks with 2 threads per task
+    - test.compute_unit = COMPUTE_UNITS.CPU_SOCKET will launch 2 tasks with 64 threads per task
 
     """
+    for attribute in ['compute_unit', 'num_tasks_per_compute_unit']:
+        if not hasattr(test, attribute):
+            raise NotImplementedError(f'test attribute {attribute} must be defined')
+
     compute_unit = test.compute_unit
     num_per = test.num_tasks_per_compute_unit
     log(f'assign_tasks_per_compute_unit with compute_unit: {compute_unit} and num_per: {num_per}')
