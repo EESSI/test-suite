@@ -9,4 +9,4 @@ if [[ -z $binding ]]; then
     binding=$(hwloc-calc -p -H package.core.pu "$hwlocbind")
 fi
 
-echo "$HOSTNAME $binding"
+echo "$(hostname) $binding"
