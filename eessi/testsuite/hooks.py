@@ -108,7 +108,7 @@ def assign_tasks_per_compute_unit(test: rfm.RegressionTest):
     for attribute in ['compute_unit', 'num_tasks_per_compute_unit']:
         if not hasattr(test, attribute):
             raise NotImplementedError(
-              f'test attribute {attribute} must be defined before calling assign_tasks_per_compute_unit')
+                f'test attribute {attribute} must be defined before calling assign_tasks_per_compute_unit')
 
     compute_unit = test.compute_unit
     num_per = test.num_tasks_per_compute_unit
