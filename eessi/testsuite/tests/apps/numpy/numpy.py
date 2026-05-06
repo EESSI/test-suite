@@ -24,7 +24,7 @@ class EESSI_NumPy(rfm.RunOnlyRegressionTest, EESSI_Mixin):
     executable = './np_ops.py'
     time_limit = '30m'
     readonly_files = ['np_ops.py']
-    module_name = parameter(find_modules('SciPy-bundle'))
+    module_info = parameter(find_modules('SciPy-bundle'))
     device_type = DEVICE_TYPES.CPU
     compute_unit = COMPUTE_UNITS.NODE
     scale = parameter([

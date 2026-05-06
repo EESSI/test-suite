@@ -46,7 +46,7 @@ class EESSI_MetalWalls_MW(MetalWallsCheck, EESSI_Mixin):
     # input files are downloaded
     readonly_files = ['']
 
-    module_name = parameter(find_modules('MetalWalls'))
+    module_info = parameter(find_modules('MetalWalls'))
     # For now, MetalWalls is being build for CPU targets only
     # compute_device = parameter([DEVICE_TYPES.CPU, DEVICE_TYPES.GPU])
     device_type = parameter([DEVICE_TYPES.CPU])

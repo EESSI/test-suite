@@ -44,7 +44,7 @@ class EESSI_LPC3D(rfm.RunOnlyRegressionTest, EESSI_Mixin):
 
     launcher = 'local'  # no MPI module is loaded in this test
 
-    module_name = parameter(find_modules('LPC3D'))
+    module_info = parameter(find_modules('LPC3D'))
 
     readonly_files = ['lattice_gas.inpt', 'pore_dens_freq_2neg.txt', 'psd.txt']
 

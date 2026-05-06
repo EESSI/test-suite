@@ -16,7 +16,6 @@ site_configuration = {
                     'name': 'default',
                     'scheduler': 'local',
                     'launcher': 'local',
-                    'environs': ['default'],
                     'features': [FEATURES.CPU] + list(SCALES.keys()),
                     'processor': {
                         'num_cpus': 2,
