@@ -37,21 +37,11 @@ fi
 source "${CI_CONFIG}"
 
 # Set default configuration, but let anything set by CI_CONFIG take priority
-if [ -z "${REFRAME_ARGS}" ]; then
-    REFRAME_ARGS="--tag CI --tag 1_node"
-fi
-if [ -z "${REFRAME_VERSION}"]; then
-    REFRAME_VERSION=4.8.1
-fi
-if [ -z "${REFRAME_URL}" ]; then
-    REFRAME_URL='https://github.com/reframe-hpc/reframe.git'
-fi
-if [ -z "${REFRAME_BRANCH}" ]; then
-    REFRAME_BRANCH="v${REFRAME_VERSION}"
-fi
-if [ -z "${EESSI_TESTSUITE_URL}" ]; then
-    EESSI_TESTSUITE_URL='https://github.com/EESSI/test-suite.git'
-fi
+REFRAME_ARGS="${REFRAME_ARGS:---tag CI --tag 1_node}"
+REFRAME_VERSION="${REFRAME_VERSION:-4.8.1}"
+REFRAME_URL="${REFRAME_URL:-REFRAME_URL=https://github.com/reframe-hpc/reframe.git}"
+REFRAME_BRANCH="${REFRAME_BRANCH:-v${REFRAME_VERSION}}"
+EESSI_TESTSUITE_URL="${EESSI_TESTSUITE_URL:-https://github.com/EESSI/test-suite.git}"
 if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
     git clone -n --depth=1 --filter=tree:0 ${EESSI_TESTSUITE_URL} "${TEMPDIR}/test-suite-version-checkout"
     cd "${TEMPDIR}/test-suite-version-checkout"
@@ -62,44 +52,24 @@ if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
     EESSI_TESTSUITE_BRANCH="${LATEST_VERSION}"
     cd ${TEMPDIR}
 fi
-if [ -z "${EESSI_CONFIGS_TESTSUITE_URL}" ]; then
-    EESSI_CONFIGS_TESTSUITE_URL="${EESSI_TESTSUITE_URL}"
+EESSI_CONFIGS_TESTSUITE_URL="${EESSI_CONFIGS_TESTSUITE_URL:-${EESSI_TESTSUITE_URL}}"
+EESSI_CONFIGS_TESTSUITE_BRANCH="${EESSI_CONFIGS_TESTSUITE_BRANCH:-${EESSI_TESTSUITE_BRANCH}}"
+export USE_MODULECMD_FROM_EESSI_VERSION="${USE_MODULECMD_FROM_EESSI_VERSION:-2025.06}"
+export USE_EESSI_SOFTWARE_STACK="${USE_EESSI_SOFTWARE_STACK:-True}"
+if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
+    export EESSI_CVMFS_REPO="${EESSI_CVMFS_REPO:-/cvmfs/software.eessi.io}"
+    export REFRAME_EESSI_PROGRAMMING_ENVS="${REFRAME_EESSI_PROGRAMMING_ENVS:-EESSI-2023.06,EESSI-2025.06}"
 fi
-if [ -z "${EESSI_CONFIGS_TESTSUITE_BRANCH}" ]; then
-    EESSI_CONFIGS_TESTSUITE_BRANCH="${EESSI_TESTSUITE_BRANCH}"
-fi
-if [ -z "${USE_EESSI_SOFTWARE_STACK}" ] || [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
-    export USE_EESSI_SOFTWARE_STACK=True
-    if [ -z "${EESSI_CVMFS_REPO}" ]; then
-        export EESSI_CVMFS_REPO=/cvmfs/software.eessi.io
-    fi
-    if [ -z "${EESSI_VERSION}" ]; then
-        export EESSI_VERSION=2023.06
-    fi
-fi
-if [ -z "${RFM_CONFIG_FILES}" ]; then
-    export RFM_CONFIG_FILES="${TEMPDIR}/configs/config/${EESSI_CI_SYSTEM_NAME}.py"
-fi
-if [ -z "${RFM_CHECK_SEARCH_PATH}" ]; then
-    export RFM_CHECK_SEARCH_PATH="${TEMPDIR}/test-suite/eessi/testsuite/tests/"
-fi
-if [ -z "${RFM_CHECK_SEARCH_RECURSIVE}" ]; then
-    export RFM_CHECK_SEARCH_RECURSIVE=1
-fi
-if [ -z "${RFM_PREFIX}" ]; then
-    export RFM_PREFIX="${HOME}/reframe_CI_runs"
-fi
-if [ -z "${REFRAME_TIMEOUT}" ]; then
-    # 10 minutes short of 1 day, since typically the test suite will be run daily.
-    # This will prevent multiple ReFrame runs from piling up and exceeding the quota on our Magic Castle clusters
-    export REFRAME_TIMEOUT=1430m
-fi
-if [ -z "${UNSET_MODULEPATH}" ]; then
-    export UNSET_MODULEPATH=True
-fi
-if [ -z "${SET_LOCAL_MODULE_ENV}" ]; then
-    export SET_LOCAL_MODULE_ENV=False
-fi
+export RFM_CONFIG_FILES="${RFM_CONFIG_FILES:-${TEMPDIR}/configs/config/${EESSI_CI_SYSTEM_NAME}.py}"
+export RFM_CHECK_SEARCH_PATH="${RFM_CHECK_SEARCH_PATH:-${TEMPDIR}/test-suite/eessi/testsuite/tests/}"
+export RFM_CHECK_SEARCH_RECURSIVE="${RFM_CHECK_SEARCH_RECURSIVE:-1}"
+export RFM_PREFIX="${RFM_PREFIX:-${HOME}/reframe_CI_runs}"
+# 10 minutes short of 1 day, since typically the test suite will be run daily.
+# This will prevent multiple ReFrame runs from piling up and exceeding the quota on our Magic Castle clusters
+export REFRAME_TIMEOUT="${REFRAME_TIMEOUT:-1430m}"
+export UNSET_MODULEPATH="${UNSET_MODULEPATH:-True}"
+export REFRAME_LOCAL_PROGRAMMING_ENVS="${REFRAME_LOCAL_PROGRAMMING_ENVS:-}"  # Assumed to be a comma seperated list
+export SET_LOCAL_MODULE_ENV="${SET_LOCAL_MODULE_ENV:-False}"
 
 # Create virtualenv for ReFrame using system python
 python3 -m venv "${TEMPDIR}"/reframe_venv
@@ -149,10 +119,28 @@ if [ "$SET_LOCAL_MODULE_ENV" == "True" ]; then
     module load ${LOCAL_MODULES}
 fi
 
-# Start the EESSI environment
-if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
-    eessi_init_path="${EESSI_CVMFS_REPO}"/versions/"${EESSI_VERSION}"/init/bash
-    source "${eessi_init_path}"
+# With https://github.com/EESSI/test-suite/pull/326 we no longer need to load the EESSI module
+# before running the reframe command (reframe will load the modules for us)
+# However, on systems in which there is no module command, we do need to initialize an
+# EESSI environment to get a module command
+if ! command -v module &>/dev/null; then
+    # No module command available
+    if [ ! -z "$USE_MODULECMD_FROM_EESSI_VERSION" ]; then
+        echo "Using module command from EESSI version ${USE_MODULECMD_FROM_EESSI_VERSION}"
+        source "${EESSI_CVMFS_REPO}/versions/${USE_MODULECMD_FROM_EESSI_VERSION}/init/lmod/bash"
+        module unload EESSI
+    else
+        msg="No module command available, and this CI run was not configured to use the EESSI module command."
+        msg="$msg Consider setting 'USE_MODULECMD_FROM_EESSI_VERSION=<eessi_version>' in your CI runs to use a module"
+        msg="$msg command from the EESSI compatibility layer. Exiting..."
+        echo $msg
+        exit 1
+    fi
+else
+    # Module command available. Make sure the EESSI modules are on the PATH if we are testing EESSI environments
+    if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
+        module use "${EESSI_CVMFS_REPO}/init/modules/"
+    fi
 fi
 
 # Needed in order to make sure the reframe from our TEMPDIR is first on the PATH,
@@ -160,6 +148,16 @@ fi
 # Probably no longer needed with newer compat layer that doesn't include ReFrame
 deactivate
 source "${TEMPDIR}"/reframe_venv/bin/activate
+
+# Modify the REFRAME_ARGS to take the requested programming environments into account
+REFRAME_PROGRAMMING_ENVS="${REFRAME_LOCAL_PROGRAMMING_ENVS},${REFRAME_EESSI_PROGRAMMING_ENVS}"
+REFRAME_PROGRAMMING_ENVS="${REFRAME_PROGRAMMING_ENVS%,}"  # Remove any leading comma in case 1st list is empty
+REFRAME_PROGRAMMING_ENVS="${REFRAME_PROGRAMMING_ENVS#,}"  # Remove any trailing comma in case 2nd list is empty
+# Replace commas by | since ReFrame expects a regex and we want tests to run if they match any of the programming envs
+REFRAME_PROGRAMMING_ENVS_PIPED="${REFRAME_PROGRAMMING_ENVS//,/|}"
+if [ -z "$REFRAME_PROGRAMMING_ENVS_PIPED" ]; then
+    REFRAME_ARGS="${REFRAME_ARGS} -p '$REFRAME_PROGRAMMING_ENVS_PIPED'"
+fi
 
 # Print ReFrame config
 echo "Starting CI run with the follwing settings:"
@@ -178,6 +176,7 @@ echo "ReFrame config file: ${RFM_CONFIG_FILES}"
 echo "ReFrame check search path: ${RFM_CHECK_SEARCH_PATH}"
 echo "ReFrame check search recursive: ${RFM_CHECK_SEARCH_RECURSIVE}"
 echo "ReFrame prefix: ${RFM_PREFIX}"
+echo "Testing ReFrame programming environments: ${REFRAME_PROGRAMMING_ENVS}"
 echo "ReFrame args: ${REFRAME_ARGS}"
 echo "Using EESSI: ${USE_EESSI_SOFTWARE_STACK}"
 echo "Using local software stack ${SET_LOCAL_MODULE_ENV}"
