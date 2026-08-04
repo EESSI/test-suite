@@ -49,7 +49,7 @@ if [ -z "${EESSI_TESTSUITE_BRANCH}" ]; then
     cd "${TEMPDIR}/test-suite-version-checkout"
     git fetch --tags
     # This assumes we stick to a version-tagging scheme vX.Y.Z
-    LATEST_VERSION=$(LATEST_VERSION=$(git tag --list 'v*' | sort -V | tail -n1))
+    LATEST_VERSION=$(git tag --list 'v*' | sort -V | tail -n1)
     # Use the latest release by default
     EESSI_TESTSUITE_BRANCH="${LATEST_VERSION}"
     cd ${TEMPDIR}
