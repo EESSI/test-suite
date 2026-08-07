@@ -1,11 +1,11 @@
-This file contains a description of the major changes to the EESSI test suite.
-For more detailed information, please see the git log.
+# Release notes for EESSI test suite
 
 v1.0.0 (29 July 2026)
 ---------------------
 This is a major release of the EESSI test-suite
 
 Bug fixes:
+
 * Use command line args for mpirun to do process binding, as environment variables are ignored for some newer OpenMPI versions (#305).
 * Some tests that should have run on 2 GPUs on the same node, would start running on 2 GPUs on different nodes (#291). This was fixed by setting the `use_nodes_option` scheduler option in the (common) ReFrame config (#310).
 * Factor out common configuration, to avoid having to duplicate this in every ReFrame config file for eveyr system (#310).
@@ -14,6 +14,7 @@ Bug fixes:
 * Fix CI failure due to hpctestlib no longer being shipped in ReFrame >= 4.10 (#341)
 
 Enhancements:
+
 * Replace bench_name_ci with the more intuitive is_ci_test property (#301).
 * Only do hard checking of required_mem_per_node and readonly_files in CI, but demote to a warning by default (#302).
 * Add a check on process binding, to verify processes are bound correctly (#312, #338).
@@ -22,6 +23,7 @@ Enhancements:
 * Migrated MetalWalls to use the EESSI_Mixin class (#332).
 
 Other changes:
+
 * Added Reframe configuration file for the HCA experimental RISC-V cluster at BSC (#314).
 * Replace deprecated RegressionMixin with RegressionTestPlugin (#315).
 * Update ReFrame configuration for Hortense (#316).
@@ -35,6 +37,7 @@ v0.9.0 (23 December 2025)
 This is a minor release of the EESSI test-suite
 
 New tests:
+
 * OpenFoam: added a large test case, that can run on larger scales (#281)
 * ESPResSo: added a lattice-Boltzman (LB) test case, updated P3M and LJ test cases for ESPResSo 5.0 release (#300).
 New test cases also test waLBerla integration in ESPResSo.
@@ -69,6 +72,7 @@ v0.8.0 (5 November 2025)
 This is a minor release of the EESSI test-suite
 
 New tests:
+
 * BLAS (gemm, hemm, herk, trmm, trsm) (#268)
 * OpenFOAM CI (small scale, 1-128 MPI tasks) (#278)
 * numpy (Dot product, SVD, Cholesky decomposition, Inversion, Eigen decomposition) (#276)
@@ -167,6 +171,7 @@ v0.5.1 (30 January 2025)
 This is a bug fix release of the EESSI test-suite
 
 Other updates:
+
 * Update to release workflow instructions (#232)
 * Document how to use a different version of the config files when using `CI/run_reframe.sh` (#235)
 * Bump the use of the default ReFrame version for period tests that use `CI/run_reframe.sh` to ReFrame 4.7.3 (#236)
@@ -182,6 +187,7 @@ New tests:
 * MetalWalls (#164) (N.B. requires ReFrame >=4.7.0)
 
 New features:
+
 * Created `eessi_mixin` class for tests to inherit from. This class makes it easier to create portable tests, and also keeps the structure of those tests more uniform. (#177)
 * Automatic versioning with setuptools_scm (#185)
 * Ported tests to use the eessi_mixin class: CP2K (#193), MPI4py (#203), QuantumESPRESSO (#212), PyTorch (#213), TensorFlow (#221), OSU (#222)
@@ -190,10 +196,12 @@ New features:
 * For periodic tests using `CI/run_reframe.sh`, allow using a different version of the test-suite repository for the ReFrame config files (#226)
 
 Bug fixes:
+
 * Fixed failing `mktemp` command in `CI/run_reframe.sh` when EESSI_CI_TEMPROOT isn't set (#227)
 * Make tests that _don't_ use `eessi_mixin` always request GPUs if this is specified in the test.
 
 Other updates:
+
 * Update lammps hook name to be more descriptive (#177)
 * Add empty __init__ files to allow auto-generating API docs (#192)
 * Updates to ReFrame configs (#195, #198, #199, #202, #215, #216, #223, #225)
@@ -216,12 +224,14 @@ New tests:
 * CP2K (#133)
 
 Bug fixes:
+
 * Find and report duplicate modules (#167)
 * Specify memory as an extra resource in all ReFrame configs (#180)
 * Make req_memory_per_node hook print a warning if memory resource is not configured in ReFrame config (#182)
 * No longer test import of eessi.testsuite.utils directly in CI, as it fails (by design) for the ReFrame 4.6.2 version deployed in EESSI (#183)
 
 Other updates:
+
 * mpi4py reduction test for tutorial (#149, #172), to accompany [documentation](https://www.eessi.io/docs/test-suite/writing-portable-tests/) on writing portable tests for the EESSI test suite
 * Various updates to Snellius ReFrame config (#165, #168, #187, #188)
 * Make the use of EESSI optional in common_eessi_init, to better support testing of local software stacks (#166)
