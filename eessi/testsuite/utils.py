@@ -182,6 +182,10 @@ def find_modules(regex: str, environ_mapping=None, name_only=True) -> Iterator[T
                 snap0.restore()
             seen = set()
             dupes = []
+
+            if len(_modules_cache[part.fullname][env.name]) == 0:
+                getlogger().warning(f"No '{regex}' modules found in partition '{part.fullname}' environment '{env}'")
+
             for mod in _modules_cache[part.fullname][env.name]:
                 modmod = mod
                 if name_only:
