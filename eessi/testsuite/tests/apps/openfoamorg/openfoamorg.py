@@ -74,17 +74,16 @@ def filter_scales_1M():
                                                                         * v.get('num_nodes', 0) > 1)
     ]
 
-
-class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE(rfm.RunOnlyRegressionTest):
+class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_BASE(rfm.RunOnlyRegressionTest):
     """
-    This is the Base OPENFOAM class for the Lid-driven cavity test. The test consists of many steps which
+    This is the Base OPENFOAM(ORG version) class for the Lid-driven cavity test. The test consists of many steps which
     are run as pre-run commands and the main test with the executable `icoFoam` is measured for performance.
     """
     executable = 'icoFoam'
     executable_opts = ['-parallel', '2>&1', '|', 'tee log.icofoam']
     readonly_files = ['']
     device_type = parameter([DEVICE_TYPES.CPU])
-    module_info = parameter(find_modules('OpenFOAM/v', name_only=False))
+    module_info = parameter(find_modules(r'OpenFOAM/\d', name_only=False))
     valid_systems = ['*']
 
     # Some test specific variables.
@@ -127,7 +126,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE(rfm.RunOnlyRegressionTest):
             f"foamDictionary -entry numberOfSubdomains -set {self.num_tasks_per_node * self.num_nodes} "
             "system/decomposeParDict",
             'blockMesh 2>&1 | tee log.blockMesh',
-            f"{' '.join(self.launcher_command)} redistributePar -decompose -parallel 2>&1 | tee log.decompose",
+            "decomposePar 2>&1 | tee log.decompose",
             f"{' '.join(self.launcher_command)} renumberMesh -parallel -overwrite 2>&1 | tee log.renumberMesh"]
 
     @deferrable
@@ -149,7 +148,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE(rfm.RunOnlyRegressionTest):
                 and sn.assert_eq(n_ranks, self.num_tasks)
                 and sn.assert_found(r"^Finalising parallel run", self.path_to_wd + "/log.renumberMesh",
                                     msg="Did not reach the end of the renumberMesh run. RenumberMesh failure.")
-                and sn.assert_found(rf"^Time = {self.endTime}", self.path_to_wd + "/log.icofoam",
+                and sn.assert_found(rf"^Time = {self.endTime}s", self.path_to_wd + "/log.icofoam",
                                     msg="Did not reach the last time step. IcoFoam failure.")
                 and sn.assert_found(r"^Finalising parallel run", self.path_to_wd + "/log.icofoam",
                                     msg="Did not reach the end of the icofoam run. IcoFoam failure."))
@@ -179,15 +178,14 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE(rfm.RunOnlyRegressionTest):
         ])
 
 @rfm.simple_test
-class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_1M(EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
+class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_1M(EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
     """
     This is the main OPENFOAM class for the Lid-driven cavity test. The test consists of many steps which are run as
     pre-run commands and the main test with the executable `icoFoam` is measured for performance.
     """
-    time_limit = '60m'
     scale = parameter(filter_scales_1M())
+    time_limit = '60m'
     is_ci_test = True
-
 
     def required_mem_per_node(self):
         return self.num_tasks_per_node * 1700
@@ -212,7 +210,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_1M(EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE,
                       "count.")
 
 @rfm.simple_test
-class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_8M(EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
+class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_8M(EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
     """
     This is the main OPENFOAM class for the Lid-driven cavity test. The test consists of many steps which are run as
     pre-run commands and the main test with the executable `icoFoam` is measured for performance.
@@ -239,7 +237,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_8M(EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE,
                       "count.")
 
 @rfm.simple_test
-class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_64M(EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
+class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_64M(EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
     """
     This is the main OPENFOAM class for the Lid-driven cavity test. The test consists of many steps which are run as
     pre-run commands and the main test with the executable `icoFoam` is measured for performance.
