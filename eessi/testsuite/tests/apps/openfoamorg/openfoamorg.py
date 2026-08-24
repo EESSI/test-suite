@@ -74,6 +74,7 @@ def filter_scales_1M():
                                                                         * v.get('num_nodes', 0) > 1)
     ]
 
+
 class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_BASE(rfm.RunOnlyRegressionTest):
     """
     This is the Base OPENFOAM(ORG version) class for the Lid-driven cavity test. The test consists of many steps which
@@ -177,6 +178,7 @@ class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_BASE(rfm.RunOnlyRegressionTest):
             self.assert_convergence(),
         ])
 
+
 @rfm.simple_test
 class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_1M(EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
     """
@@ -194,7 +196,7 @@ class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_1M(EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY
     def update_test_specific_variables(self):
         """ This function is defined to update all test specific variables such as path to working directory, number of
         cells or the mesh size, end time, etc."""
-        self.path_to_wd ="./cavity3D/1M/fixedTol"
+        self.path_to_wd = "./cavity3D/1M/fixedTol"
         self.nCells = 1000000
         self.endTime = 0.015
 
@@ -208,6 +210,7 @@ class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_1M(EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY
         if self.num_tasks > 128:
             self.skip(msg="The maximum number of cores this test can run on is 128. Launch on a scale with lower core"
                       "count.")
+
 
 @rfm.simple_test
 class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_8M(EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
@@ -225,7 +228,7 @@ class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_8M(EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY
     def update_test_specific_variables(self):
         """ This function is defined to update all test specific variables such as path to working directory, number of
         cells or the mesh size, end time, etc."""
-        self.path_to_wd ="./cavity3D/8M/fixedTol"
+        self.path_to_wd = "./cavity3D/8M/fixedTol"
         self.nCells = 8000000
         self.endTime = 0.0075
 
@@ -235,6 +238,7 @@ class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_8M(EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY
         if self.num_tasks < 8:
             self.skip(msg="The minimum number of cores required by this test is 8. Launch on a scale with higher core"
                       "count.")
+
 
 @rfm.simple_test
 class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_64M(EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
@@ -252,7 +256,7 @@ class EESSI_OPENFOAMORG_LID_DRIVEN_CAVITY_64M(EESSI_OPENFOAMORG_LID_DRIVEN_CAVIT
     def update_test_specific_variables(self):
         """ This function is defined to update all test specific variables such as path to working directory, number of
         cells or the mesh size, end time, etc."""
-        self.path_to_wd ="./cavity3D/64M/fixedTol"
+        self.path_to_wd = "./cavity3D/64M/fixedTol"
         self.nCells = 64000000
         self.endTime = 0.00375
 
