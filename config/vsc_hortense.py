@@ -58,56 +58,6 @@ site_configuration = {
             'env_vars': [['SLURM_CONF', '/etc/slurm/slurm.conf_dodrio']],
             'partitions': [
                 {
-                    'name': 'cpu_rome',
-                    'scheduler': 'slurm',
-                    'prepare_cmds': [
-                        prepare_eessi_init,
-                        post_init,
-                    ],
-                    'access': hortense_access + ['--partition=cpu_rome_rhel9'],
-                    'env_vars': common_env_vars,
-                    'sched_options': {
-                        'sched_access_in_submit': True,
-                    },
-                    'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
-                    'max_jobs': 20,
-                    'launcher': launcher,
-                    'environs': ['cpu_rome'],
-                    'features': [
-                        FEATURES.CPU,
-                    ] + list(SCALES.keys()),
-                    'extras': {
-                        # Make sure to round down, otherwise a job might ask for more mem than is available
-                        # per node
-                        EXTRAS.MEM_PER_NODE: 243200,  # in MiB
-                    },
-                },
-                {
-                    'name': 'cpu_rome_512',
-                    'scheduler': 'slurm',
-                    'prepare_cmds': [
-                        prepare_eessi_init,
-                        post_init,
-                    ],
-                    'access': hortense_access + ['--partition=cpu_rome_512_rhel9'],
-                    'env_vars': common_env_vars,
-                    'sched_options': {
-                        'sched_access_in_submit': True,
-                    },
-                    'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
-                    'max_jobs': 20,
-                    'launcher': launcher,
-                    'environs': ['cpu_rome'],
-                    'features': [
-                        FEATURES.CPU,
-                    ] + list(SCALES.keys()),
-                    'extras': {
-                        # Make sure to round down, otherwise a job might ask for more mem than is available
-                        # per node
-                        EXTRAS.MEM_PER_NODE: 499200,  # in MiB
-                    },
-                },
-                {
                     'name': 'cpu_milan_rhel9',
                     'scheduler': 'slurm',
                     'prepare_cmds': [
@@ -131,39 +81,6 @@ site_configuration = {
                         # per node
                         EXTRAS.MEM_PER_NODE: 243200,  # in MiB
                     },
-                },
-                {
-                    'name': 'gpu_rome_a100_40',
-                    'scheduler': 'slurm',
-                    'prepare_cmds': [
-                        prepare_eessi_init,
-                        post_init,
-                    ],
-                    'access': hortense_access + ['--partition=gpu_rome_a100_40_rhel9'],
-                    'env_vars': common_env_vars,
-                    'sched_options': {
-                        'sched_access_in_submit': True,
-                    },
-                    'descr': 'GPU nodes (A100 40GB)',
-                    'max_jobs': 20,
-                    'launcher': launcher,
-                    'environs': ['gpu_rome_a100'],
-                    'features': [
-                        FEATURES.GPU,
-                    ] + list(SCALES.keys()),
-                    'extras': {
-                        EXTRAS.GPU_VENDOR: GPU_VENDORS.NVIDIA,
-                        # Make sure to round down, otherwise a job might ask for more mem than is available
-                        # per node
-                        EXTRAS.MEM_PER_NODE: 243840,  # in MiB
-                    },
-                    'devices': [
-                        {
-                            'type': DEVICE_TYPES.GPU,
-                            'num_devices': 4,
-                        }
-                    ],
-
                 },
                 {
                     'name': 'gpu_rome_a100_80',
@@ -202,7 +119,6 @@ site_configuration = {
         },
     ],
     'environments': [
-        {'name': 'cpu_rome', 'modules': ['cluster/dodrio/cpu_rome_rhel9', 'vsc-mympirun']},
         {'name': 'cpu_milan', 'modules': ['cluster/dodrio/cpu_milan_rhel9', 'vsc-mympirun']},
         {'name': 'gpu_rome_a100', 'modules': ['cluster/dodrio/gpu_rome_a100_rhel9', 'vsc-mympirun']},
     ],
