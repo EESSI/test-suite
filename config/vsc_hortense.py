@@ -20,8 +20,6 @@
 #    reframe --detect-host-topology \
 #        ~/.reframe/topology/hortense-{partition_name}/processor.json
 # ```
-import os
-
 from eessi.testsuite.common_config import (common_general_config, common_logging_config,
                                            get_sbatch_account, set_common_required_config)
 from eessi.testsuite.constants import EXTRAS, DEVICE_TYPES, FEATURES, GPU_VENDORS, SCALES
@@ -45,15 +43,8 @@ common_env_vars = [
 # We need to unset SLURM_EXPORT_ENV in the job because otherwise this causes problems for `mpirun`
 post_init = 'unset SLURM_EXPORT_ENV'
 launcher = "mpirun"
-
 eessi_modulepath = '/cvmfs/software.eessi.io/init/modules'
-modulepaths = os.getenv('MODULEPATH', '').split(':')
-if eessi_modulepath in modulepaths:
-    prepare_eessi_init = f"module --force purge && module use {eessi_modulepath}"
-    mpi_module = "env/vsc/dodrio/{}"
-else:
-    prepare_eessi_init = ""
-    mpi_module = "vsc-mympirun"
+prepare_eessi_init = f"module --force purge && module use {eessi_modulepath}"
 
 site_configuration = {
     'systems': [
@@ -66,58 +57,6 @@ site_configuration = {
             # see https://github.com/EESSI/test-suite/issues/242
             'env_vars': [['SLURM_CONF', '/etc/slurm/slurm.conf_dodrio']],
             'partitions': [
-                {
-                    'name': 'cpu_rome',
-                    'scheduler': 'slurm',
-                    'prepare_cmds': [
-                        prepare_eessi_init,
-                        post_init,
-                    ],
-                    'access': hortense_access + ['--partition=cpu_rome_rhel9'],
-                    'env_vars': common_env_vars,
-                    'sched_options': {
-                        'sched_access_in_submit': True,
-                    },
-                    'descr': 'CPU nodes (AMD Rome, 256GiB RAM)',
-                    'max_jobs': 20,
-                    'launcher': launcher,
-                    'environs': ['default'],
-                    'modules': [mpi_module.format('cpu_rome_rhel9')],
-                    'features': [
-                        FEATURES.CPU,
-                    ] + list(SCALES.keys()),
-                    'extras': {
-                        # Make sure to round down, otherwise a job might ask for more mem than is available
-                        # per node
-                        EXTRAS.MEM_PER_NODE: 243200,  # in MiB
-                    },
-                },
-                {
-                    'name': 'cpu_rome_512',
-                    'scheduler': 'slurm',
-                    'prepare_cmds': [
-                        prepare_eessi_init,
-                        post_init,
-                    ],
-                    'access': hortense_access + ['--partition=cpu_rome_512_rhel9'],
-                    'env_vars': common_env_vars,
-                    'sched_options': {
-                        'sched_access_in_submit': True,
-                    },
-                    'descr': 'CPU nodes (AMD Rome, 512GiB RAM)',
-                    'max_jobs': 20,
-                    'launcher': launcher,
-                    'environs': ['default'],
-                    'modules': [mpi_module.format('cpu_rome_512_rhel9')],
-                    'features': [
-                        FEATURES.CPU,
-                    ] + list(SCALES.keys()),
-                    'extras': {
-                        # Make sure to round down, otherwise a job might ask for more mem than is available
-                        # per node
-                        EXTRAS.MEM_PER_NODE: 499200,  # in MiB
-                    },
-                },
                 {
                     'name': 'cpu_milan_rhel9',
                     'scheduler': 'slurm',
@@ -133,8 +72,7 @@ site_configuration = {
                     'descr': 'CPU nodes (AMD Milan, 256GiB RAM)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'environs': ['default'],
-                    'modules': [mpi_module.format('cpu_milan_rhel9')],
+                    'environs': ['cpu_milan'],
                     'features': [
                         FEATURES.CPU,
                     ] + list(SCALES.keys()),
@@ -143,40 +81,6 @@ site_configuration = {
                         # per node
                         EXTRAS.MEM_PER_NODE: 243200,  # in MiB
                     },
-                },
-                {
-                    'name': 'gpu_rome_a100_40',
-                    'scheduler': 'slurm',
-                    'prepare_cmds': [
-                        prepare_eessi_init,
-                        post_init,
-                    ],
-                    'access': hortense_access + ['--partition=gpu_rome_a100_40_rhel9'],
-                    'env_vars': common_env_vars,
-                    'sched_options': {
-                        'sched_access_in_submit': True,
-                    },
-                    'descr': 'GPU nodes (A100 40GB)',
-                    'max_jobs': 20,
-                    'launcher': launcher,
-                    'environs': ['default'],
-                    'modules': [mpi_module.format('gpu_rome_a100_40')],
-                    'features': [
-                        FEATURES.GPU,
-                    ] + list(SCALES.keys()),
-                    'extras': {
-                        EXTRAS.GPU_VENDOR: GPU_VENDORS.NVIDIA,
-                        # Make sure to round down, otherwise a job might ask for more mem than is available
-                        # per node
-                        EXTRAS.MEM_PER_NODE: 243840,  # in MiB
-                    },
-                    'devices': [
-                        {
-                            'type': DEVICE_TYPES.GPU,
-                            'num_devices': 4,
-                        }
-                    ],
-
                 },
                 {
                     'name': 'gpu_rome_a100_80',
@@ -193,8 +97,7 @@ site_configuration = {
                     'descr': 'GPU nodes (A100 80GB)',
                     'max_jobs': 20,
                     'launcher': launcher,
-                    'environs': ['default'],
-                    'modules': [mpi_module.format('gpu_rome_a100_80')],
+                    'environs': ['gpu_rome_a100'],
                     'features': [
                         FEATURES.GPU,
                     ] + list(SCALES.keys()),
@@ -216,9 +119,8 @@ site_configuration = {
         },
     ],
     'environments': [
-        {
-            'name': 'default',
-        },
+        {'name': 'cpu_milan', 'modules': ['cluster/dodrio/cpu_milan_rhel9', 'vsc-mympirun']},
+        {'name': 'gpu_rome_a100', 'modules': ['cluster/dodrio/gpu_rome_a100_rhel9', 'vsc-mympirun']},
     ],
     'general': [
         {
