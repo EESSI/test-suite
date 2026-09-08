@@ -123,5 +123,11 @@ site_configuration = {
     ],
 }
 
+# Set prepare commands for making EESSI modules available
+eessi_prepare_cmds = [
+    'source /cvmfs/software.eessi.io/2025.06/init/lmod/bash',
+    'module unload EESSI',
+]
+
 # Set common Slurm config options
-set_common_required_config(site_configuration)
+set_common_required_config(site_configuration, eessi_prepare_cmds=eessi_prepare_cmds)
