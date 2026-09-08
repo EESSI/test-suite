@@ -138,12 +138,17 @@ if espresso_version == (4, 2):
         assert not args.single_precision, "ESPResSo 4.2 LB CPU only available in double-precision"
     lbf = lb_class(dens=1., visc=1., seed=42, **lb_kwargs)
     system.actors.add(lbf)
-else:
+elif hasattr(espressomd.lb, "LBFluidWalberla"):
     if args.gpu:
         lb_class = espressomd.lb.LBFluidWalberlaGPU
     else:
         lb_class = espressomd.lb.LBFluidWalberla
     lbf = lb_class(density=1., kinematic_viscosity=1.,
+                   single_precision=args.single_precision, **lb_kwargs)
+    system.lb = lbf
+else:
+    lb_class = espressomd.lb.LBFluid
+    lbf = lb_class(density=1., kinematic_viscosity=1., gpu=args.gpu,
                    single_precision=args.single_precision, **lb_kwargs)
     system.lb = lbf
 
