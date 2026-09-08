@@ -13,9 +13,6 @@ on:
     - cron: '25 15 * * 3'
   push:
     branches: [ "main" ]
-  pull_request:
-    branches:    
-      - main
 
 # Declare default permissions as read only.
 permissions: read-all
