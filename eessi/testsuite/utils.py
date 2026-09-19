@@ -177,11 +177,25 @@ def find_modules(regex: str, environ_mapping=None, name_only=True) -> Iterator[T
             if env.name not in _modules_cache[part.fullname]:
                 log(f'Getting available modules for ({part.fullname}, {env.name})')
                 rt.loadenv(part.local_env, env)
+                log(f'Loaded modules: {ms.loaded_modules()}')
                 available_modules = sorted(ms.available_modules())
                 _modules_cache[part.fullname][env.name] = [mod for mod in available_modules if not mod.endswith('/')]
                 snap0.restore()
             seen = set()
             dupes = []
+
+            mods = _modules_cache[part.fullname][env.name]
+            mod_cnt = len(mods)
+            modulepath = os.getenv('MODULEPATH')
+            if mods:
+                msg = f"Found {mod_cnt} modules for partition '{part.fullname}' environment '{env}'"
+                msg += f" ($MODULEPATH: {modulepath})"
+                log(msg)
+            else:
+                msg = f"No '{regex}' modules found in partition '{part.fullname}' environment '{env}'"
+                msg += f" ($MODULEPATH: {modulepath})"
+                getlogger().warning(msg)
+
             for mod in _modules_cache[part.fullname][env.name]:
                 modmod = mod
                 if name_only:
