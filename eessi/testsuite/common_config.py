@@ -35,16 +35,19 @@ format_perfvars = '|'.join([
 ])
 
 
-def set_common_required_config(site_configuration: dict, set_memory: bool = True):
+def set_common_required_config(site_configuration: dict, set_memory: bool = True, eessi_prepare_cmds=None):
     """
     Update ReFrame configuration file: set common required config options.
     Must be called at the end of the site configuration file (below the `site_configuration` dict).
     :param site_configuration: site configuration dictionary
     :param set_memory: whether to set memory resources
     """
+    if not eessi_prepare_cmds:
+        eessi_prepare_cmds = []
+
     environments = [
-        {'name': 'EESSI-2023.06', 'modules': ['EESSI/2023.06']},
-        {'name': 'EESSI-2025.06', 'modules': ['EESSI/2025.06']},
+        {'name': 'EESSI-2023.06', 'modules': ['EESSI/2023.06'], 'prepare_cmds': eessi_prepare_cmds},
+        {'name': 'EESSI-2025.06', 'modules': ['EESSI/2025.06'], 'prepare_cmds': eessi_prepare_cmds},
     ]
     environs = ['EESSI-2023.06', 'EESSI-2025.06']
     use_nodes_option = True
