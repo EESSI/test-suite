@@ -75,7 +75,7 @@ def filter_scales_1M():
     ]
 
 
-class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE(rfm.RunOnlyRegressionTest):
+class EESSI_OPENFOAM_COM_LID_DRIVEN_CAVITY_BASE(rfm.RunOnlyRegressionTest):
     """
     This is the Base OPENFOAM class for the Lid-driven cavity test. The test consists of many steps which
     are run as pre-run commands and the main test with the executable `icoFoam` is measured for performance.
@@ -180,7 +180,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE(rfm.RunOnlyRegressionTest):
 
 
 @rfm.simple_test
-class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_1M(EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
+class EESSI_OPENFOAM_COM_LID_DRIVEN_CAVITY_1M(EESSI_OPENFOAM_COM_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
     """
     This is the main OPENFOAM class for the Lid-driven cavity test. The test consists of many steps which are run as
     pre-run commands and the main test with the executable `icoFoam` is measured for performance.
@@ -213,7 +213,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_1M(EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE,
 
 
 @rfm.simple_test
-class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_8M(EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
+class EESSI_OPENFOAM_COM_LID_DRIVEN_CAVITY_8M(EESSI_OPENFOAM_COM_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
     """
     This is the main OPENFOAM class for the Lid-driven cavity test. The test consists of many steps which are run as
     pre-run commands and the main test with the executable `icoFoam` is measured for performance.
@@ -241,7 +241,7 @@ class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_8M(EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE,
 
 
 @rfm.simple_test
-class EESSI_OPENFOAM_LID_DRIVEN_CAVITY_64M(EESSI_OPENFOAM_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
+class EESSI_OPENFOAM_COM_LID_DRIVEN_CAVITY_64M(EESSI_OPENFOAM_COM_LID_DRIVEN_CAVITY_BASE, EESSI_Mixin):
     """
     This is the main OPENFOAM class for the Lid-driven cavity test. The test consists of many steps which are run as
     pre-run commands and the main test with the executable `icoFoam` is measured for performance.
