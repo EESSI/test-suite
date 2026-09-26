@@ -41,7 +41,7 @@ def reframe_version_is_supported():
 if not reframe_version_is_supported():
     msg = ' '.join([
         'The EESSI test suite does not support this ReFrame version due to feature name and environment name',
-        'restrictions. Unsupported versions: 4.10.1, 4.10.2, 4.10.3.',
+        'restrictions. Unsupported versions: >=4.10.1,<4.11',
         'See https://github.com/reframe-hpc/reframe/issues/3723 for details.',
     ])
     raise EESSIError(msg)
