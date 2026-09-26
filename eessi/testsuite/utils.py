@@ -37,6 +37,10 @@ except ImportError:
     pass
 
 
+def make_red(msg):
+    return f'\033[31m{msg}\033[0m'
+
+
 class EESSIError(ReframeFatalError):
     traceback = os.getenv('TRACEBACK', "0")
     addendum = ''
@@ -46,7 +50,7 @@ class EESSIError(ReframeFatalError):
         addendum = '\nRerun with `TRACEBACK=1 reframe ...` to show the full traceback.'
 
     def __str__(self):
-        return super().__str__() + EESSIError.addendum
+        return make_red(super().__str__()) + EESSIError.addendum
 
 
 def log(msg, logger=printer.debug):
