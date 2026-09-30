@@ -137,8 +137,8 @@ class EESSI_ESPRESSO_LB(EESSI_ESPRESSO_base, EESSI_Mixin):
     @run_after('init')
     def skip_tests_module_version_LB(self):
         """
-        The LB module versions need to be >= 5.0.0 or a expermental release version which includes walberla. The earlier
-        lb method does not scale beyond 16 MPI tasks and is extremely slow in terms of case setup.
+        The LB module versions need to be >= 5.0.0 or an experimental release version which includes walberla.
+        The earlier lb method does not scale beyond 16 MPI tasks and is extremely slow in terms of case setup.
         Assumption:
             1. Versions with commit hashes have walberla in them. If not then they will not be filtered here and will
             run.

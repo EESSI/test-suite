@@ -103,7 +103,11 @@ for var_j in range(lattice_size[0]):
 p3m_kwargs = {"prefactor": 1., "accuracy": 1e-6}
 p3m_class = espressomd.electrostatics.P3M
 if args.gpu:
-    p3m_class = espressomd.electrostatics.P3MGPU
+    if hasattr(espressomd.electrostatics, "P3MGPU"):
+        p3m_class = espressomd.electrostatics.P3MGPU
+    else:
+        p3m_kwargs["gpu"] = True
+        p3m_kwargs["tune_limits"] = (None, 200)
     assert args.single_precision, "ESPResSo P3M GPU only available in single-precision"
     assert len(devices) == 1, "ESPResSo P3M only supports 1 GPU accelerator"
 elif espresso_version == (4, 2):
