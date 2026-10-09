@@ -19,7 +19,7 @@ Example configuration file
 """
 import os
 
-from eessi.testsuite.common_config import (common_eessi_init, common_general_config, common_logging_config,
+from eessi.testsuite.common_config import (common_general_config, common_logging_config,
                                            set_common_required_config)
 from eessi.testsuite.constants import EXTRAS, FEATURES, SCALES, DEVICE_TYPES, GPU_VENDORS
 
@@ -77,7 +77,6 @@ site_configuration = {
                     'launcher': 'mpirun',
                     'access': ['-p gpu', '--export=None'],
                     'prepare_cmds': [
-                        common_eessi_init(),
                         # Pass job environment variables like $PATH, etc., into job steps
                         'export SLURM_EXPORT_ENV=ALL',
                     ],
@@ -125,7 +124,7 @@ site_configuration = {
 
 # Set prepare commands for making EESSI modules available
 eessi_prepare_cmds = [
-    'unset MODULEPATH',
+    'module unuse MODULEPATH',
     'module use /cvmfs/software.eessi.io/init/modules',
     # If the system doesn’t have an Lmod installation by default, the following commands will use the one from EESSI
     # 'source /cvmfs/software.eessi.io/2025.06/init/lmod/bash',
