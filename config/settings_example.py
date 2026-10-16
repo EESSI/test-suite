@@ -41,12 +41,6 @@ site_configuration = {
                     'launcher': 'mpirun',
                     'access': ['-p cpu', '--export=None'],
                     'prepare_cmds': [
-                        # If your system doesn't have an Lmod installation by default on the batch nodes
-                        # Uncommenting the following two lines will use one from EESSI. Note that it is up to you
-                        # to pick a version for EESSI from which you'd like to use the lmod installation - it's
-                        # hard-coded to 2025.06 here.
-                        # 'source /cvmfs/software.eessi.io/2025.06/init/lmod/bash',
-                        # 'module unload EESSI',
                         # Pass job environment variables like $PATH, etc., into job steps
                         'export SLURM_EXPORT_ENV=ALL',
                     ],
@@ -126,8 +120,11 @@ site_configuration = {
 eessi_prepare_cmds = [
     'module unuse MODULEPATH',
     'module use /cvmfs/software.eessi.io/init/modules',
-    # If the system doesn’t have an Lmod installation by default, the following commands will use the one from EESSI
-    # 'source /cvmfs/software.eessi.io/2025.06/init/lmod/bash',
+    # If the system doesn’t have an Lmod installation by default, the following
+    # commands will use the one from EESSI. Note that it is up to you to pick a
+    # version for EESSI from which you'd like to use the lmod installation -
+    # it's hard-coded to 2026.06 here.
+    # 'source /cvmfs/software.eessi.io/2026.06/init/lmod/bash',
     # 'module unload EESSI',
 ]
 
