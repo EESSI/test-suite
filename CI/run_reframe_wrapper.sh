@@ -19,4 +19,5 @@ touch $LOGFILE
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Execute run_reframe.sh, which should be in the same directory as the current script
+echo "log file: ${LOGFILE}"
 ${SCRIPT_DIR}/run_reframe.sh > $LOGFILE 2>&1
