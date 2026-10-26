@@ -20,7 +20,7 @@ Bug fixes:
 
 * Add check for ReFrame version as versions >=4.10.1,<4.11' are not supported (see
   https://github.com/reframe-hpc/reframe/issues/3723 for details) (#357)
-* Fix `EESSI_TESTSUITE_BRANCH` not being set properly in the `run_reframe.sh` script (#350)
+* Make sure latest EESSI test suite release version in `run_reframe.sh` is correctly calculated (#348, #349, #350)
 
 Other changes:
 
