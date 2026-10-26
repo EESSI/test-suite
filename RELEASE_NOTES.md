@@ -1,4 +1,31 @@
-# Release notes for EESSI test suite
+# EESSI test-suite release notes
+
+v1.1.0 (26 October 2026)
+------------------------
+This is a minor release of the EESSI test-suite
+
+New tests:
+
+* Add support for `ESPResSo` versions `5.0-dev`, `5.0.1`, `5.1-dev` (#355)
+
+Enhancements:
+
+* Add support for `prepare_cmds` in the EESSI `environments`, improving support
+  for running tests with local environments. Before this, the EESSI
+  environment’s  `prepare_cmds` had to be defined in the `partitions` section of
+  the configuration file,  which could conflict with testing local
+  environments. (#354)
+
+Bug fixes:
+
+* Add check for ReFrame version as versions >=4.10.1,<4.11' are not supported (see
+  https://github.com/reframe-hpc/reframe/issues/3723 for details) (#357)
+* Make sure latest EESSI test suite release version in `run_reframe.sh` is correctly calculated (#348, #349, #350)
+
+Other changes:
+
+* Remove deprecated `common_eessi_init()` from `settings_example.py` (#358)
+* Convert `RELEASE_NOTES.md` to Markdown (#351)
 
 v1.0.0 (29 July 2026)
 ---------------------
