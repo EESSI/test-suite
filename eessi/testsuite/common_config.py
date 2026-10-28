@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 
 from reframe.core.config import load_config
 from reframe.core.exceptions import ConfigError
@@ -77,6 +78,35 @@ format_perfvars = '|'.join([
 ])
 
 
+def get_available_eessi_versions():
+    """
+    Query Lmod for the available EESSI versions.
+    The EESSI modules must already be available (in $MODULEPATH) before running ReFrame.
+    :return: sorted list of available EESSI versions, e.g. ['2023.06', '2025.06']
+    """
+    lmod_cmd = os.getenv('LMOD_CMD')
+    if not lmod_cmd:
+        raise EESSIError('Environment variable LMOD_CMD is not set: Lmod is required to query the EESSI versions.')
+
+    # EESSI modules may be hidden by the site, so include hidden modules
+    cmd = [lmod_cmd, 'python', '--show-hidden', '--terse', 'avail', 'EESSI']
+    try:
+        # Lmod prints the output of 'module avail' to stderr
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError) as err:
+        raise EESSIError(f'Failed to query the available EESSI versions with {cmd}: {err}') from err
+
+    # lines look like 'EESSI/2025.06' or 'EESSI/2025.06 <H>'
+    versions = {
+        line.split()[0].split('/', 1)[1]
+        for line in result.stderr.splitlines()
+        if line.startswith('EESSI/')
+    }
+    if not versions:
+        raise EESSIError('No EESSI versions found. Make sure the EESSI modules are available before running ReFrame.')
+    return sorted(versions)
+
+
 def set_common_required_config(site_configuration: dict, set_memory: bool = True, eessi_prepare_cmds=None):
     """
     Update ReFrame configuration file: set common required config options.
@@ -87,11 +117,12 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
     if not eessi_prepare_cmds:
         eessi_prepare_cmds = []
 
+    eessi_versions = get_available_eessi_versions()
     environments = [
-        {'name': 'EESSI-2023.06', 'modules': ['EESSI/2023.06'], 'prepare_cmds': eessi_prepare_cmds},
-        {'name': 'EESSI-2025.06', 'modules': ['EESSI/2025.06'], 'prepare_cmds': eessi_prepare_cmds},
+        {'name': f'EESSI-{version}', 'modules': [f'EESSI/{version}'], 'prepare_cmds': eessi_prepare_cmds}
+        for version in eessi_versions
     ]
-    environs = ['EESSI-2023.06', 'EESSI-2025.06']
+    environs = [env['name'] for env in environments]
     use_nodes_option = True
     if set_memory:
         resources_memory = [{
