@@ -23,7 +23,7 @@ jobs:
 
         - name: Run test suite
           run: |
-            source /cvmfs/software.eessi.io/versions/${{matrix.EESSI_VERSION}}/init/bash
+            source /cvmfs/software.eessi.io/versions/${{matrix.EESSI_VERSION}}/init/lmod/bash
 
             module load ReFrame
             reframe --version
