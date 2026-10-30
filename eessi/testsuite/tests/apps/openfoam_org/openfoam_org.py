@@ -141,8 +141,8 @@ class EESSI_OPENFOAM_ORG_LID_DRIVEN_CAVITY_BASE(rfm.RunOnlyRegressionTest):
     @deferrable
     def assert_completion(self):
         n_ranks = sn.count(sn.extractall(
-            '^Processor (?P<rank>[0-9]+)', self.path_to_wd + "/log.decompose", tag='rank'))
-        return (sn.assert_found("^Writing polyMesh", self.path_to_wd + "/log.blockMesh",
+            rf'^Processor (?P<rank>[0-9]+)$', self.path_to_wd + "/log.decompose", tag='rank'))
+        return (sn.assert_found(r"^Writing polyMesh", self.path_to_wd + "/log.blockMesh",
                                 msg="BlockMesh failure.")
                 and sn.assert_found(rf"\s+nCells: {self.nCells}", self.path_to_wd + "/log.blockMesh",
                                     msg="BlockMesh failure.")
