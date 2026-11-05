@@ -15,7 +15,8 @@
 
 import os
 
-from eessi.testsuite.common_config import common_logging_config, common_general_config
+from eessi.testsuite.common_config import (common_logging_config, common_general_config,
+                                           set_common_required_config)
 from eessi.testsuite.constants import *  # noqa: F403
 
 # This config will write all staging, output and logging to subdirs under this prefix
@@ -43,16 +44,11 @@ site_configuration = {
                 {
                     'name': 'arriesgado',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [
-                        'export EESSI_VERSION_OVERRIDE=2025.06-001',
-                        'source /cvmfs/software.eessi.io/versions/%s/init/bash' % os.getenv('EESSI_VERSION', '2025.06')
-                    ],
                     'launcher': 'mpirun',
                     'sched_options': {
                         'use_nodes_option': True,
                     },
                     'access': ['-p arriesgado-hirsute', '--nodelist arriesgado-1', '--export=None', '--time=1:00:00'],
-                    'environs': ['default'],
                     'max_jobs': 2,
                     'resources': [
                         {
@@ -73,16 +69,11 @@ site_configuration = {
                 {
                     'name': 'banana',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [
-                        'export EESSI_VERSION_OVERRIDE=2025.06-001',
-                        'source /cvmfs/software.eessi.io/versions/%s/init/bash' % os.getenv('EESSI_VERSION', '2025.06')
-                    ],
                     'launcher': 'mpirun',
                     'sched_options': {
                         'use_nodes_option': True,
                     },
                     'access': ['-p bananaf3', '--nodelist bananaf3-8', '--export=None', '--time=1:00:00'],
-                    'environs': ['default'],
                     'max_jobs': 2,
                     'resources': [
                         {
@@ -103,10 +94,6 @@ site_configuration = {
                 {
                     'name': 'premier',
                     'scheduler': 'slurm',
-                    'prepare_cmds': [
-                        'export EESSI_VERSION_OVERRIDE=2025.06-001',
-                        'source /cvmfs/software.eessi.io/versions/%s/init/bash' % os.getenv('EESSI_VERSION', '2025.06')
-                    ],
                     # Avoid error
                     # "The gds/shmem2 component attempted to attach to a shared-memory segment at a particular base
                     # address, but was given a different one."
@@ -117,7 +104,6 @@ site_configuration = {
                         'use_nodes_option': True,
                     },
                     'access': ['-p premier', '--export=None', '--time=1:00:00'],
-                    'environs': ['default'],
                     'max_jobs': 8,
                     'resources': [
                         {
@@ -139,14 +125,6 @@ site_configuration = {
             ]
         },
     ],
-    'environments': [
-        {
-            'name': 'default',
-            'cc': 'cc',
-            'cxx': '',
-            'ftn': '',
-        },
-    ],
     'logging': common_logging_config(reframe_prefix),
     'general': [
         {
@@ -157,3 +135,15 @@ site_configuration = {
         }
     ],
 }
+
+set_common_required_config(site_configuration)
+
+# Overwrite, as EESSI 2023.06 and 2025.06 have no RISC-V support
+site_configuration['environments'] = [
+    {'name': 'EESSI-2026.06', 'modules': ['EESSI/2026.06']}
+]
+
+# Add this env to each partition
+for system in site_configuration.get('systems', []):
+    for partition in system.get('partitions', []):
+        partition['environs'] = ['EESSI-2026.06']
