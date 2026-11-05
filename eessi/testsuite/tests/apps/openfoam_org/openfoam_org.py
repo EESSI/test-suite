@@ -33,6 +33,7 @@ See also https://reframe-hpc.readthedocs.io/en/stable/pipeline.html
 """
 
 import reframe as rfm
+import re
 # added only to make the linter happy
 from reframe.core.builtins import deferrable, parameter, run_after, run_before, sanity_function, performance_function
 import reframe.utility.sanity as sn
@@ -93,11 +94,24 @@ class EESSI_OPENFOAM_ORG_LID_DRIVEN_CAVITY_BASE(rfm.RunOnlyRegressionTest):
     endTime = 0
 
     @run_after('init')
+    def version_check(self):
+        """
+        Filter versions of OpenFOAM (ORG). versions < 10 are not supported.
+        """
+        version_search = re.search(r'^OpenFOAM/(?P<version>[0-9]+)-foss-\S+$', self.module_info[2]);
+
+        # This if condition is required because accessing groups of None types results in an error
+        if version_search != None:
+            if int(version_search.group('version')) < 10:
+                self.skip(msg="OpenFOAM(org) versions less than 10 not supported.")
+
+    @run_after('init')
     def set_compute_unit(self):
         """
         Set the compute unit to which tasks will be assigned:
         one task per CPU core for CPU runs.
         """
+
         if self.device_type == DEVICE_TYPES.CPU:
             self.compute_unit = COMPUTE_UNITS.CPU
         else:
