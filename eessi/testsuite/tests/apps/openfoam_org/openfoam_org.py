@@ -98,10 +98,10 @@ class EESSI_OPENFOAM_ORG_LID_DRIVEN_CAVITY_BASE(rfm.RunOnlyRegressionTest):
         """
         Filter versions of OpenFOAM (ORG). versions < 10 are not supported.
         """
-        version_search = re.search(r'^OpenFOAM/(?P<version>[0-9]+)-foss-\S+$', self.module_info[2]);
+        version_search = re.search(r'^OpenFOAM/(?P<version>[0-9]+)-foss-\S+$', self.module_info[2])
 
         # This if condition is required because accessing groups of None types results in an error
-        if version_search != None:
+        if version_search is not None:
             if int(version_search.group('version')) < 10:
                 self.skip(msg="OpenFOAM(org) versions less than 10 not supported.")
 
