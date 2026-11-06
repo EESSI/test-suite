@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 
 from reframe.core.config import load_config
 from reframe.core.exceptions import ConfigError
@@ -77,6 +78,38 @@ format_perfvars = '|'.join([
 ])
 
 
+def get_available_eessi_versions():
+    """
+    Query Lmod for the available EESSI versions.
+    The EESSI modules must already be available (in $MODULEPATH) before running ReFrame.
+    :return: sorted list of available EESSI versions, e.g. ['2023.06', '2025.06']
+    """
+    lmod_cmd = os.getenv('LMOD_CMD')
+    if not lmod_cmd:
+        raise EESSIError('Environment variable LMOD_CMD is not set: Lmod is required to query the EESSI versions.')
+
+    # EESSI modules may be hidden by the site, so include hidden modules
+    cmd = [lmod_cmd, 'python', '--show-hidden', '--terse', 'avail', 'EESSI']
+    try:
+        # Lmod prints the output of 'module avail' to stderr
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError) as err:
+        raise EESSIError(f'Failed to query the available EESSI versions with {cmd}: {err}') from err
+
+    # lines look like 'EESSI/2025.06' or 'EESSI/2025.06 <H>'
+    versions = {
+        line.split()[0].split('/', 1)[1]
+        for line in result.stderr.splitlines()
+        if line.startswith('EESSI/')
+    }
+    if not versions:
+        getlogger().warning(
+            'No EESSI versions found. If you want to test the EESSI software stack,'
+            ' make sure the EESSI modules are available before running ReFrame.'
+        )
+    return sorted(versions)
+
+
 def set_common_required_config(site_configuration: dict, set_memory: bool = True, eessi_prepare_cmds=None):
     """
     Update ReFrame configuration file: set common required config options.
@@ -87,11 +120,12 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
     if not eessi_prepare_cmds:
         eessi_prepare_cmds = []
 
+    eessi_versions = get_available_eessi_versions()
     environments = [
-        {'name': 'EESSI-2023.06', 'modules': ['EESSI/2023.06'], 'prepare_cmds': eessi_prepare_cmds},
-        {'name': 'EESSI-2025.06', 'modules': ['EESSI/2025.06'], 'prepare_cmds': eessi_prepare_cmds},
+        {'name': f'EESSI-{version}', 'modules': [f'EESSI/{version}'], 'prepare_cmds': eessi_prepare_cmds}
+        for version in eessi_versions
     ]
-    environs = ['EESSI-2023.06', 'EESSI-2025.06']
+    environs = [env['name'] for env in environments]
     use_nodes_option = True
     if set_memory:
         resources_memory = [{
@@ -105,24 +139,24 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
         'options': ['--gpus-per-node={num_gpus_per_node}'],
     }]
 
-    if 'environments' in site_configuration and site_configuration['environments'] != environments:
+    if 'environments' not in site_configuration:
+        site_configuration['environments'] = environments
+    elif environments and site_configuration['environments'] != environments:
         msg = f"Appending environments {environments} to the environments already present in the site_configuration"
         msg += f" ({site_configuration['environments']})"
         getlogger().info(msg)
         site_configuration['environments'].extend(environments)
-    else:
-        site_configuration['environments'] = environments
 
     for system in site_configuration.get('systems', []):
         for partition in system.get('partitions', []):
             # Set or overwrite the partition environment
-            if 'environs' in partition and partition['environs'] != environs:
+            if 'environs' not in partition:
+                partition['environs'] = environs
+            elif environs and partition['environs'] != environs:
                 msg = f"Appending environs {environs} to the existing environs ({partition['environs']})"
                 msg += f" for {system['name']}:{partition['name']}"
                 getlogger().info(msg)
                 partition['environs'].extend(environs)
-            else:
-                partition['environs'] = environs
 
             # Set or overwrite the 'use_nodes_option' scheduler option, if this is a SLURM-like scheduler
             if partition['scheduler'] in ['slurm', 'squeue']:
