@@ -209,7 +209,7 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
                     msg = f"Appending environs {environs} to the existing environs ({partition['environs']})"
                     msg += f" for {system['name']}:{partition['name']}"
                     getlogger().info(msg)
-                    partition['environs'].extend(environs)
+                    partition['environs'] = partition['environs'] + environs
 
             # Set or overwrite the 'use_nodes_option' scheduler option, if this is a SLURM-like scheduler
             if partition['scheduler'] in ['slurm', 'squeue']:
