@@ -119,7 +119,8 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
     :param set_memory: whether to set memory resources
     :param eessi_prepare_cmds: list of prepare commands for the environments created for `add_eessi_versions`
     :param add_eessi_versions: EESSI versions to add to the site configuration, each as a ReFrame environment
-        that is also added to every partition.
+        that is also added to the partitions. Environments already defined by the site are kept as they are,
+        and partitions that already list an EESSI environment (name starting with 'EESSI-') are left alone.
         True (default): all versions found by Lmod
         list of versions: only those versions, e.g. ['2025.06']
         False: add no versions, the site defines its own EESSI environments and partition environs
@@ -156,24 +157,26 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
 
     if 'environments' not in site_configuration:
         site_configuration['environments'] = environments
-    elif environments and site_configuration['environments'] != environments:
-        msg = f"Appending environments {environments} to the environments already present in the site_configuration"
-        msg += f" ({site_configuration['environments']})"
-        getlogger().info(msg)
-        site_configuration['environments'].extend(environments)
+    else:
+        # Don't redefine environments that are already defined by the site
+        defined_environments = {env['name'] for env in site_configuration['environments']}
+        new_environments = [env for env in environments if env['name'] not in defined_environments]
+        if new_environments:
+            msg = f"Appending environments {new_environments} to the environments already present in the"
+            msg += f" site_configuration ({site_configuration['environments']})"
+            getlogger().info(msg)
+            site_configuration['environments'].extend(new_environments)
 
     for system in site_configuration.get('systems', []):
         for partition in system.get('partitions', []):
-            # Set or overwrite the partition environment
+            # Add the EESSI environments, unless the site already selected specific EESSI environments for the partition
             if 'environs' not in partition:
                 partition['environs'] = environs
-            else:
-                missing_environs = [env for env in environs if env not in partition['environs']]
-                if missing_environs:
-                    msg = f"Appending environs {missing_environs} to the existing environs ({partition['environs']})"
-                    msg += f" for {system['name']}:{partition['name']}"
-                    getlogger().info(msg)
-                    partition['environs'].extend(missing_environs)
+            elif environs and not any(env.startswith('EESSI-') for env in partition['environs']):
+                msg = f"Appending environs {environs} to the existing environs ({partition['environs']})"
+                msg += f" for {system['name']}:{partition['name']}"
+                getlogger().info(msg)
+                partition['environs'].extend(environs)
 
             # Set or overwrite the 'use_nodes_option' scheduler option, if this is a SLURM-like scheduler
             if partition['scheduler'] in ['slurm', 'squeue']:

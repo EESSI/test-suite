@@ -129,7 +129,8 @@ eessi_prepare_cmds = [
 ]
 
 # Set common Slurm config options
-# By default, all EESSI versions found by Lmod are added as environments to every partition. Use the
-# add_eessi_versions argument to only add specific versions (e.g. add_eessi_versions=['2025.06']),
-# or add_eessi_versions=False to define the EESSI environments and partition environs yourself.
+# By default, all EESSI versions found by Lmod are added as environments to every partition, except
+# partitions that already list an EESSI environment. Use the add_eessi_versions argument to only add
+# specific versions (e.g. add_eessi_versions=['2025.06']), or add_eessi_versions=False to define the
+# EESSI environments and partition environs yourself.
 set_common_required_config(site_configuration, eessi_prepare_cmds=eessi_prepare_cmds)
