@@ -6,7 +6,7 @@ from reframe.core.config import load_config
 from reframe.core.exceptions import ConfigError
 from reframe.core.logging import getlogger
 
-from eessi.testsuite.constants import FEATURES
+from eessi.testsuite.constants import FEATURES, NO_EESSI
 from eessi.testsuite.utils import EESSIError
 
 
@@ -122,8 +122,10 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
     :param set_memory: whether to set memory resources
     :param eessi_prepare_cmds: list of prepare commands for the environments created for `add_eessi_versions`
     :param add_eessi_versions: EESSI versions to add to the site configuration, each as a ReFrame environment
-        that is also added to the partitions. Environments already defined by the site are kept as they are,
-        and partitions that already list an EESSI environment (name starting with 'EESSI-') are left alone.
+        that is also added to the partitions. Environments already defined by the site are kept as they are.
+        A partition that lists no EESSI environment gets all added versions; a partition that lists one or more
+        (name starting with 'EESSI-') is left alone, so it runs exactly those. To add no EESSI environments to a
+        partition, add the marker `NO_EESSI` (from eessi.testsuite.constants) to its 'environs'.
         True (default): all versions found by Lmod
         list of versions: only those versions, e.g. ['2025.06']
         False: add no versions, the site defines its own EESSI environments and partition environs
@@ -169,7 +171,7 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
         new_environments = [env for env in environments if env['name'] not in defined_environments]
         kept_environments = [env['name'] for env in environments if env['name'] in defined_environments]
         if kept_environments:
-            getlogger().info(f"Keeping site-defined environments {kept_environments}")
+            getlogger().info(f"Using site-defined environments {kept_environments}")
         if new_environments:
             msg = f"Appending environments {[env['name'] for env in new_environments]} to the environments"
             msg += f" already present in the site_configuration ({sorted(defined_environments)})"
@@ -179,7 +181,19 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
     for system in site_configuration.get('systems', []):
         for partition in system.get('partitions', []):
             # Add the EESSI environments, unless the site already selected specific EESSI environments for the partition
-            if 'environs' not in partition:
+            # or opted out with the NO_EESSI marker. The marker is not a real environment, so it must always be removed.
+            if NO_EESSI in partition.get('environs', []):
+                partition['environs'] = [env for env in partition['environs'] if env != NO_EESSI]
+                if any(env.startswith('EESSI-') for env in partition['environs']):
+                    msg = f"{system['name']}:{partition['name']} lists both {NO_EESSI} and EESSI environments:"
+                    msg += f" {partition['environs']}"
+                    raise EESSIError(msg)
+                getlogger().info(f"Not adding EESSI environs to {system['name']}:{partition['name']}")
+                if not partition['environs']:
+                    msg = f"No environs set for {system['name']}:{partition['name']}:"
+                    msg += " no tests will run on this partition."
+                    getlogger().warning(msg)
+            elif 'environs' not in partition:
                 partition['environs'] = list(environs)
                 if not add_eessi_versions:
                     msg = f"No environs set for {system['name']}:{partition['name']}:"
@@ -188,8 +202,8 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
             elif environs:
                 existing_eessi_environs = [env for env in partition['environs'] if env.startswith('EESSI-')]
                 if existing_eessi_environs:
-                    msg = f"Keeping existing EESSI environs {existing_eessi_environs}"
-                    msg += f" for {system['name']}:{partition['name']}"
+                    msg = f"Not adding more EESSI environs to {system['name']}:{partition['name']}:"
+                    msg += f" it already lists {existing_eessi_environs}"
                     getlogger().info(msg)
                 else:
                     msg = f"Appending environs {environs} to the existing environs ({partition['environs']})"
