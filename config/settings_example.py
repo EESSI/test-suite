@@ -116,9 +116,11 @@ site_configuration = {
     ],
 }
 
-# Set prepare commands for making EESSI modules available
+# Set prepare commands for making EESSI modules available in the test jobs.
+# Note: make sure that the EESSI modules are also available (in $MODULEPATH) before starting ReFrame:
+# the prepare commands only run in the test jobs, while EESSI versions and software are detected at startup.
 eessi_prepare_cmds = [
-    'module unuse MODULEPATH',
+    'module unuse $MODULEPATH',
     'module use /cvmfs/software.eessi.io/init/modules',
     # If the system doesn’t have an Lmod installation by default, the following
     # commands will use the one from EESSI. Note that it is up to you to pick a

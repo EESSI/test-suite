@@ -86,7 +86,10 @@ def get_available_eessi_versions():
     """
     lmod_cmd = os.getenv('LMOD_CMD')
     if not lmod_cmd:
-        raise EESSIError('Environment variable LMOD_CMD is not set: Lmod is required to query the EESSI versions.')
+        raise EESSIError(
+            'Environment variable LMOD_CMD is not set: Lmod is required to query the EESSI versions.'
+            ' Use the add_eessi_versions argument of set_common_required_config to skip this query.'
+        )
 
     # EESSI modules may be hidden by the site, so include hidden modules
     cmd = [lmod_cmd, 'python', '--show-hidden', '--terse', 'avail', 'EESSI']
@@ -177,7 +180,7 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
         for partition in system.get('partitions', []):
             # Add the EESSI environments, unless the site already selected specific EESSI environments for the partition
             if 'environs' not in partition:
-                partition['environs'] = environs
+                partition['environs'] = list(environs)
                 if not add_eessi_versions:
                     msg = f"No environs set for {system['name']}:{partition['name']}:"
                     msg += " no tests will run on this partition."
