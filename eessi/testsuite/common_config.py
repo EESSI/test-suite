@@ -137,6 +137,9 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
     else:
         raise EESSIError(f'add_eessi_versions must be True, False or a list of versions, got {add_eessi_versions!r}')
 
+    if eessi_prepare_cmds and not add_eessi_versions:
+        getlogger().warning('Ignoring eessi_prepare_cmds: add_eessi_versions is set to add no EESSI versions.')
+
     environments = [
         {'name': f'EESSI-{version}', 'modules': [f'EESSI/{version}'], 'prepare_cmds': eessi_prepare_cmds}
         for version in eessi_versions
@@ -161,9 +164,12 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
         # Don't redefine environments that are already defined by the site
         defined_environments = {env['name'] for env in site_configuration['environments']}
         new_environments = [env for env in environments if env['name'] not in defined_environments]
+        kept_environments = [env['name'] for env in environments if env['name'] in defined_environments]
+        if kept_environments:
+            getlogger().info(f"Keeping site-defined environments {kept_environments}")
         if new_environments:
-            msg = f"Appending environments {new_environments} to the environments already present in the"
-            msg += f" site_configuration ({site_configuration['environments']})"
+            msg = f"Appending environments {[env['name'] for env in new_environments]} to the environments"
+            msg += f" already present in the site_configuration ({sorted(defined_environments)})"
             getlogger().info(msg)
             site_configuration['environments'].extend(new_environments)
 
@@ -172,11 +178,21 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
             # Add the EESSI environments, unless the site already selected specific EESSI environments for the partition
             if 'environs' not in partition:
                 partition['environs'] = environs
-            elif environs and not any(env.startswith('EESSI-') for env in partition['environs']):
-                msg = f"Appending environs {environs} to the existing environs ({partition['environs']})"
-                msg += f" for {system['name']}:{partition['name']}"
-                getlogger().info(msg)
-                partition['environs'].extend(environs)
+                if not add_eessi_versions:
+                    msg = f"No environs set for {system['name']}:{partition['name']}:"
+                    msg += " no tests will run on this partition."
+                    getlogger().warning(msg)
+            elif environs:
+                existing_eessi_environs = [env for env in partition['environs'] if env.startswith('EESSI-')]
+                if existing_eessi_environs:
+                    msg = f"Keeping existing EESSI environs {existing_eessi_environs}"
+                    msg += f" for {system['name']}:{partition['name']}"
+                    getlogger().info(msg)
+                else:
+                    msg = f"Appending environs {environs} to the existing environs ({partition['environs']})"
+                    msg += f" for {system['name']}:{partition['name']}"
+                    getlogger().info(msg)
+                    partition['environs'].extend(environs)
 
             # Set or overwrite the 'use_nodes_option' scheduler option, if this is a SLURM-like scheduler
             if partition['scheduler'] in ['slurm', 'squeue']:
