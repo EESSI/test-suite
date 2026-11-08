@@ -110,17 +110,32 @@ def get_available_eessi_versions():
     return sorted(versions)
 
 
-def set_common_required_config(site_configuration: dict, set_memory: bool = True, eessi_prepare_cmds=None):
+def set_common_required_config(site_configuration: dict, set_memory: bool = True, eessi_prepare_cmds=None,
+                               add_eessi_versions=True):
     """
     Update ReFrame configuration file: set common required config options.
     Must be called at the end of the site configuration file (below the `site_configuration` dict).
     :param site_configuration: site configuration dictionary
     :param set_memory: whether to set memory resources
+    :param eessi_prepare_cmds: list of prepare commands for the environments created for `add_eessi_versions`
+    :param add_eessi_versions: EESSI versions to add to the site configuration, each as a ReFrame environment
+        that is also added to every partition.
+        True (default): all versions found by Lmod
+        list of versions: only those versions, e.g. ['2025.06']
+        False: add no versions, the site defines its own EESSI environments and partition environs
     """
     if not eessi_prepare_cmds:
         eessi_prepare_cmds = []
 
-    eessi_versions = get_available_eessi_versions()
+    if add_eessi_versions is True:
+        eessi_versions = get_available_eessi_versions()
+    elif add_eessi_versions is False:
+        eessi_versions = []
+    elif isinstance(add_eessi_versions, (list, tuple)):
+        eessi_versions = add_eessi_versions
+    else:
+        raise EESSIError(f'add_eessi_versions must be True, False or a list of versions, got {add_eessi_versions!r}')
+
     environments = [
         {'name': f'EESSI-{version}', 'modules': [f'EESSI/{version}'], 'prepare_cmds': eessi_prepare_cmds}
         for version in eessi_versions
@@ -152,11 +167,13 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
             # Set or overwrite the partition environment
             if 'environs' not in partition:
                 partition['environs'] = environs
-            elif environs and partition['environs'] != environs:
-                msg = f"Appending environs {environs} to the existing environs ({partition['environs']})"
-                msg += f" for {system['name']}:{partition['name']}"
-                getlogger().info(msg)
-                partition['environs'].extend(environs)
+            else:
+                missing_environs = [env for env in environs if env not in partition['environs']]
+                if missing_environs:
+                    msg = f"Appending environs {missing_environs} to the existing environs ({partition['environs']})"
+                    msg += f" for {system['name']}:{partition['name']}"
+                    getlogger().info(msg)
+                    partition['environs'].extend(missing_environs)
 
             # Set or overwrite the 'use_nodes_option' scheduler option, if this is a SLURM-like scheduler
             if partition['scheduler'] in ['slurm', 'squeue']:
