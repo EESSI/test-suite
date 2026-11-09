@@ -1,10 +1,10 @@
 import json
 import os
-import subprocess
 
 from reframe.core.config import load_config
-from reframe.core.exceptions import ConfigError
+from reframe.core.exceptions import ConfigError, EnvironError
 from reframe.core.logging import getlogger
+from reframe.core.modules import ModulesSystem
 
 from eessi.testsuite.constants import FEATURES, NO_EESSI
 from eessi.testsuite.utils import EESSIError
@@ -84,25 +84,19 @@ def get_available_eessi_versions():
     The EESSI modules must already be available (in $MODULEPATH) before running ReFrame.
     :return: sorted list of available EESSI versions, e.g. ['2023.06', '2025.06']
     """
-    lmod_cmd = os.getenv('LMOD_CMD')
-    if not lmod_cmd:
-        raise EESSIError(
-            'Environment variable LMOD_CMD is not set: Lmod is required to query the EESSI versions.'
-            ' Use the add_eessi_versions argument of set_common_required_config to skip this query.'
-        )
-
-    # EESSI modules may be hidden by the site, so include hidden modules
-    cmd = [lmod_cmd, 'python', '--show-hidden', '--terse', 'avail', 'EESSI']
+    # EESSI modules are Lua modulefiles, so they can only be found and used with Lmod
     try:
-        # Lmod prints the output of 'module avail' to stderr
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    except (OSError, subprocess.CalledProcessError) as err:
-        raise EESSIError(f'Failed to query the available EESSI versions with {cmd}: {err}') from err
+        lmod = ModulesSystem.create('lmod')
+        # EESSI modules may be hidden by the site, so include hidden modules
+        output = lmod.execute('--show-hidden', '--terse', 'avail', 'EESSI')
+    except (ConfigError, EnvironError) as err:
+        getlogger().warning(f'Not adding EESSI environments: Lmod is required to use EESSI, but failed with: {err}')
+        return []
 
     # lines look like 'EESSI/2025.06' or 'EESSI/2025.06 <H>'
     versions = {
         line.split()[0].split('/', 1)[1]
-        for line in result.stderr.splitlines()
+        for line in output.splitlines()
         if line.startswith('EESSI/')
     }
     if not versions:
@@ -188,7 +182,9 @@ def set_common_required_config(site_configuration: dict, set_memory: bool = True
                     msg = f"{system['name']}:{partition['name']} lists both {NO_EESSI} and EESSI environments:"
                     msg += f" {partition['environs']}"
                     raise EESSIError(msg)
-                getlogger().info(f"Not adding EESSI environs to {system['name']}:{partition['name']}")
+                msg = f"Not adding EESSI environs to {system['name']}:{partition['name']}:"
+                msg += f" it has the {NO_EESSI} marker in its environs"
+                getlogger().info(msg)
                 if not partition['environs']:
                     msg = f"No environs set for {system['name']}:{partition['name']}:"
                     msg += " no tests will run on this partition."
