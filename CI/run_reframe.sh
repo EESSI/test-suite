@@ -129,10 +129,12 @@ export PYTHONPATH="${PYTHONPATH}":"${TEMPDIR}"/test-suite/
 # Unset the ModulePath on systems where it is required
 unset MODULEPATH_ORIGINAL  # Make sure this isn't defined, or we might restore from some external value later on
 if [ "$UNSET_MODULEPATH" == "True" ]; then
+    echo "Unsetting MODULEPATH: $MODULEPATH"
     unset MODULEPATH
 else
     # Store the original modulepath. If we need to use the module command from EESSI, we need
     # to restore this modulepath after initializing the module command
+    echo "Storing initial MODULEPATH: $MODULEPATH"
     MODULEPATH_ORIGINAL=$MODULEPATH
 fi
 
@@ -141,6 +143,7 @@ fi
 # However, on systems in which there is no module command, we do need to initialize an
 # EESSI environment to get a module command
 if ! command -v module &>/dev/null; then
+    echo "No module command available"
     # No module command available
     if [ ! -z "$USE_MODULECMD_FROM_EESSI_VERSION" ]; then
         echo "Using module command from EESSI version ${USE_MODULECMD_FROM_EESSI_VERSION}"
@@ -158,8 +161,10 @@ if ! command -v module &>/dev/null; then
         exit 1
     fi
 else
+    echo "Module command found"
     # Module command available. Make sure the EESSI modules are on the PATH if we are testing EESSI environments
     if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
+        echo "Adding ${EESSI_CVMFS_REPO}/init/modules/ to the MODULEPATH"
         module use "${EESSI_CVMFS_REPO}/init/modules/"
     fi
 fi
@@ -208,6 +213,7 @@ echo "ReFrame prefix: ${RFM_PREFIX}"
 echo "Testing ReFrame programming environments: ${REFRAME_PROGRAMMING_ENVS}"
 echo "ReFrame args: ${REFRAME_ARGS}"
 echo "Using EESSI: ${USE_EESSI_SOFTWARE_STACK}"
+echo "Module version: $(module --version)"
 echo "MODULEPATH: ${MODULEPATH}"
 echo ""
 
