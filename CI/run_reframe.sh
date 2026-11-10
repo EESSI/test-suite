@@ -140,7 +140,8 @@ fi
 # before running the reframe command (reframe will load the modules for us)
 # However, on systems in which there is no module command, we do need to initialize an
 # EESSI environment to get a module command
-if ! command -v module &>/dev/null; then
+if [ -z "$LMOD_CMD" ]; then
+    echo "No Lmod module command available"
     # No module command available
     if [ ! -z "$USE_MODULECMD_FROM_EESSI_VERSION" ]; then
         echo "Using module command from EESSI version ${USE_MODULECMD_FROM_EESSI_VERSION}"
@@ -158,6 +159,7 @@ if ! command -v module &>/dev/null; then
         exit 1
     fi
 else
+    echo "Module command found: $LMOD_CMD"
     # Module command available. Make sure the EESSI modules are on the PATH if we are testing EESSI environments
     if [ "$USE_EESSI_SOFTWARE_STACK" == "True" ]; then
         module use "${EESSI_CVMFS_REPO}/init/modules/"
