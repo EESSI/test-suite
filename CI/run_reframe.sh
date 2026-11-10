@@ -152,7 +152,7 @@ if [ -z "$LMOD_CMD" ]; then
 	    module use "$MODULEPATH_ORIGINAL"
         fi
     else
-        msg="No module command available, and this CI run was not configured to use the EESSI module command."
+        msg="No Lmod module command available, and this CI run was not configured to use the EESSI module command."
         msg="$msg Consider setting 'USE_MODULECMD_FROM_EESSI_VERSION=<eessi_version>' in your CI runs to use a module"
         msg="$msg command from the EESSI compatibility layer. Exiting..."
         echo $msg
