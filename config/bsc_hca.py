@@ -136,11 +136,19 @@ site_configuration = {
     ],
 }
 
-set_common_required_config(site_configuration)
+eessi_prepare_cmds = [
+    # system doesn’t have an Lmod installation by default, the following
+    # commands will use the one from EESSI
+    'source /cvmfs/software.eessi.io/versions/2026.06/init/lmod/bash',
+    'module purge',
+]
+
+set_common_required_config(site_configuration, eessi_prepare_cmds)
 
 # Overwrite, as EESSI 2023.06 and 2025.06 have no RISC-V support
 site_configuration['environments'] = [
-    {'name': 'EESSI-2026.06', 'modules': ['EESSI/2026.06']}
+    # Need to respecify eessi_prepare_cmds, as the ones passed to `set_common_required_config` get overwritten
+    {'name': 'EESSI-2026.06', 'modules': ['EESSI/2026.06'], 'prepare_cmds': eessi_prepare_cmds}
 ]
 
 # Add this env to each partition
