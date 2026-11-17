@@ -164,8 +164,8 @@ def find_modules(regex: str, environ_mapping=None, name_only=True) -> Iterator[T
         if environ_mapping is None:
             return True
 
-        for patt, env in environ_mapping.items():
-            if re.match(patt, mod) and env == env:
+        for patt, mapped_env in environ_mapping.items():
+            if re.match(patt, mod) and mapped_env == env:
                 return True
 
         return False
