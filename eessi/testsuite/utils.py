@@ -29,9 +29,14 @@ _mod_hierarchies = {}
 try:
     from easybuild.framework.easyconfig.easyconfig import get_toolchain_hierarchy
     from easybuild.tools.options import set_up_configuration
+    from easybuild.tools.toolchain.utilities import search_toolchain
     # avoid checking index
     os.environ['EASYBUILD_IGNORE_INDEX'] = '1'
     set_up_configuration(args='')
+    # set_up_configuration inserts an entry at sys.path[0], which makes reframe's index-based
+    # temp_sys_path cleanup drop site-packages from sys.path. EasyBuild's lazy toolchain discovery
+    # would then only find GCCcore, so discover all toolchains now while sys.path is still intact.
+    search_toolchain('')
     _eb_is_available = True
 except ImportError:
     pass
