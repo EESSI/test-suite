@@ -61,6 +61,10 @@ EESSI_CONFIGS_TESTSUITE_BRANCH="${EESSI_CONFIGS_TESTSUITE_BRANCH:-${EESSI_TESTSU
 # If no module command is available from the system, the lmod init script will be sourced from the EESSI
 # version defined by USE_MODULECMD_FROM_EESSI_VERSION
 export USE_MODULECMD_FROM_EESSI_VERSION="${USE_MODULECMD_FROM_EESSI_VERSION:-2025.06}"
+# If USE_MODULECMD_FROM_EESSI=True, forces using the module command from EESSI
+# If USE_MODULECMD_FROM_EESSI=False, a module command is only used from EESSI if the system module command is not Lmod
+# or if the Lmod version is too old
+export USE_MODULECMD_FROM_EESSI="${USE_MODULECMD_FROM_EESSI:-False}"
 # The CVMFS repository that will be used to provide the module command or
 # (if testing the EESSI software stack AND a module command is already available) to provide the modules to initialize EESSI
 export EESSI_CVMFS_REPO="${EESSI_CVMFS_REPO:-/cvmfs/software.eessi.io}"
@@ -143,18 +147,33 @@ fi
 # However, on systems in which there is no module command, we do need to initialize an
 # EESSI environment to get a module command
 if [ -z "$LMOD_CMD" ]; then
-    echo "No Lmod module command available"
-    # No module command available
+    echo "No Lmod module command available, will try to use a module command from EESSI"
+    # No module command available, so try to use the one from EESSI
+    USE_MODULECMD_FROM_EESSI=True
+else
+    # Lmod module command found
+    # If EESSI is tested, Lmod needs to be >= 8.7 for the source_sh in the EESSI modules to work
+    IFS=. read -r major minor _ <<< "$LMOD_VERSION"
+    if [ "$USE_EESSI_SOFTWARE_STACK" == True ] && ! (( major > 8 || (major == 8 && minor >= 7) )); then
+        msg="An Lmod command with version $LMOD_VERSION is present on the system, but the EESSI modules only work with version 8.7 onwards."
+        msg="$msg Will try to use a module command from EESSI instead (setting USE_MODULECMD_FROM_EESSI=True)."
+        echo $msg
+        USE_MODULECMD_FROM_EESSI=True
+    fi
+fi
+
+# Check if we should use an Lmod from EESSI, and if so, initialize. If not, add the EESSI modules to MODULEPATH if needed
+if [ "$USE_MODULECMD_FROM_EESSI" == True ]; then
     if [ ! -z "$USE_MODULECMD_FROM_EESSI_VERSION" ]; then
         echo "Using module command from EESSI version ${USE_MODULECMD_FROM_EESSI_VERSION}"
         source "${EESSI_CVMFS_REPO}/versions/${USE_MODULECMD_FROM_EESSI_VERSION}/init/lmod/bash"
         module unload EESSI
-	if [ ! -z "$MODULEPATH_ORIGINAL" ]; then
-	    echo "Prepending original modulepath: $MODULEPATH_ORIGINAL"
-	    module use "$MODULEPATH_ORIGINAL"
+        if [ ! -z "$MODULEPATH_ORIGINAL" ]; then
+            echo "Prepending original modulepath: $MODULEPATH_ORIGINAL"
+            module use "$MODULEPATH_ORIGINAL"
         fi
     else
-        msg="No Lmod module command available, and this CI run was not configured to use the EESSI module command."
+        msg="Trying to use the Lmod module command from EESSI, but no EESSI version was defined for this."
         msg="$msg Consider setting 'USE_MODULECMD_FROM_EESSI_VERSION=<eessi_version>' in your CI runs to use a module"
         msg="$msg command from the EESSI compatibility layer. Exiting..."
         echo $msg
