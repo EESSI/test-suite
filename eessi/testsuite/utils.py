@@ -184,7 +184,9 @@ def find_modules(regex: str, environ_mapping=None, name_only=True) -> Iterator[T
             dupes = []
 
             if len(_modules_cache[part.fullname][env.name]) == 0:
-                getlogger().warning(f"No '{regex}' modules found in partition '{part.fullname}' environment '{env}'")
+                getlogger().warning(f"No modules found in partition '{part.fullname}' environment '{env}'")
+
+            has_matches = False
 
             for mod in _modules_cache[part.fullname][env.name]:
                 modmod = mod
@@ -198,6 +200,10 @@ def find_modules(regex: str, environ_mapping=None, name_only=True) -> Iterator[T
                         seen.add(mod)
                     if _is_valid_for_env(mod, env.name):
                         yield (part.fullname, env.name, mod)
+                        has_matches = True
+
+            if not has_matches:
+                getlogger().warning(f"No '{regex}' modules found in partition '{part.fullname}' environment '{env}'")
 
             if dupes:
                 err_msg = (
