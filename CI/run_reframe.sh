@@ -61,7 +61,9 @@ EESSI_CONFIGS_TESTSUITE_BRANCH="${EESSI_CONFIGS_TESTSUITE_BRANCH:-${EESSI_TESTSU
 # If no module command is available from the system, the lmod init script will be sourced from the EESSI
 # version defined by USE_MODULECMD_FROM_EESSI_VERSION
 export USE_MODULECMD_FROM_EESSI_VERSION="${USE_MODULECMD_FROM_EESSI_VERSION:-2025.06}"
-# Force using the module command from EESSI, regardless of whether one is available from the system
+# If USE_MODULECMD_FROM_EESSI=True, forces using the module command from EESSI
+# If USE_MODULECMD_FROM_EESSI=False, a module command is only used from EESSI if the system module command is not Lmod
+# or if the Lmod version is too old
 export USE_MODULECMD_FROM_EESSI="${USE_MODULECMD_FROM_EESSI:-False}"
 # The CVMFS repository that will be used to provide the module command or
 # (if testing the EESSI software stack AND a module command is already available) to provide the modules to initialize EESSI
@@ -166,9 +168,9 @@ if [ "$USE_MODULECMD_FROM_EESSI" == True ]; then
         echo "Using module command from EESSI version ${USE_MODULECMD_FROM_EESSI_VERSION}"
         source "${EESSI_CVMFS_REPO}/versions/${USE_MODULECMD_FROM_EESSI_VERSION}/init/lmod/bash"
         module unload EESSI
-	if [ ! -z "$MODULEPATH_ORIGINAL" ]; then
-	    echo "Prepending original modulepath: $MODULEPATH_ORIGINAL"
-	    module use "$MODULEPATH_ORIGINAL"
+        if [ ! -z "$MODULEPATH_ORIGINAL" ]; then
+            echo "Prepending original modulepath: $MODULEPATH_ORIGINAL"
+            module use "$MODULEPATH_ORIGINAL"
         fi
     else
         msg="Trying to use the Lmod module command from EESSI, but no EESSI version was defined for this."
