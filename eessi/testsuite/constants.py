@@ -53,6 +53,10 @@ TAGS = _Tags()
 FEATURES = _Features()
 GPU_VENDORS = _GPUVendors()
 
+# Marker for the 'environs' of a partition in the site configuration: don't add EESSI environments to this partition.
+# It is removed from 'environs' by set_common_required_config, so it is not a real ReFrame environment.
+NO_EESSI = 'NO_EESSI'
+
 SCALES = {
     # required keys:
     # - num_nodes
