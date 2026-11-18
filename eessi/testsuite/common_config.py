@@ -216,15 +216,15 @@ def common_eessi_init(eessi_version=None):
     """
     Deprecated - print warning with suggested change.
     """
-    getlogger().warning(' '.join([
+    getlogger().warning(
         "common_eessi_init() is deprecated, you should update the 'prepare_cmds' in your ReFrame configuration.\n"
         "On systems that have a `module` command available, you no longer need to add any EESSI-specific commands to "
         "'prepare_cmds', unless jobs start in a clean environment (e.g. with sbatch --export=NONE), where you set:\n"
         "'prepare_cmds': ['export MODULEPATH=/cvmfs/software.eessi.io/init/modules'].\n"
         "If no `module` command is available, source Lmod from the compatibility layer using:\n"
-        "'prepare_cmds' : ['source /cvfms/software.eessi.io/2025.06/init/lmod/bash && module unload EESSI']"
-    ]))
-    return 'source /cvfms/software.eessi.io/2025.06/init/lmod/bash && module unload EESSI'
+        "'prepare_cmds' : ['source /cvmfs/software.eessi.io/2025.06/init/lmod/bash && module unload EESSI']"
+    )
+    return 'source /cvmfs/software.eessi.io/2025.06/init/lmod/bash && module unload EESSI'
 
 
 def get_sbatch_account():
