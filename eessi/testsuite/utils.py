@@ -37,6 +37,10 @@ except ImportError:
     pass
 
 
+def make_red(msg):
+    return f'\033[31m{msg}\033[0m'
+
+
 class EESSIError(ReframeFatalError):
     traceback = os.getenv('TRACEBACK', "0")
     addendum = ''
@@ -46,7 +50,7 @@ class EESSIError(ReframeFatalError):
         addendum = '\nRerun with `TRACEBACK=1 reframe ...` to show the full traceback.'
 
     def __str__(self):
-        return super().__str__() + EESSIError.addendum
+        return make_red(super().__str__()) + EESSIError.addendum
 
 
 def log(msg, logger=printer.debug):
@@ -160,8 +164,8 @@ def find_modules(regex: str, environ_mapping=None, name_only=True) -> Iterator[T
         if environ_mapping is None:
             return True
 
-        for patt, env in environ_mapping.items():
-            if re.match(patt, mod) and env == env:
+        for patt, mapped_env in environ_mapping.items():
+            if re.match(patt, mod) and mapped_env == env:
                 return True
 
         return False

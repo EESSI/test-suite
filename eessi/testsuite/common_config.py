@@ -1,9 +1,51 @@
 import json
 import os
 
+from reframe.core.config import load_config
+from reframe.core.exceptions import ConfigError
 from reframe.core.logging import getlogger
 
 from eessi.testsuite.constants import FEATURES
+from eessi.testsuite.utils import EESSIError
+
+
+def reframe_version_is_supported():
+    testconfig = load_config()
+    testconfig.update_config({
+        'systems': [{
+            'name': 'config_probe',
+            'hostnames': ['.*'],
+            'partitions': [{
+                'name': 'default',
+                'scheduler': 'local',
+                'launcher': 'local',
+                'environs': ['EESSI-2025.06'],
+                # feature names starting with a digit must be supported
+                'features': ['16_nodes'],
+            }],
+        }],
+        'environments': [{
+            # environment names containing dots must be supported
+            'name': 'EESSI-2025.06',
+        }],
+    }, '<config-probe>')
+
+    try:
+        testconfig.validate()
+    except ConfigError:
+        return False
+
+    return True
+
+
+if not reframe_version_is_supported():
+    msg = ' '.join([
+        'The EESSI test suite does not support this ReFrame version due to feature name and environment name',
+        'restrictions. Unsupported versions: >=4.10.1,<4.11',
+        'See https://github.com/reframe-hpc/reframe/issues/3723 for details.',
+    ])
+    raise EESSIError(msg)
+
 
 perflog_format = '|'.join([
     '%(check_job_completion_time)s',
@@ -35,16 +77,19 @@ format_perfvars = '|'.join([
 ])
 
 
-def set_common_required_config(site_configuration: dict, set_memory: bool = True):
+def set_common_required_config(site_configuration: dict, set_memory: bool = True, eessi_prepare_cmds=None):
     """
     Update ReFrame configuration file: set common required config options.
     Must be called at the end of the site configuration file (below the `site_configuration` dict).
     :param site_configuration: site configuration dictionary
     :param set_memory: whether to set memory resources
     """
+    if not eessi_prepare_cmds:
+        eessi_prepare_cmds = []
+
     environments = [
-        {'name': 'EESSI-2023.06', 'modules': ['EESSI/2023.06']},
-        {'name': 'EESSI-2025.06', 'modules': ['EESSI/2025.06']},
+        {'name': 'EESSI-2023.06', 'modules': ['EESSI/2023.06'], 'prepare_cmds': eessi_prepare_cmds},
+        {'name': 'EESSI-2025.06', 'modules': ['EESSI/2025.06'], 'prepare_cmds': eessi_prepare_cmds},
     ]
     environs = ['EESSI-2023.06', 'EESSI-2025.06']
     use_nodes_option = True
